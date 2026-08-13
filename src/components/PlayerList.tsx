@@ -1,5 +1,5 @@
 import { useState, type TouchEvent } from 'react'
-import { dismissHint, loadHintDismissed, type RosterEntry } from '../lib/storage'
+import type { RosterEntry } from '../lib/storage'
 import { durationHours, formatHours } from '../lib/time'
 import type { Gender, Player, SessionInput } from '../lib/types'
 
@@ -62,7 +62,6 @@ export function PlayerList({
   const [editError, setEditError] = useState('')
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
   const [swipe, setSwipe] = useState<{ id: string; startX: number; deltaX: number } | null>(null)
-  const [hintDismissed, setHintDismissed] = useState(() => loadHintDismissed())
 
   const males = input.players.filter((p) => p.gender === 'male').length
   const females = input.players.length - males
@@ -162,25 +161,14 @@ export function PlayerList({
         </span>
       </div>
 
-      {!hintDismissed && (
-        <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 flex items-start gap-2 text-xs text-emerald-800 mb-3">
-          <span className="flex-1 leading-snug">
-            💡 Bấm avatar để đổi giới tính · bấm tên để sửa thông tin
-            <span className="md:hidden"> · vuốt trái để xóa</span>
-          </span>
-          <button
-            type="button"
-            aria-label="Đóng gợi ý"
-            onClick={() => {
-              setHintDismissed(true)
-              dismissHint()
-            }}
-            className="w-8 h-8 shrink-0 flex items-center justify-center text-emerald-600 hover:bg-emerald-100 rounded-lg leading-none"
-          >
-            ×
-          </button>
-        </div>
-      )}
+      <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 text-xs text-emerald-800 space-y-1 mb-3">
+        <p>💡 Bấm avatar để đổi giới tính</p>
+        <p>💡 Bấm tên để sửa thông tin người chơi</p>
+        <p>
+          <span className="md:hidden">💡 Vuốt trái để xóa</span>
+          <span className="hidden md:inline">💡 Bấm nút × để xóa</span>
+        </p>
+      </div>
 
       <div className="flex gap-2">
         <input

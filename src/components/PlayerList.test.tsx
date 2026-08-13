@@ -220,22 +220,13 @@ test('empty player list shows a centered hint instead of an empty list', () => {
   expect(screen.getByText('Chưa có người chơi nào')).toBeInTheDocument()
 })
 
-test('hint banner is visible on fresh render, dismissible, and stays dismissed after remount', () => {
-  const { unmount } = render(<Harness initial={base} />)
-  expect(
-    screen.getByText(/Bấm avatar để đổi giới tính · bấm tên để sửa thông tin/),
-  ).toBeInTheDocument()
-
-  fireEvent.click(screen.getByRole('button', { name: 'Đóng gợi ý' }))
-  expect(
-    screen.queryByText(/Bấm avatar để đổi giới tính · bấm tên để sửa thông tin/),
-  ).not.toBeInTheDocument()
-
-  unmount()
+test('hint banner is always visible, one tip per line, with no dismiss button', () => {
   render(<Harness initial={base} />)
-  expect(
-    screen.queryByText(/Bấm avatar để đổi giới tính · bấm tên để sửa thông tin/),
-  ).not.toBeInTheDocument()
+  expect(screen.getByText('💡 Bấm avatar để đổi giới tính')).toBeInTheDocument()
+  expect(screen.getByText('💡 Bấm tên để sửa thông tin người chơi')).toBeInTheDocument()
+  expect(screen.getByText('💡 Vuốt trái để xóa')).toBeInTheDocument()
+  expect(screen.getByText('💡 Bấm nút × để xóa')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Đóng gợi ý' })).not.toBeInTheDocument()
 })
 
 test('the edit panel renders outside the swipe-clipped (overflow-hidden) container', () => {
