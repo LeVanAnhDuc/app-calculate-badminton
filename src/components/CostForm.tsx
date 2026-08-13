@@ -32,6 +32,7 @@ export function CostForm({ input, onPatch }: Props) {
         <div className="flex-1">
           <label className="text-xs text-gray-500 block mb-1" htmlFor="shuttle-price">Giá / quả</label>
           <MoneyInput
+            id="shuttle-price"
             aria-label="Giá / quả"
             value={input.shuttlePrice}
             onChange={(v) => onPatch({ shuttlePrice: v })}
@@ -46,6 +47,7 @@ export function CostForm({ input, onPatch }: Props) {
       <div className="mt-3">
         <label className="text-xs text-gray-500 block mb-1" htmlFor="court-fee">Tiền sân</label>
         <MoneyInput
+          id="court-fee"
           aria-label="Tiền sân"
           value={input.courtFee}
           onChange={(v) => onPatch({ courtFee: v })}

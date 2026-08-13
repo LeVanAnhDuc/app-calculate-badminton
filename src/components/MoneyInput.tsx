@@ -5,11 +5,13 @@ interface Props {
   onChange: (v: number) => void
   className?: string
   'aria-label'?: string
+  id?: string
 }
 
-export function MoneyInput({ value, onChange, className = '', ...rest }: Props) {
+export function MoneyInput({ value, onChange, className = '', id, ...rest }: Props) {
   return (
     <input
+      id={id}
       inputMode="numeric"
       value={value === 0 ? '' : formatNumber(value)}
       onChange={(e) => onChange(parseMoney(e.target.value))}
