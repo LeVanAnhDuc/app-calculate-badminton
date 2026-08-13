@@ -179,7 +179,11 @@ export function PlayerList({
               type="button"
               onClick={() => setGender(g)}
               className={`h-12 px-3 text-sm font-semibold ${
-                gender === g ? 'bg-emerald-600 text-white' : 'bg-white text-gray-500'
+                gender === g
+                  ? g === 'male'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-pink-500 text-white'
+                  : 'bg-white text-gray-500'
               }`}
             >
               {g === 'male' ? 'Nam' : 'Nữ'}
@@ -311,7 +315,7 @@ export function PlayerList({
                         aria-label={`Nữ ${p.name}`}
                         onClick={() => onChangeGender(p.id, 'female')}
                         className={`h-8 px-2 rounded-full text-xs font-semibold ${
-                          p.gender === 'female' ? 'bg-emerald-600 text-white' : 'text-gray-400'
+                          p.gender === 'female' ? 'bg-pink-500 text-white' : 'text-gray-400'
                         }`}
                       >
                         Nữ
@@ -371,7 +375,7 @@ export function PlayerList({
                         aria-label={`Đặt Nữ cho ${p.name}`}
                         onClick={() => onChangeGender(p.id, 'female')}
                         className={`flex-1 h-11 text-sm font-semibold ${
-                          p.gender === 'female' ? 'bg-emerald-600 text-white' : 'bg-white text-gray-500'
+                          p.gender === 'female' ? 'bg-pink-500 text-white' : 'bg-white text-gray-500'
                         }`}
                       >
                         Nữ
