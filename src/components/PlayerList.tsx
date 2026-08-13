@@ -196,22 +196,29 @@ export function PlayerList({
           className="flex-1 min-w-0 h-12 rounded-xl border border-gray-300 px-3 text-base"
         />
         <div className="flex rounded-xl border border-gray-300 overflow-hidden shrink-0">
-          {(['male', 'female'] as Gender[]).map((g) => (
-            <button
-              key={g}
-              type="button"
-              onClick={() => setGender(g)}
-              className={`h-12 px-3 text-sm font-semibold ${
-                gender === g
-                  ? g === 'male'
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-pink-500 text-white'
-                  : 'bg-white text-gray-500'
-              }`}
-            >
-              {g === 'male' ? 'Nam' : 'Nữ'}
-            </button>
-          ))}
+          {(['male', 'female'] as Gender[]).map((g) => {
+            const active = gender === g
+            return (
+              <button
+                key={g}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setGender(g)}
+                className={`relative h-12 px-3 text-sm font-semibold ${
+                  active ? 'text-white' : 'bg-white text-gray-500'
+                }`}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="gender-add-pill"
+                    className={`absolute inset-0 ${g === 'male' ? 'bg-emerald-600' : 'bg-pink-500'}`}
+                    transition={{ type: 'spring', bounce: 0.2, duration: 0.3 }}
+                  />
+                )}
+                <span className="relative z-10">{g === 'male' ? 'Nam' : 'Nữ'}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -330,18 +337,20 @@ export function PlayerList({
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         {input.mode === 'ratio' && (
-                          <button
+                          <motion.button
                             type="button"
+                            aria-pressed={p.halfSession}
                             aria-label={`½ buổi ${p.name}`}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => updatePlayer(p.id, { halfSession: !p.halfSession })}
-                            className={`h-9 px-2.5 rounded-full text-xs font-semibold ${
+                            className={`h-9 px-2.5 rounded-full text-xs font-semibold transition-colors duration-200 ${
                               p.halfSession
                                 ? 'bg-emerald-600 text-white'
                                 : 'border border-gray-200 text-gray-400'
                             }`}
                           >
                             {p.halfSession ? '½ buổi ✓' : '½ buổi'}
-                          </button>
+                          </motion.button>
                         )}
                         <button
                           type="button"
@@ -416,27 +425,39 @@ export function PlayerList({
                   <div className="flex rounded-xl border border-gray-300 overflow-hidden">
                     <button
                       type="button"
+                      aria-pressed={editingPlayer.gender === 'male'}
                       aria-label={`Đặt Nam cho ${editingPlayer.name}`}
                       onClick={() => onChangeGender(editingPlayer.id, 'male')}
-                      className={`flex-1 h-11 text-sm font-semibold ${
-                        editingPlayer.gender === 'male'
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-white text-gray-500'
+                      className={`relative flex-1 h-11 text-sm font-semibold ${
+                        editingPlayer.gender === 'male' ? 'text-white' : 'bg-white text-gray-500'
                       }`}
                     >
-                      Nam
+                      {editingPlayer.gender === 'male' && (
+                        <motion.div
+                          layoutId="gender-edit-pill"
+                          className="absolute inset-0 bg-emerald-600"
+                          transition={{ type: 'spring', bounce: 0.2, duration: 0.3 }}
+                        />
+                      )}
+                      <span className="relative z-10">Nam</span>
                     </button>
                     <button
                       type="button"
+                      aria-pressed={editingPlayer.gender === 'female'}
                       aria-label={`Đặt Nữ cho ${editingPlayer.name}`}
                       onClick={() => onChangeGender(editingPlayer.id, 'female')}
-                      className={`flex-1 h-11 text-sm font-semibold ${
-                        editingPlayer.gender === 'female'
-                          ? 'bg-pink-500 text-white'
-                          : 'bg-white text-gray-500'
+                      className={`relative flex-1 h-11 text-sm font-semibold ${
+                        editingPlayer.gender === 'female' ? 'text-white' : 'bg-white text-gray-500'
                       }`}
                     >
-                      Nữ
+                      {editingPlayer.gender === 'female' && (
+                        <motion.div
+                          layoutId="gender-edit-pill"
+                          className="absolute inset-0 bg-pink-500"
+                          transition={{ type: 'spring', bounce: 0.2, duration: 0.3 }}
+                        />
+                      )}
+                      <span className="relative z-10">Nữ</span>
                     </button>
                   </div>
                   {input.mode === 'hourly' && (
