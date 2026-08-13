@@ -39,11 +39,13 @@ function load<T>(key: string, guard: (v: unknown) => boolean, fallback: T): T {
   }
 }
 
-function save(key: string, value: unknown): void {
+function save(key: string, value: unknown): boolean {
   try {
     localStorage.setItem(key, JSON.stringify(value))
+    return true
   } catch {
     // storage full/unavailable — app keeps working in memory
+    return false
   }
 }
 
@@ -117,7 +119,7 @@ const isSavedSession = (v: unknown): boolean =>
   isCalcResult(v.result)
 
 export const loadRoster = (): RosterEntry[] => load('roster', isRoster, [])
-export const saveRoster = (r: RosterEntry[]): void => save('roster', r)
+export const saveRoster = (r: RosterEntry[]): boolean => save('roster', r)
 
 export function addToRoster(roster: RosterEntry[], name: string, gender: Gender): RosterEntry[] {
   const trimmed = name.trim()
@@ -126,11 +128,11 @@ export function addToRoster(roster: RosterEntry[], name: string, gender: Gender)
 }
 
 export const loadSettings = (): Settings => load('settings', isSettings, DEFAULT_SETTINGS)
-export const saveSettings = (s: Settings): void => save('settings', s)
+export const saveSettings = (s: Settings): boolean => save('settings', s)
 
 export const loadCurrentSession = (): SessionInput | null =>
   load<SessionInput | null>('currentSession', isSession, null)
-export const saveCurrentSession = (s: SessionInput): void => save('currentSession', s)
+export const saveCurrentSession = (s: SessionInput): boolean => save('currentSession', s)
 
 export const HISTORY_LIMIT = 500
 
@@ -146,4 +148,4 @@ export function loadHistory(): SavedSession[] {
   }
 }
 
-export const saveHistory = (h: SavedSession[]): void => save('history', h.slice(0, HISTORY_LIMIT))
+export const saveHistory = (h: SavedSession[]): boolean => save('history', h.slice(0, HISTORY_LIMIT))

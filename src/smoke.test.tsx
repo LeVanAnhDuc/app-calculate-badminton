@@ -109,6 +109,26 @@ test('"Buổi mới" resets the session after confirmation, and does nothing whe
   expect(screen.getByLabelText('Số quả cầu')).toHaveValue('')
 })
 
+test('a failed history save surfaces an error toast instead of failing silently', async () => {
+  const originalSetItem = Storage.prototype.setItem.bind(localStorage)
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key: string, value: string) => {
+    if (key === 'history') throw new Error('QuotaExceededError')
+    originalSetItem(key, value)
+  })
+
+  render(<App />)
+  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
+  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
+  fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Lưu buổi này' }))
+
+  expect(await screen.findByText(/Không lưu được lịch sử/)).toBeInTheDocument()
+
+  vi.restoreAllMocks()
+})
+
 test('opening history pushes browser state; the in-app ← button navigates back', async () => {
   render(<App />)
   fireEvent.click(screen.getByRole('button', { name: 'Xem lịch sử các buổi →' }))

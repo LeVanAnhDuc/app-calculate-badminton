@@ -73,8 +73,17 @@ export default function App() {
       rounding: session.rounding,
     })
   }, [session])
-  useEffect(() => saveRoster(roster), [roster])
-  useEffect(() => saveHistory(history), [history])
+  useEffect(() => {
+    saveRoster(roster)
+  }, [roster])
+  const historySaveOkRef = useRef(true)
+  useEffect(() => {
+    const ok = saveHistory(history)
+    if (!ok && historySaveOkRef.current) {
+      toast.error('Không lưu được lịch sử — bộ nhớ trình duyệt đầy')
+    }
+    historySaveOkRef.current = ok
+  }, [history])
 
   const onPatch = (p: Partial<SessionInput>) => setSession((s) => ({ ...s, ...p }))
 
