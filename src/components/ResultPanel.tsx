@@ -158,9 +158,10 @@ interface Props {
   mode: Mode
   errors: string[]
   onSave: () => void
+  saveDisabled?: boolean
 }
 
-export function ResultPanel({ result, mode, errors, onSave }: Props) {
+export function ResultPanel({ result, mode, errors, onSave, saveDisabled }: Props) {
   const [fullscreen, setFullscreen] = useState(false)
 
   return (
@@ -209,7 +210,7 @@ export function ResultPanel({ result, mode, errors, onSave }: Props) {
 
       <button
         type="button"
-        disabled={result === null}
+        disabled={result === null || saveDisabled}
         onClick={onSave}
         className="w-full h-14 mt-4 rounded-2xl bg-emerald-600 text-white text-base font-bold shadow-md disabled:bg-gray-300"
       >

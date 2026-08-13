@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CostForm } from './components/CostForm'
 import { HistoryPage } from './components/HistoryPage'
 import { ModeSwitch } from './components/ModeSwitch'
@@ -88,19 +88,38 @@ export default function App() {
     setRoster((r) => addToRoster(r, name, gender))
   }
 
-  const handleChangeGender = (playerId: string) => {
+  const handleChangeGender = (playerId: string, gender: Gender) => {
     const player = session.players.find((p) => p.id === playerId)
     if (!player) return
-    const newGender: Gender = player.gender === 'male' ? 'female' : 'male'
     setSession((s) => ({
       ...s,
-      players: s.players.map((p) => (p.id === playerId ? { ...p, gender: newGender } : p)),
+      players: s.players.map((p) => (p.id === playerId ? { ...p, gender } : p)),
     }))
-    setRoster((r) => addToRoster(r, player.name, newGender))
+    setRoster((r) => addToRoster(r, player.name, gender))
+  }
+
+  const handleRenamePlayer = (playerId: string, newName: string) => {
+    const player = session.players.find((p) => p.id === playerId)
+    if (!player) return
+    setSession((s) => ({
+      ...s,
+      players: s.players.map((p) => (p.id === playerId ? { ...p, name: newName } : p)),
+    }))
+    setRoster((r) => addToRoster(r, newName, player.gender))
   }
 
   const errors = validateSession(session)
   const result = errors.length === 0 ? calcSession(session) : null
+
+  const [justSaved, setJustSaved] = useState(false)
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(
+    () => () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    },
+    [],
+  )
 
   const handleSave = () => {
     if (!result) return
@@ -114,6 +133,9 @@ export default function App() {
     setRoster((r) =>
       session.players.reduce((acc, p) => addToRoster(acc, p.name, p.gender), r),
     )
+    setJustSaved(true)
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    saveTimeoutRef.current = setTimeout(() => setJustSaved(false), 2500)
   }
 
   if (page === 'history') {
@@ -180,6 +202,7 @@ export default function App() {
               onPatch={onPatch}
               onAddPlayer={handleAddPlayer}
               onChangeGender={handleChangeGender}
+              onRenamePlayer={handleRenamePlayer}
             />
             <RoundingToggle
               rounding={session.rounding}
@@ -187,7 +210,13 @@ export default function App() {
             />
           </div>
           <div className="mt-4 md:mt-0 md:col-span-2 md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto space-y-4">
-            <ResultPanel result={result} mode={session.mode} errors={errors} onSave={handleSave} />
+            <ResultPanel
+              result={result}
+              mode={session.mode}
+              errors={errors}
+              onSave={handleSave}
+              saveDisabled={justSaved}
+            />
             <button
               type="button"
               onClick={openHistory}
@@ -198,6 +227,11 @@ export default function App() {
           </div>
         </main>
       </div>
+      {justSaved && (
+        <div className="fixed bottom-4 inset-x-4 md:left-auto md:right-6 md:w-72 bg-emerald-600 text-white rounded-xl h-12 flex items-center justify-center font-semibold shadow-lg z-50">
+          Đã lưu buổi ✓
+        </div>
+      )}
     </div>
   )
 }
