@@ -3,7 +3,7 @@ import { formatVND } from '../lib/format'
 import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
 import { durationHours } from '../lib/time'
-import { SurplusRow } from './ResultPanel'
+import { SurplusRow, TotalCollectedRow } from './ResultPanel'
 
 interface Props {
   history: SavedSession[]
@@ -141,12 +141,7 @@ export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
                               {s.input.rounding === 'up1000' ? 'Tròn lên 1.000đ' : 'Giữ chính xác'}
                             </span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Tổng thu</span>
-                            <span className="font-semibold text-gray-900">
-                              {formatVND(s.result.totalCollected)}
-                            </span>
-                          </div>
+                          <TotalCollectedRow total={s.result.totalCollected} />
                           <SurplusRow surplus={s.result.surplus} />
                         </div>
                       </div>

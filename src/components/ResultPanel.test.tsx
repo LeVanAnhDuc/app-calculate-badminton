@@ -19,20 +19,24 @@ const input: SessionInput = {
   ],
 }
 
-test('shows per-player amounts and total collected', () => {
+test('shows per-player amounts; total collected is hidden until revealed', () => {
   const result = calcRatioMode(input)
   render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
   expect(screen.getByText('180.000đ')).toBeInTheDocument() // Tuấn: 300k×1.5/2.5
   expect(screen.getByText('120.000đ')).toBeInTheDocument() // Lan
-  expect(screen.getByText('300.000đ')).toBeInTheDocument() // tổng thu
+  expect(screen.queryByText('300.000đ')).not.toBeInTheDocument() // tổng thu hidden by default
+  fireEvent.click(screen.getByRole('button', { name: 'Hiện tổng thu' }))
+  expect(screen.getByText('300.000đ')).toBeInTheDocument() // tổng thu revealed
 })
 
 test('surplus hidden behind eye toggle by default', () => {
   const result = calcRatioMode({ ...input, courtFee: 151000 })
   render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
-  expect(screen.getByText('•••••')).toBeInTheDocument()
+  // both Tổng thu and Số dư are hidden by default
+  expect(screen.getAllByText('•••••')).toHaveLength(2)
   fireEvent.click(screen.getByRole('button', { name: 'Hiện số dư' }))
-  expect(screen.queryByText('•••••')).not.toBeInTheDocument()
+  // Tổng thu stays hidden; only the surplus row was revealed
+  expect(screen.getAllByText('•••••')).toHaveLength(1)
   expect(screen.getByText(/\+\d/)).toBeInTheDocument()
 })
 
@@ -51,4 +55,24 @@ test('shows errors and disables save when result is null', () => {
   )
   expect(screen.getByText('Cần ít nhất 1 người chơi')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Lưu buổi này' })).toBeDisabled()
+  expect(screen.queryByRole('button', { name: 'Xem toàn màn hình' })).not.toBeInTheDocument()
+})
+
+test('fullscreen overlay shows player names and closes on Đóng', () => {
+  const result = calcRatioMode(input)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+  expect(screen.getAllByText('Tuấn').length).toBeGreaterThan(0)
+  expect(screen.getAllByText('Lan').length).toBeGreaterThan(0)
+  fireEvent.click(screen.getByRole('button', { name: 'Đóng' }))
+  expect(screen.queryByRole('button', { name: 'Đóng' })).not.toBeInTheDocument()
+})
+
+test('Esc key closes the fullscreen overlay', () => {
+  const result = calcRatioMode(input)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+  expect(screen.getByRole('button', { name: 'Đóng' })).toBeInTheDocument()
+  fireEvent.keyDown(window, { key: 'Escape' })
+  expect(screen.queryByRole('button', { name: 'Đóng' })).not.toBeInTheDocument()
 })

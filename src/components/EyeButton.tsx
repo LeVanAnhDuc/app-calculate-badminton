@@ -1,8 +1,18 @@
-export function EyeButton({ shown, onToggle }: { shown: boolean; onToggle: () => void }) {
+export function EyeButton({
+  shown,
+  onToggle,
+  shownLabel = 'Ẩn số dư',
+  hiddenLabel = 'Hiện số dư',
+}: {
+  shown: boolean
+  onToggle: () => void
+  shownLabel?: string
+  hiddenLabel?: string
+}) {
   return (
     <button
       type="button"
-      aria-label={shown ? 'Ẩn số dư' : 'Hiện số dư'}
+      aria-label={shown ? shownLabel : hiddenLabel}
       onClick={onToggle}
       className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
     >
