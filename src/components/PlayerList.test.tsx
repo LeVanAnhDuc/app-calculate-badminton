@@ -122,23 +122,46 @@ test('blocks empty names', () => {
   expect(playerCount).toBeInTheDocument() // Count should still be 1 (only Tuấn)
 })
 
-test('time-bound coupling: typing start time auto-sets end time', () => {
+/**
+ * Opens the nested time-wheel sheet from inside the already-open edit
+ * drawer (by clicking the TimeSelect trigger button with the given
+ * aria-label), picks hour/minute values, and confirms with "Xong" —
+ * verifying vaul's nested-drawer support. While the nested sheet is open,
+ * Radix marks the outer drawer aria-hidden (standard modal-on-modal
+ * behavior), so `getByRole('dialog')` resolves to the topmost (nested) one;
+ * once it closes, the same query resolves back to the (still-mounted) edit
+ * drawer underneath.
+ */
+function pickTimeInNestedSheet(triggerLabel: string, hour: string, minute: string) {
+  fireEvent.click(screen.getByRole('button', { name: triggerLabel }))
+  const sheet = screen.getByRole('dialog')
+  expect(within(sheet).getByText(triggerLabel)).toBeInTheDocument() // sheet title
+
+  fireEvent.click(within(within(sheet).getByTestId('time-wheel-hour')).getByText(hour))
+  fireEvent.click(within(within(sheet).getByTestId('time-wheel-minute')).getByText(minute))
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Xong' }))
+
+  // the nested sheet closes; only the edit drawer remains
+  expect(screen.getAllByRole('dialog')).toHaveLength(1)
+}
+
+test('time-bound coupling: nested time-wheel sheet commits into the edit drawer, which stays open', () => {
   render(<Harness initial={{ ...base, mode: 'hourly' }} />)
 
   // Open the edit drawer
   fireEvent.click(screen.getByText('Tuấn'))
   const drawer = screen.getByRole('dialog')
 
-  // Pick a new start time via the hour/minute selects
-  fireEvent.change(within(drawer).getByLabelText('Giờ vào của Tuấn (giờ)'), {
-    target: { value: '19' },
-  })
-  fireEvent.change(within(drawer).getByLabelText('Giờ vào của Tuấn (phút)'), {
-    target: { value: '30' },
-  })
+  // Open the nested "Giờ vào của Tuấn" wheel sheet, pick 19:30, confirm
+  pickTimeInNestedSheet('Giờ vào của Tuấn', '19', '30')
 
-  // Assert the time label changes from "cả buổi" to show the custom duration
-  // Expected: "19:30–21:00 · 1.5 giờ" or similar
+  // the edit drawer (outer dialog) is still open, showing the new time
+  expect(screen.getByRole('dialog')).toBe(drawer)
+  expect(within(drawer).getByRole('button', { name: 'Giờ vào của Tuấn' })).toHaveTextContent(
+    '19:30',
+  )
+
+  // Assert the row label changes from "cả buổi" to show the custom duration
   expect(screen.queryByText(/cả buổi/)).not.toBeInTheDocument()
   expect(screen.getByText(/19:30–21:00/)).toBeInTheDocument()
 })
@@ -259,9 +282,9 @@ test('the edit drawer renders as a bottom sheet outside the swipe-clipped (overf
   render(<Harness initial={{ ...base, mode: 'hourly' }} />)
   fireEvent.click(screen.getByText('Tuấn'))
   const drawer = screen.getByRole('dialog')
-  const startInput = within(drawer).getByLabelText('Giờ vào của Tuấn')
+  const timeButton = within(drawer).getByLabelText('Giờ vào của Tuấn')
   // the drawer content is portaled out of the swipe row's clipped container
-  expect(startInput.closest('.overflow-hidden')).toBeNull()
+  expect(timeButton.closest('.overflow-hidden')).toBeNull()
   expect(drawer.closest('[data-testid^="swipe-row-"]')).toBeNull()
   // it renders as a rounded-top bottom sheet with a drag handle
   expect(drawer).toHaveClass('rounded-t-3xl')
@@ -274,10 +297,8 @@ test('cả buổi button resets time labels', () => {
   fireEvent.click(screen.getByText('Tuấn'))
   const drawer = screen.getByRole('dialog')
 
-  // Set a custom start time via the minute select
-  fireEvent.change(within(drawer).getByLabelText('Giờ vào của Tuấn (phút)'), {
-    target: { value: '30' },
-  })
+  // Set a custom start time via the nested wheel sheet
+  pickTimeInNestedSheet('Giờ vào của Tuấn', '19', '30')
   expect(screen.getByText(/19:30–21:00/)).toBeInTheDocument()
 
   // Click "Cả buổi" button to reset
