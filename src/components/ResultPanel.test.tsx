@@ -21,7 +21,8 @@ const input: SessionInput = {
 
 test('shows per-player amounts; total collected is hidden until revealed', () => {
   const result = calcRatioMode(input)
-  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}}
+      onNewSession={() => {}} />)
   expect(screen.getByText('180.000đ')).toBeInTheDocument() // Tuấn: 300k×1.5/2.5
   expect(screen.getByText('120.000đ')).toBeInTheDocument() // Lan
   expect(screen.queryByText('300.000đ')).not.toBeInTheDocument() // tổng thu hidden by default
@@ -31,7 +32,8 @@ test('shows per-player amounts; total collected is hidden until revealed', () =>
 
 test('surplus hidden behind eye toggle by default', () => {
   const result = calcRatioMode({ ...input, courtFee: 151000 })
-  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}}
+      onNewSession={() => {}} />)
   // both Tổng thu and Số dư are hidden by default
   expect(screen.getAllByText('•••••')).toHaveLength(2)
   fireEvent.click(screen.getByRole('button', { name: 'Hiện số dư' }))
@@ -42,7 +44,8 @@ test('surplus hidden behind eye toggle by default', () => {
 
 test('negative surplus is rendered in red, not green', () => {
   const result = { ...calcRatioMode(input), surplus: -500 }
-  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}}
+      onNewSession={() => {}} />)
   fireEvent.click(screen.getByRole('button', { name: 'Hiện số dư' }))
   const surplusText = screen.getByText('−500đ')
   expect(surplusText).toHaveClass('text-red-500')
@@ -56,6 +59,7 @@ test('shows errors and disables save when result is null', () => {
       mode="ratio"
       errors={['Tổng chi phải lớn hơn 0']}
       onSave={() => {}}
+      onNewSession={() => {}}
     />,
   )
   expect(screen.getByText('Tổng chi phải lớn hơn 0')).toBeInTheDocument()
@@ -65,7 +69,8 @@ test('shows errors and disables save when result is null', () => {
 
 test('shows a friendly empty state instead of an amber error when there are no players yet', () => {
   render(
-    <ResultPanel result={null} mode="ratio" errors={['Cần ít nhất 1 người chơi']} onSave={() => {}} />,
+    <ResultPanel result={null} mode="ratio" errors={['Cần ít nhất 1 người chơi']} onSave={() => {}}
+      onNewSession={() => {}} />,
   )
   expect(screen.getByText('Chưa có ai trong buổi này')).toBeInTheDocument()
   expect(screen.getByText('Thêm người chơi ở mục bên trên để bắt đầu chia tiền')).toBeInTheDocument()
@@ -80,6 +85,7 @@ test('other validation errors still show as the amber list even alongside more i
       mode="ratio"
       errors={['Tổng chi phải lớn hơn 0', 'Hệ số phải lớn hơn 0']}
       onSave={() => {}}
+      onNewSession={() => {}}
     />,
   )
   expect(screen.getByText('Tổng chi phải lớn hơn 0')).toBeInTheDocument()
@@ -89,7 +95,8 @@ test('other validation errors still show as the amber list even alongside more i
 
 test('fullscreen overlay shows player names and closes on Đóng', async () => {
   const result = calcRatioMode(input)
-  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}}
+      onNewSession={() => {}} />)
   fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
   expect(screen.getAllByText('Tuấn').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Lan').length).toBeGreaterThan(0)
@@ -103,7 +110,8 @@ test('fullscreen overlay shows player names and closes on Đóng', async () => {
 
 test('fullscreen overlay lays out players in a responsive 1/2-column grid', () => {
   const result = calcRatioMode(input)
-  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}}
+      onNewSession={() => {}} />)
   fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
   const list = screen.getByTestId('fullscreen-player-grid')
   expect(list).toHaveClass('grid-cols-1')
@@ -112,11 +120,29 @@ test('fullscreen overlay lays out players in a responsive 1/2-column grid', () =
 
 test('Esc key closes the fullscreen overlay', async () => {
   const result = calcRatioMode(input)
-  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}}
+      onNewSession={() => {}} />)
   fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
   expect(screen.getByRole('button', { name: 'Đóng' })).toBeInTheDocument()
   fireEvent.keyDown(window, { key: 'Escape' })
   await waitFor(() =>
     expect(screen.queryByRole('button', { name: 'Đóng' })).not.toBeInTheDocument(),
   )
+})
+
+test('"Buổi mới" button is always clickable, even with no result', () => {
+  const onNewSession = vi.fn()
+  render(
+    <ResultPanel
+      result={null}
+      mode="ratio"
+      errors={['Cần ít nhất 1 người chơi']}
+      onSave={() => {}}
+      onNewSession={onNewSession}
+    />,
+  )
+  const button = screen.getByRole('button', { name: 'Buổi mới' })
+  expect(button).not.toBeDisabled()
+  fireEvent.click(button)
+  expect(onNewSession).toHaveBeenCalledTimes(1)
 })

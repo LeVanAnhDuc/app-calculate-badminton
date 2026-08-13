@@ -83,6 +83,32 @@ test('session state is restored from localStorage', () => {
   expect(screen.getByLabelText('Tiền sân')).toHaveValue('999.000')
 })
 
+test('"Buổi mới" resets the session after confirmation, and does nothing when cancelled', () => {
+  render(<App />)
+  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
+  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
+  fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
+  // "Tuấn" appears both in the player row and in the result panel's amount
+  // breakdown, so scope on the row's own quick-delete button instead
+  expect(screen.getByRole('button', { name: 'Xóa Tuấn' })).toBeInTheDocument()
+
+  // cancelling the confirm leaves everything untouched
+  vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+  fireEvent.click(screen.getByRole('button', { name: 'Buổi mới' }))
+  expect(screen.getByRole('button', { name: 'Xóa Tuấn' })).toBeInTheDocument()
+  expect(screen.getByLabelText('Tiền sân')).toHaveValue('150.000')
+
+  // confirming clears players and costs, but keeps remembered settings
+  vi.spyOn(window, 'confirm').mockReturnValueOnce(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Buổi mới' }))
+  expect(screen.queryByRole('button', { name: 'Xóa Tuấn' })).not.toBeInTheDocument()
+  expect(screen.getByText('Chưa có người chơi nào')).toBeInTheDocument()
+  expect(screen.getByLabelText('Tiền sân')).toHaveValue('')
+  expect(screen.getByLabelText('Số quả cầu')).toHaveValue('')
+})
+
 test('opening history pushes browser state; the in-app ← button navigates back', async () => {
   render(<App />)
   fireEvent.click(screen.getByRole('button', { name: 'Xem lịch sử các buổi →' }))

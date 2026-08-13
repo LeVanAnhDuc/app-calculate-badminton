@@ -172,12 +172,13 @@ interface Props {
   mode: Mode
   errors: string[]
   onSave: () => void
+  onNewSession: () => void
   saveDisabled?: boolean
 }
 
 const NO_PLAYERS_ERROR = 'Cần ít nhất 1 người chơi'
 
-export function ResultPanel({ result, mode, errors, onSave, saveDisabled }: Props) {
+export function ResultPanel({ result, mode, errors, onSave, onNewSession, saveDisabled }: Props) {
   const [fullscreen, setFullscreen] = useState(false)
   const isEmptyPlayers = errors.length === 1 && errors[0] === NO_PLAYERS_ERROR
 
@@ -249,6 +250,14 @@ export function ResultPanel({ result, mode, errors, onSave, saveDisabled }: Prop
         className="w-full h-14 mt-4 rounded-2xl bg-emerald-600 text-white text-base font-bold shadow-md disabled:bg-gray-300"
       >
         Lưu buổi này
+      </button>
+
+      <button
+        type="button"
+        onClick={onNewSession}
+        className="w-full h-12 mt-2 rounded-xl border border-gray-300 text-gray-600 font-semibold"
+      >
+        Buổi mới
       </button>
 
       <AnimatePresence>

@@ -123,6 +123,11 @@ export default function App() {
     [],
   )
 
+  const handleNewSession = () => {
+    if (!window.confirm('Bắt đầu buổi mới? Dữ liệu đang nhập sẽ bị xóa.')) return
+    setSession(defaultSession(loadSettings()))
+  }
+
   const handleSave = () => {
     if (!result) return
     const isFiniteResult =
@@ -223,6 +228,7 @@ export default function App() {
               mode={session.mode}
               errors={errors}
               onSave={handleSave}
+              onNewSession={handleNewSession}
               saveDisabled={saveDisabled}
             />
             <button
