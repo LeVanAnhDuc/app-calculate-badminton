@@ -42,6 +42,8 @@ function Harness({ initial, roster = [] }: { initial: SessionInput; roster?: Ros
   )
 }
 
+beforeEach(() => localStorage.clear())
+
 const base: SessionInput = {
   mode: 'ratio',
   shuttleCount: 6,
@@ -194,23 +196,53 @@ test('blank rename reverts to the original name without an error', () => {
   expect(screen.queryByText(/đã có trong buổi/)).not.toBeInTheDocument()
 })
 
-test('quick gender switch on the row changes gender without going through the edit panel', () => {
-  render(<Harness initial={base} />)
-  expect(screen.getByText(/^1 nam · 0 nữ$/)).toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: 'Nữ Tuấn' }))
-  expect(screen.getByText(/^0 nam · 1 nữ$/)).toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: 'Nam Tuấn' }))
-  expect(screen.getByText(/^1 nam · 0 nữ$/)).toBeInTheDocument()
-})
-
-test('swiping a row reveals Sửa; tapping it opens the edit panel for that player', () => {
+test('swipe no longer reveals a Sửa button — only Xóa', () => {
   render(<Harness initial={{ ...base, mode: 'hourly' }} />)
   const row = screen.getByTestId('swipe-row-1')
   fireEvent.touchStart(row, { touches: [{ clientX: 200 }] })
   fireEvent.touchMove(row, { touches: [{ clientX: 20 }] })
   fireEvent.touchEnd(row)
-  fireEvent.click(screen.getByRole('button', { name: 'Sửa nhanh Tuấn' }))
-  expect(screen.getByLabelText('Giờ vào của Tuấn')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /^Sửa nhanh/ })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Xóa nhanh Tuấn' })).toBeInTheDocument()
+})
+
+test('no per-row Nam/Nữ segmented switch remains; the edit panel still has one', () => {
+  render(<Harness initial={base} />)
+  expect(screen.queryByRole('button', { name: 'Nam Tuấn' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Nữ Tuấn' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByText('Tuấn'))
+  expect(screen.getByRole('button', { name: 'Đặt Nam cho Tuấn' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Đặt Nữ cho Tuấn' })).toBeInTheDocument()
+})
+
+test('empty player list shows a centered hint instead of an empty list', () => {
+  render(<Harness initial={{ ...base, players: [] }} />)
+  expect(screen.getByText('Chưa có người chơi nào')).toBeInTheDocument()
+})
+
+test('hint banner is visible on fresh render, dismissible, and stays dismissed after remount', () => {
+  const { unmount } = render(<Harness initial={base} />)
+  expect(
+    screen.getByText(/Bấm avatar để đổi giới tính · bấm tên để sửa thông tin/),
+  ).toBeInTheDocument()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Đóng gợi ý' }))
+  expect(
+    screen.queryByText(/Bấm avatar để đổi giới tính · bấm tên để sửa thông tin/),
+  ).not.toBeInTheDocument()
+
+  unmount()
+  render(<Harness initial={base} />)
+  expect(
+    screen.queryByText(/Bấm avatar để đổi giới tính · bấm tên để sửa thông tin/),
+  ).not.toBeInTheDocument()
+})
+
+test('the edit panel renders outside the swipe-clipped (overflow-hidden) container', () => {
+  render(<Harness initial={{ ...base, mode: 'hourly' }} />)
+  fireEvent.click(screen.getByText('Tuấn'))
+  const startInput = screen.getByLabelText('Giờ vào của Tuấn')
+  expect(startInput.closest('.overflow-hidden')).toBeNull()
 })
 
 test('cả buổi button resets time labels', () => {

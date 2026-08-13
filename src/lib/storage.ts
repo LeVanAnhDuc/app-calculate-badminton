@@ -144,3 +144,19 @@ export function loadHistory(): SavedSession[] {
 }
 
 export const saveHistory = (h: SavedSession[]): void => save('history', h)
+
+export function loadHintDismissed(): boolean {
+  try {
+    return localStorage.getItem('hintDismissed') === '1'
+  } catch {
+    return false
+  }
+}
+
+export function dismissHint(): void {
+  try {
+    localStorage.setItem('hintDismissed', '1')
+  } catch {
+    // storage full/unavailable — dismissal just won't persist
+  }
+}
