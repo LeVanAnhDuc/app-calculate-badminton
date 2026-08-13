@@ -73,7 +73,9 @@ export function TimeSelect({ value, onChange, 'aria-label': label, className = '
               <Drawer.Description className="sr-only">
                 Chọn giờ và phút, sau đó bấm Xong để xác nhận
               </Drawer.Description>
-              <Picker value={pick} onChange={setPick} height={180} itemHeight={40} wheelMode="natural">
+              {/* data-vaul-no-drag: wheel drags must not move/close the drawer */}
+              <div data-vaul-no-drag>
+                <Picker value={pick} onChange={setPick} height={180} itemHeight={40} wheelMode="natural">
                 <Picker.Column name="hour" data-testid="time-wheel-hour">
                   {HOURS.map((h) => (
                     <Picker.Item key={h} value={h}>
@@ -109,7 +111,8 @@ export function TimeSelect({ value, onChange, 'aria-label': label, className = '
                     </Picker.Item>
                   ))}
                 </Picker.Column>
-              </Picker>
+                </Picker>
+              </div>
               <button
                 type="button"
                 onClick={commit}
