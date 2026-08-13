@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { formatVND } from '../lib/format'
 import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
@@ -25,6 +25,12 @@ function sessionDate(iso: string): string {
 
 export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(history[0]?.id ?? null)
+
+  useEffect(() => {
+    if (expandedId !== null && !history.some((s) => s.id === expandedId)) {
+      setExpandedId(history[0]?.id ?? null)
+    }
+  }, [history, expandedId])
 
   const now = new Date()
   const thisMonth = history.filter((s) => {

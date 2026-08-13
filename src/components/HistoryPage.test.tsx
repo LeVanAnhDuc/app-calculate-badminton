@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { HistoryPage } from './HistoryPage'
 import { calcRatioMode } from '../lib/calc'
@@ -25,6 +26,25 @@ const saved: SavedSession = {
   savedAt: '2026-08-13T20:15:00.000Z',
   input,
   result: calcRatioMode(input),
+}
+
+const savedB: SavedSession = {
+  id: 's0',
+  savedAt: '2026-08-11T20:15:00.000Z',
+  input,
+  result: calcRatioMode(input),
+}
+
+function Harness({ initial }: { initial: SavedSession[] }) {
+  const [history, setHistory] = useState(initial)
+  return (
+    <HistoryPage
+      history={history}
+      onBack={() => {}}
+      onDelete={(id) => setHistory((h) => h.filter((s) => s.id !== id))}
+      onReuse={() => {}}
+    />
+  )
 }
 
 test('newest session is expanded by default; click collapses it', () => {
@@ -58,4 +78,14 @@ test('reuse passes the session', () => {
 test('empty history shows hint', () => {
   render(<HistoryPage history={[]} onBack={() => {}} onDelete={() => {}} onReuse={() => {}} />)
   expect(screen.getByText(/Chưa có buổi nào được lưu/)).toBeInTheDocument()
+})
+
+test('deleting the expanded newest session re-expands the new newest session', () => {
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  render(<Harness initial={[saved, savedB]} />)
+  // saved (newest, id s1) starts expanded
+  expect(screen.getByText('Tổng thu')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa buổi này' }))
+  // savedB (now the only/newest remaining session) should be expanded automatically
+  expect(screen.getByText('Tổng thu')).toBeInTheDocument()
 })
