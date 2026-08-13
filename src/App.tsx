@@ -23,6 +23,9 @@ import {
 } from './lib/storage'
 import type { Gender, Player, SessionInput } from './lib/types'
 
+const uid = (): string =>
+  crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+
 function defaultSession(s: Settings): SessionInput {
   return {
     mode: s.mode,
@@ -47,6 +50,17 @@ export default function App() {
   )
 
   useEffect(() => {
+    const onPopState = () => setPage('main')
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  const openHistory = () => {
+    window.history.pushState({ page: 'history' }, '')
+    setPage('history')
+  }
+
+  useEffect(() => {
     saveCurrentSession(session)
     saveSettings({
       mode: session.mode,
@@ -63,7 +77,7 @@ export default function App() {
 
   const handleAddPlayer = (name: string, gender: Gender) => {
     const player: Player = {
-      id: crypto.randomUUID(),
+      id: uid(),
       name,
       gender,
       halfSession: false,
@@ -79,8 +93,11 @@ export default function App() {
 
   const handleSave = () => {
     if (!result) return
+    const isFiniteResult =
+      Number.isFinite(result.surplus) && result.players.every((p) => Number.isFinite(p.amount))
+    if (!isFiniteResult) return
     setHistory((h) => [
-      { id: crypto.randomUUID(), savedAt: new Date().toISOString(), input: session, result },
+      { id: uid(), savedAt: new Date().toISOString(), input: session, result },
       ...h,
     ])
     setRoster((r) =>
@@ -92,10 +109,20 @@ export default function App() {
     return (
       <HistoryPage
         history={history}
-        onBack={() => setPage('main')}
+        onBack={() => window.history.back()}
         onDelete={(id) => setHistory((h) => h.filter((s) => s.id !== id))}
         onReuse={(s) => {
-          setSession((cur) => ({ ...cur, players: s.input.players }))
+          setSession((cur) => ({
+            ...cur,
+            players: s.input.players.map((p) => ({
+              id: uid(),
+              name: p.name,
+              gender: p.gender,
+              halfSession: false,
+              startTime: null,
+              endTime: null,
+            })),
+          }))
           setPage('main')
         }}
       />
@@ -113,7 +140,7 @@ export default function App() {
             </div>
             <button
               type="button"
-              onClick={() => setPage('history')}
+              onClick={openHistory}
               className="hidden md:block h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold"
             >
               Lịch sử các buổi
@@ -151,7 +178,7 @@ export default function App() {
             <ResultPanel result={result} mode={session.mode} errors={errors} onSave={handleSave} />
             <button
               type="button"
-              onClick={() => setPage('history')}
+              onClick={openHistory}
               className="w-full h-12 text-emerald-700 text-sm font-semibold md:hidden"
             >
               Xem lịch sử các buổi →
