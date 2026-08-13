@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lịch sử các buổi — Court Green</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+</style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-emerald-600">
+    <div class="max-w-5xl mx-auto px-4 md:px-6 py-5 flex items-center gap-3">
+      <button class="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center text-xl">←</button>
+      <div>
+        <h1 class="text-white text-xl md:text-2xl font-bold">Lịch sử các buổi</h1>
+        <p class="text-emerald-100 text-sm">8 buổi đã lưu · tháng 8: 4 buổi</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 md:px-6 py-5">
+
+    <!-- expanded session card (most recent, tapped open) -->
+    <section class="bg-white rounded-2xl shadow-sm border-2 border-emerald-200 mb-4">
+      <div class="p-4 flex items-center justify-between">
+        <div>
+          <h2 class="font-bold text-gray-900">Thứ Tư, 13/08/2026 · 20:15</h2>
+          <p class="text-sm text-gray-500 mt-0.5">5 người · 3 nam, 2 nữ</p>
+        </div>
+        <div class="text-right">
+          <div class="text-lg font-bold text-emerald-600">300.000đ</div>
+          <div class="text-xs text-gray-400">▲ thu gọn</div>
+        </div>
+      </div>
+      <!-- expanded detail -->
+      <div class="border-t border-gray-100 p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Chi phí</h3>
+          <div class="space-y-1.5 text-sm">
+            <div class="flex justify-between"><span class="text-gray-500">Tiền cầu (6 quả × 25.000đ)</span><span class="font-semibold text-gray-900">150.000đ</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Tiền sân</span><span class="font-semibold text-gray-900">150.000đ</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Hệ số nam / nữ</span><span class="font-semibold text-gray-900">1.5 / 1.0</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Làm tròn</span><span class="font-semibold text-gray-900">Tròn lên 1.000đ</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Tổng thu</span><span class="font-semibold text-gray-900">304.000đ</span></div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">Số dư</span>
+              <span class="flex items-center gap-1">
+                <span class="font-semibold text-emerald-600 tracking-wider">•••••</span>
+                <button title="Hiện số dư" class="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                </button>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Mỗi người trả</h3>
+          <ul class="space-y-1.5 text-sm">
+            <li class="flex justify-between bg-gray-50 rounded-lg px-3 py-2"><span class="text-gray-900">Tuấn <span class="text-xs text-gray-400">(Nam)</span></span><span class="font-bold">70.000đ</span></li>
+            <li class="flex justify-between bg-gray-50 rounded-lg px-3 py-2"><span class="text-gray-900">Hùng <span class="text-xs text-gray-400">(Nam)</span></span><span class="font-bold">70.000đ</span></li>
+            <li class="flex justify-between bg-gray-50 rounded-lg px-3 py-2"><span class="text-gray-900">Minh <span class="text-xs text-gray-400">(Nam)</span></span><span class="font-bold">70.000đ</span></li>
+            <li class="flex justify-between bg-gray-50 rounded-lg px-3 py-2"><span class="text-gray-900">Lan <span class="text-xs text-gray-400">(Nữ)</span></span><span class="font-bold">47.000đ</span></li>
+            <li class="flex justify-between bg-gray-50 rounded-lg px-3 py-2"><span class="text-gray-900">Hoa <span class="text-xs text-gray-400">(Nữ)</span></span><span class="font-bold">47.000đ</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-100 p-4 flex gap-2">
+        <button class="flex-1 h-12 rounded-xl bg-emerald-600 text-white text-sm font-semibold">Dùng lại danh sách này cho buổi mới</button>
+        <button class="h-12 px-4 rounded-xl border border-red-200 text-red-500 text-sm font-semibold">Xóa</button>
+      </div>
+    </section>
+
+    <!-- collapsed session cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+      <section class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between">
+        <div>
+          <h2 class="font-bold text-gray-900">Thứ Hai, 11/08/2026 · 20:00</h2>
+          <p class="text-sm text-gray-500 mt-0.5">6 người · 4 nam, 2 nữ</p>
+        </div>
+        <div class="text-right">
+          <div class="text-lg font-bold text-emerald-600">350.000đ</div>
+          <div class="text-xs text-gray-400">▼ xem chi tiết</div>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between">
+        <div>
+          <h2 class="font-bold text-gray-900">Thứ Sáu, 08/08/2026 · 19:30</h2>
+          <p class="text-sm text-gray-500 mt-0.5">5 người · 3 nam, 2 nữ</p>
+        </div>
+        <div class="text-right">
+          <div class="text-lg font-bold text-emerald-600">300.000đ</div>
+          <div class="text-xs text-gray-400">▼ xem chi tiết</div>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between">
+        <div>
+          <h2 class="font-bold text-gray-900">Thứ Tư, 06/08/2026 · 20:15</h2>
+          <p class="text-sm text-gray-500 mt-0.5">7 người · 4 nam, 3 nữ</p>
+        </div>
+        <div class="text-right">
+          <div class="text-lg font-bold text-emerald-600">410.000đ</div>
+          <div class="text-xs text-gray-400">▼ xem chi tiết</div>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between">
+        <div>
+          <h2 class="font-bold text-gray-900">Thứ Hai, 04/08/2026 · 20:00</h2>
+          <p class="text-sm text-gray-500 mt-0.5">5 người · 3 nam, 2 nữ</p>
+        </div>
+        <div class="text-right">
+          <div class="text-lg font-bold text-emerald-600">295.000đ</div>
+          <div class="text-xs text-gray-400">▼ xem chi tiết</div>
+        </div>
+      </section>
+
+    </div>
+
+    <p class="text-center text-xs text-gray-400 mt-6">Dữ liệu lưu trên máy của bạn (localStorage)</p>
+  </main>
+</body>
+</html>
