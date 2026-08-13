@@ -116,9 +116,6 @@ const isSavedSession = (v: unknown): boolean =>
   isSession(v.input) &&
   isCalcResult(v.result)
 
-const isHistory = (v: unknown): boolean =>
-  Array.isArray(v) && v.every((e) => isSavedSession(e))
-
 export const loadRoster = (): RosterEntry[] => load('roster', isRoster, [])
 export const saveRoster = (r: RosterEntry[]): void => save('roster', r)
 
@@ -135,5 +132,15 @@ export const loadCurrentSession = (): SessionInput | null =>
   load<SessionInput | null>('currentSession', isSession, null)
 export const saveCurrentSession = (s: SessionInput): void => save('currentSession', s)
 
-export const loadHistory = (): SavedSession[] => load('history', isHistory, [])
+export function loadHistory(): SavedSession[] {
+  try {
+    const raw = localStorage.getItem('history')
+    if (!raw) return []
+    const parsed: unknown = JSON.parse(raw)
+    return Array.isArray(parsed) ? (parsed.filter(isSavedSession) as SavedSession[]) : []
+  } catch {
+    return []
+  }
+}
+
 export const saveHistory = (h: SavedSession[]): void => save('history', h)
