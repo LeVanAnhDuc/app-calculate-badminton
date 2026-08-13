@@ -18,7 +18,23 @@ function Harness({ initial, roster = [] }: { initial: SessionInput; roster?: Ros
     }
     setInput((s) => ({ ...s, players: [...s.players, player] }))
   }
-  return <PlayerList input={input} roster={roster} onPatch={onPatch} onAddPlayer={onAddPlayer} />
+  const onChangeGender = (playerId: string) => {
+    setInput((s) => ({
+      ...s,
+      players: s.players.map((p) =>
+        p.id === playerId ? { ...p, gender: p.gender === 'male' ? 'female' : 'male' } : p,
+      ),
+    }))
+  }
+  return (
+    <PlayerList
+      input={input}
+      roster={roster}
+      onPatch={onPatch}
+      onAddPlayer={onAddPlayer}
+      onChangeGender={onChangeGender}
+    />
+  )
 }
 
 const base: SessionInput = {
@@ -106,6 +122,34 @@ test('time-bound coupling: typing start time auto-sets end time', () => {
   // Expected: "19:30–21:00 · 1.5 giờ" or similar
   expect(screen.queryByText(/cả buổi/)).not.toBeInTheDocument()
   expect(screen.getByText(/19:30–21:00/)).toBeInTheDocument()
+})
+
+test('clicking the gender badge toggles the player gender and updates the count chip', () => {
+  render(<Harness initial={base} />)
+  expect(screen.getByText(/^1 nam · 0 nữ$/)).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Đổi giới tính Tuấn' }))
+  expect(screen.getByText(/^0 nam · 1 nữ$/)).toBeInTheDocument()
+  // toggling back works too, and the badge button is still reachable by the same label
+  fireEvent.click(screen.getByRole('button', { name: 'Đổi giới tính Tuấn' }))
+  expect(screen.getByText(/^1 nam · 0 nữ$/)).toBeInTheDocument()
+})
+
+test('gender toggle does not reset other player fields', () => {
+  render(<Harness initial={base} />)
+  fireEvent.click(screen.getByRole('button', { name: '½ buổi Tuấn' }))
+  expect(screen.getByText('½ buổi ✓')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Đổi giới tính Tuấn' }))
+  expect(screen.getByText('½ buổi ✓')).toBeInTheDocument()
+})
+
+test('swipe-left on a row reveals the red Xóa button; tapping it removes the player', () => {
+  render(<Harness initial={base} />)
+  const row = screen.getByTestId('swipe-row-1')
+  fireEvent.touchStart(row, { touches: [{ clientX: 200 }] })
+  fireEvent.touchMove(row, { touches: [{ clientX: 100 }] })
+  fireEvent.touchEnd(row)
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa nhanh Tuấn' }))
+  expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
 })
 
 test('cả buổi button resets time labels', () => {

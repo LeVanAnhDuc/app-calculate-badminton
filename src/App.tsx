@@ -88,6 +88,17 @@ export default function App() {
     setRoster((r) => addToRoster(r, name, gender))
   }
 
+  const handleChangeGender = (playerId: string) => {
+    const player = session.players.find((p) => p.id === playerId)
+    if (!player) return
+    const newGender: Gender = player.gender === 'male' ? 'female' : 'male'
+    setSession((s) => ({
+      ...s,
+      players: s.players.map((p) => (p.id === playerId ? { ...p, gender: newGender } : p)),
+    }))
+    setRoster((r) => addToRoster(r, player.name, newGender))
+  }
+
   const errors = validateSession(session)
   const result = errors.length === 0 ? calcSession(session) : null
 
@@ -168,13 +179,14 @@ export default function App() {
               roster={roster}
               onPatch={onPatch}
               onAddPlayer={handleAddPlayer}
+              onChangeGender={handleChangeGender}
             />
             <RoundingToggle
               rounding={session.rounding}
               onChange={(rounding) => onPatch({ rounding })}
             />
           </div>
-          <div className="mt-4 md:mt-0 md:col-span-2 md:sticky md:top-6 space-y-4">
+          <div className="mt-4 md:mt-0 md:col-span-2 md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto space-y-4">
             <ResultPanel result={result} mode={session.mode} errors={errors} onSave={handleSave} />
             <button
               type="button"
