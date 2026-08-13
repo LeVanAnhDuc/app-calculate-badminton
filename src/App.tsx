@@ -103,42 +103,60 @@ export default function App() {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen flex justify-center">
-      <div className="w-full max-w-[390px] bg-gray-50 min-h-screen pb-8">
-        <header className="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl">
-          <h1 className="text-white text-2xl font-bold">🏸 Tính tiền cầu lông</h1>
-          <p className="text-emerald-100 text-sm mt-1">Chia tiền nhanh sau buổi chơi</p>
+    <div className="bg-gray-100 min-h-screen">
+      <div className="max-w-[390px] mx-auto bg-gray-50 min-h-screen pb-8 md:max-w-none md:bg-gray-100 md:pb-0">
+        <header className="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl md:rounded-none md:px-0 md:py-5">
+          <div className="md:max-w-5xl md:mx-auto md:px-6 md:flex md:items-center md:justify-between">
+            <div>
+              <h1 className="text-white text-2xl font-bold">🏸 Tính tiền cầu lông</h1>
+              <p className="text-emerald-100 text-sm mt-1">Chia tiền nhanh sau buổi chơi</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPage('history')}
+              className="hidden md:block h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold"
+            >
+              Lịch sử các buổi
+            </button>
+          </div>
         </header>
-        <main className="px-4 -mt-2 space-y-4">
-          <div className="mt-4">
+        <main className="px-4 -mt-2 space-y-4 md:max-w-5xl md:mx-auto md:px-6 md:mt-0 md:py-6 md:grid md:grid-cols-5 md:gap-6 md:space-y-0 md:items-start">
+          <div className="mt-4 md:mt-0 md:col-span-5 md:max-w-md">
             <ModeSwitch mode={session.mode} onChange={(mode) => onPatch({ mode })} />
           </div>
-          <CostForm input={session} onPatch={onPatch} />
-          <RatioInputs
-            maleRatio={session.maleRatio}
-            femaleRatio={session.femaleRatio}
-            note={
-              session.mode === 'hourly'
-                ? 'Chỉ áp dụng cho tiền cầu — tiền sân chia theo giờ chơi'
-                : undefined
-            }
-            onChange={onPatch}
-          />
-          <PlayerList
-            input={session}
-            roster={roster}
-            onPatch={onPatch}
-            onAddPlayer={handleAddPlayer}
-          />
-          <RoundingToggle rounding={session.rounding} onChange={(rounding) => onPatch({ rounding })} />
-          <ResultPanel result={result} mode={session.mode} errors={errors} onSave={handleSave} />
-          <button
-            type="button"
-            onClick={() => setPage('history')}
-            className="w-full h-12 text-emerald-700 text-sm font-semibold"
-          >
-            Xem lịch sử các buổi →
-          </button>
+          <div className="space-y-4 mt-4 md:mt-0 md:col-span-3">
+            <CostForm input={session} onPatch={onPatch} />
+            <RatioInputs
+              maleRatio={session.maleRatio}
+              femaleRatio={session.femaleRatio}
+              note={
+                session.mode === 'hourly'
+                  ? 'Chỉ áp dụng cho tiền cầu — tiền sân chia theo giờ chơi'
+                  : undefined
+              }
+              onChange={onPatch}
+            />
+            <PlayerList
+              input={session}
+              roster={roster}
+              onPatch={onPatch}
+              onAddPlayer={handleAddPlayer}
+            />
+            <RoundingToggle
+              rounding={session.rounding}
+              onChange={(rounding) => onPatch({ rounding })}
+            />
+          </div>
+          <div className="mt-4 md:mt-0 md:col-span-2 md:sticky md:top-6 space-y-4">
+            <ResultPanel result={result} mode={session.mode} errors={errors} onSave={handleSave} />
+            <button
+              type="button"
+              onClick={() => setPage('history')}
+              className="w-full h-12 text-emerald-700 text-sm font-semibold md:hidden"
+            >
+              Xem lịch sử các buổi →
+            </button>
+          </div>
         </main>
       </div>
     </div>
