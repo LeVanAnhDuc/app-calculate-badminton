@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { MotionConfig } from 'motion/react'
+import { Toaster, toast } from 'sonner'
 import { CostForm } from './components/CostForm'
 import { HistoryPage } from './components/HistoryPage'
 import { ModeSwitch } from './components/ModeSwitch'
@@ -111,7 +113,7 @@ export default function App() {
   const errors = validateSession(session)
   const result = errors.length === 0 ? calcSession(session) : null
 
-  const [justSaved, setJustSaved] = useState(false)
+  const [saveDisabled, setSaveDisabled] = useState(false)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(
@@ -133,38 +135,44 @@ export default function App() {
     setRoster((r) =>
       session.players.reduce((acc, p) => addToRoster(acc, p.name, p.gender), r),
     )
-    setJustSaved(true)
+    toast.success('Đã lưu buổi ✓')
+    setSaveDisabled(true)
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
-    saveTimeoutRef.current = setTimeout(() => setJustSaved(false), 2500)
+    saveTimeoutRef.current = setTimeout(() => setSaveDisabled(false), 2500)
   }
 
   if (page === 'history') {
     return (
-      <HistoryPage
-        history={history}
-        onBack={() => window.history.back()}
-        onDelete={(id) => setHistory((h) => h.filter((s) => s.id !== id))}
-        onReuse={(s) => {
-          setSession((cur) => ({
-            ...cur,
-            players: s.input.players.map((p) => ({
-              id: uid(),
-              name: p.name,
-              gender: p.gender,
-              halfSession: false,
-              startTime: null,
-              endTime: null,
-            })),
-          }))
-          setPage('main')
-        }}
-      />
+      <MotionConfig reducedMotion="user">
+        <Toaster position="top-center" />
+        <HistoryPage
+          history={history}
+          onBack={() => window.history.back()}
+          onDelete={(id) => setHistory((h) => h.filter((s) => s.id !== id))}
+          onReuse={(s) => {
+            setSession((cur) => ({
+              ...cur,
+              players: s.input.players.map((p) => ({
+                id: uid(),
+                name: p.name,
+                gender: p.gender,
+                halfSession: false,
+                startTime: null,
+                endTime: null,
+              })),
+            }))
+            setPage('main')
+          }}
+        />
+      </MotionConfig>
     )
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <div className="max-w-[390px] mx-auto bg-gray-50 min-h-screen pb-8 md:max-w-none md:bg-gray-100 md:pb-0">
+    <MotionConfig reducedMotion="user">
+      <Toaster position="top-center" />
+      <div className="bg-gray-100 min-h-screen">
+        <div className="max-w-[390px] mx-auto bg-gray-50 min-h-screen pb-8 md:max-w-none md:bg-gray-100 md:pb-0">
         <header className="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl md:rounded-none md:px-0 md:py-5">
           <div className="md:max-w-5xl md:mx-auto md:px-6 md:flex md:items-center md:justify-between">
             <div>
@@ -215,7 +223,7 @@ export default function App() {
               mode={session.mode}
               errors={errors}
               onSave={handleSave}
-              saveDisabled={justSaved}
+              saveDisabled={saveDisabled}
             />
             <button
               type="button"
@@ -226,12 +234,8 @@ export default function App() {
             </button>
           </div>
         </main>
-      </div>
-      {justSaved && (
-        <div className="fixed bottom-4 inset-x-4 md:left-auto md:right-6 md:w-72 bg-emerald-600 text-white rounded-xl h-12 flex items-center justify-center font-semibold shadow-lg z-50">
-          Đã lưu buổi ✓
         </div>
-      )}
-    </div>
+      </div>
+    </MotionConfig>
   )
 }

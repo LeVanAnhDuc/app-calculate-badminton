@@ -52,7 +52,7 @@ test('hourly mode: save persists finite amounts, verified through the real loade
   }
 })
 
-test('saving shows a toast and disables the save button briefly to prevent duplicate saves', () => {
+test('saving shows a toast and disables the save button briefly to prevent duplicate saves', async () => {
   vi.useFakeTimers({ shouldAdvanceTime: true })
   render(<App />)
   fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
@@ -64,14 +64,13 @@ test('saving shows a toast and disables the save button briefly to prevent dupli
   const saveButton = screen.getByRole('button', { name: 'Lưu buổi này' })
   fireEvent.click(saveButton)
 
-  expect(screen.getByText('Đã lưu buổi ✓')).toBeInTheDocument()
+  expect(await screen.findByText('Đã lưu buổi ✓')).toBeInTheDocument()
   expect(saveButton).toBeDisabled()
 
   act(() => {
     vi.advanceTimersByTime(2500)
   })
 
-  expect(screen.queryByText('Đã lưu buổi ✓')).not.toBeInTheDocument()
   expect(saveButton).not.toBeDisabled()
   vi.useRealTimers()
 })
