@@ -7,11 +7,12 @@ import { EyeButton } from './EyeButton'
 export function SurplusRow({ surplus }: { surplus: number }) {
   const [shown, setShown] = useState(false)
   const sign = surplus >= 0 ? '+' : '−'
+  const colorClass = surplus >= 0 ? 'text-emerald-600' : 'text-red-500'
   return (
     <div className="flex justify-between items-center text-sm">
       <span className="text-gray-500">Số dư (để dành mua cầu)</span>
       <span className="flex items-center gap-1">
-        <span className="font-semibold text-emerald-600 tracking-wider">
+        <span className={`font-semibold tracking-wider ${colorClass}`}>
           {shown ? `${sign}${formatVND(Math.abs(surplus))}` : '•••••'}
         </span>
         <EyeButton shown={shown} onToggle={() => setShown(!shown)} />

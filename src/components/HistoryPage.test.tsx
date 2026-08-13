@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { HistoryPage } from './HistoryPage'
-import { calcRatioMode } from '../lib/calc'
+import { calcHourlyMode, calcRatioMode } from '../lib/calc'
 import type { SavedSession } from '../lib/storage'
 import type { SessionInput } from '../lib/types'
 
@@ -78,6 +78,49 @@ test('reuse passes the session', () => {
 test('empty history shows hint', () => {
   render(<HistoryPage history={[]} onBack={() => {}} onDelete={() => {}} onReuse={() => {}} />)
   expect(screen.getByText(/Chưa có buổi nào được lưu/)).toBeInTheDocument()
+})
+
+test('hourly-mode detail shows hours and never shows leftover ½ buổi note', () => {
+  const hourlyInput: SessionInput = {
+    mode: 'hourly',
+    shuttleCount: 6,
+    shuttlePrice: 25000,
+    courtFee: 150000,
+    courtStart: '19:00',
+    courtEnd: '21:00',
+    maleRatio: 1.5,
+    femaleRatio: 1,
+    rounding: 'up1000',
+    players: [
+      {
+        id: '1',
+        name: 'Tuấn',
+        gender: 'male',
+        halfSession: true, // stale flag from a ratio-mode session reused into hourly mode
+        startTime: null,
+        endTime: null,
+      },
+      {
+        id: '2',
+        name: 'Lan',
+        gender: 'female',
+        halfSession: false,
+        startTime: null,
+        endTime: null,
+      },
+    ],
+  }
+  const hourlySaved: SavedSession = {
+    id: 'h1',
+    savedAt: '2026-08-13T20:15:00.000Z',
+    input: hourlyInput,
+    result: calcHourlyMode(hourlyInput),
+  }
+  render(
+    <HistoryPage history={[hourlySaved]} onBack={() => {}} onDelete={() => {}} onReuse={() => {}} />,
+  )
+  expect(screen.getAllByText(/2 giờ/).length).toBeGreaterThan(0)
+  expect(screen.queryByText(/½ buổi/)).not.toBeInTheDocument()
 })
 
 test('deleting the expanded newest session re-expands the new newest session', () => {

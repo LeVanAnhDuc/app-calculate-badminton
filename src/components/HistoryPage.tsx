@@ -162,7 +162,7 @@ export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
                                 {p.name}{' '}
                                 <span className="text-xs text-gray-400">
                                   ({p.gender === 'male' ? 'Nam' : 'Nữ'}
-                                  {p.halfSession ? ' · ½ buổi' : ''}
+                                  {s.input.mode === 'ratio' && p.halfSession ? ' · ½ buổi' : ''}
                                   {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''})
                                 </span>
                               </span>

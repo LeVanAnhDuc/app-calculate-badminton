@@ -36,6 +36,15 @@ test('surplus hidden behind eye toggle by default', () => {
   expect(screen.getByText(/\+\d/)).toBeInTheDocument()
 })
 
+test('negative surplus is rendered in red, not green', () => {
+  const result = { ...calcRatioMode(input), surplus: -500 }
+  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Hiện số dư' }))
+  const surplusText = screen.getByText('−500đ')
+  expect(surplusText).toHaveClass('text-red-500')
+  expect(surplusText).not.toHaveClass('text-emerald-600')
+})
+
 test('shows errors and disables save when result is null', () => {
   render(
     <ResultPanel result={null} mode="ratio" errors={['Cần ít nhất 1 người chơi']} onSave={() => {}} />,
