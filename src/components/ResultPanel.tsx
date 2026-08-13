@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { toast } from 'sonner'
+import { downloadResultImage } from '../lib/exportImage'
 import { formatNumber, formatVND } from '../lib/format'
 import { formatHours } from '../lib/time'
 import type { CalcResult, Mode, PlayerResult } from '../lib/types'
@@ -103,6 +105,44 @@ function MaximizeIcon() {
   )
 }
 
+function DownloadIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M12 15V3" />
+    </svg>
+  )
+}
+
+function DownloadImageButton({ result, mode }: { result: CalcResult; mode: Mode }) {
+  const handleDownload = () => {
+    downloadResultImage(result, mode)
+    toast.success('Đã tải ảnh kết quả')
+  }
+  return (
+    <button
+      type="button"
+      aria-label="Tải ảnh kết quả"
+      title="Tải ảnh kết quả"
+      onClick={handleDownload}
+      className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+    >
+      <DownloadIcon />
+    </button>
+  )
+}
+
 function FullscreenResult({
   result,
   mode,
@@ -136,15 +176,18 @@ function FullscreenResult({
       >
         <div className="sticky top-0 bg-gray-50 border-b border-gray-100 flex items-center justify-between px-4 py-4">
           <h2 className="text-lg font-bold text-gray-900">Kết quả</h2>
-          <button
-            type="button"
-            aria-label="Đóng"
-            title="Đóng"
-            onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 text-2xl leading-none"
-          >
-            ×
-          </button>
+          <div className="flex items-center gap-1">
+            <DownloadImageButton result={result} mode={mode} />
+            <button
+              type="button"
+              aria-label="Đóng"
+              title="Đóng"
+              onClick={onClose}
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 text-2xl leading-none"
+            >
+              ×
+            </button>
+          </div>
         </div>
         <div className="max-w-lg md:max-w-3xl mx-auto py-6 px-4">
           {mode === 'hourly' && result.emptyHours > 0 && (
@@ -187,15 +230,18 @@ export function ResultPanel({ result, mode, errors, onSave, onNewSession, saveDi
       <div className="flex justify-between items-center mb-3">
         <h2 className="text-base font-bold text-gray-900">Kết quả</h2>
         {result !== null && (
-          <button
-            type="button"
-            aria-label="Xem toàn màn hình"
-            title="Xem toàn màn hình"
-            onClick={() => setFullscreen(true)}
-            className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
-          >
-            <MaximizeIcon />
-          </button>
+          <div className="flex items-center gap-1">
+            <DownloadImageButton result={result} mode={mode} />
+            <button
+              type="button"
+              aria-label="Xem toàn màn hình"
+              title="Xem toàn màn hình"
+              onClick={() => setFullscreen(true)}
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+            >
+              <MaximizeIcon />
+            </button>
+          </div>
         )}
       </div>
 

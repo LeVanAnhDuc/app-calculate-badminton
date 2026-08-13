@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { toast } from 'sonner'
 import { ResultPanel } from './ResultPanel'
 import { calcRatioMode } from '../lib/calc'
 import type { SessionInput } from '../lib/types'
@@ -145,4 +146,98 @@ test('"Buổi mới" button is always clickable, even with no result', () => {
   expect(button).not.toBeDisabled()
   fireEvent.click(button)
   expect(onNewSession).toHaveBeenCalledTimes(1)
+})
+
+describe('PNG result download', () => {
+  // jsdom doesn't implement the canvas 2D context; stub only the methods
+  // exportImage.ts actually calls so renderResultImage/downloadResultImage
+  // can run against a real (fake-drawing) HTMLCanvasElement.
+  function stubCanvas() {
+    const ctx = {
+      fillRect: vi.fn(),
+      fillText: vi.fn(),
+      measureText: vi.fn(() => ({ width: 0 })),
+      scale: vi.fn(),
+      roundRect: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+      set fillStyle(_v: string) {},
+      set font(_v: string) {},
+      set textAlign(_v: string) {},
+      set textBaseline(_v: string) {},
+    }
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      ctx as unknown as CanvasRenderingContext2D,
+    )
+    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation(
+      (callback: BlobCallback) => {
+        callback(new Blob(['fake-png'], { type: 'image/png' }))
+      },
+    )
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  test('clicking the download button triggers an anchor download with the expected filename and shows a toast', () => {
+    stubCanvas()
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    const toastSpy = vi.spyOn(toast, 'success').mockImplementation(() => '')
+    let downloadedFilename: string | null = null
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      downloadedFilename = this.download
+    })
+
+    const result = calcRatioMode(input)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} onNewSession={() => {}} />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Tải ảnh kết quả' }))
+
+    expect(downloadedFilename).toMatch(/^tinh-tien-cau-long-\d{4}-\d{2}-\d{2}\.png$/)
+    expect(toastSpy).toHaveBeenCalledWith('Đã tải ảnh kết quả')
+  })
+
+  test('the download button is also available inside the fullscreen overlay', () => {
+    stubCanvas()
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    vi.spyOn(toast, 'success').mockImplementation(() => '')
+    let downloadedFilename: string | null = null
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      downloadedFilename = this.download
+    })
+
+    const result = calcRatioMode(input)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} onNewSession={() => {}} />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+    // the overlay stacks on top of the (still-mounted) main panel, so there
+    // are now two download buttons — scope to the one inside the overlay,
+    // which shares its immediate parent with the overlay's "Đóng" close button
+    const overlayButtonGroup = screen.getByRole('button', { name: 'Đóng' }).closest('div')!
+    fireEvent.click(within(overlayButtonGroup).getByRole('button', { name: 'Tải ảnh kết quả' }))
+
+    expect(downloadedFilename).toMatch(/^tinh-tien-cau-long-\d{4}-\d{2}-\d{2}\.png$/)
+  })
+
+  test('no download button is shown when there is no result', () => {
+    render(
+      <ResultPanel
+        result={null}
+        mode="ratio"
+        errors={['Cần ít nhất 1 người chơi']}
+        onSave={() => {}}
+        onNewSession={() => {}}
+      />,
+    )
+    expect(screen.queryByRole('button', { name: 'Tải ảnh kết quả' })).not.toBeInTheDocument()
+  })
 })
