@@ -149,3 +149,23 @@ test('browser back button (popstate) closes the history page', () => {
   fireEvent(window, new PopStateEvent('popstate'))
   expect(screen.queryByRole('heading', { name: 'Lịch sử các buổi' })).not.toBeInTheDocument()
 })
+
+test('opening the roster pushes browser state; the in-app ← button navigates back', async () => {
+  render(<App />)
+  fireEvent.click(screen.getByRole('button', { name: 'Danh bạ người chơi →' }))
+  expect(screen.getByRole('heading', { name: 'Danh bạ người chơi' })).toBeInTheDocument()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Quay lại' }))
+  await waitFor(() =>
+    expect(screen.queryByRole('heading', { name: 'Danh bạ người chơi' })).not.toBeInTheDocument(),
+  )
+})
+
+test('browser back button (popstate) closes the roster page', () => {
+  render(<App />)
+  fireEvent.click(screen.getByRole('button', { name: 'Danh bạ người chơi →' }))
+  expect(screen.getByRole('heading', { name: 'Danh bạ người chơi' })).toBeInTheDocument()
+
+  fireEvent(window, new PopStateEvent('popstate'))
+  expect(screen.queryByRole('heading', { name: 'Danh bạ người chơi' })).not.toBeInTheDocument()
+})

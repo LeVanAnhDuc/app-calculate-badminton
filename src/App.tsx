@@ -7,6 +7,7 @@ import { ModeSwitch } from './components/ModeSwitch'
 import { PlayerList } from './components/PlayerList'
 import { RatioInputs } from './components/RatioInputs'
 import { ResultPanel } from './components/ResultPanel'
+import { RosterPage } from './components/RosterPage'
 import { RoundingToggle } from './components/RoundingToggle'
 import { calcSession, validateSession } from './lib/calc'
 import {
@@ -45,7 +46,7 @@ function defaultSession(s: Settings): SessionInput {
 }
 
 export default function App() {
-  const [page, setPage] = useState<'main' | 'history'>('main')
+  const [page, setPage] = useState<'main' | 'history' | 'roster'>('main')
   const [roster, setRoster] = useState<RosterEntry[]>(() => loadRoster())
   const [history, setHistory] = useState<SavedSession[]>(() => loadHistory())
   const [session, setSession] = useState<SessionInput>(
@@ -61,6 +62,11 @@ export default function App() {
   const openHistory = () => {
     window.history.pushState({ page: 'history' }, '')
     setPage('history')
+  }
+
+  const openRoster = () => {
+    window.history.pushState({ page: 'roster' }, '')
+    setPage('roster')
   }
 
   useEffect(() => {
@@ -158,6 +164,15 @@ export default function App() {
     saveTimeoutRef.current = setTimeout(() => setSaveDisabled(false), 2500)
   }
 
+  if (page === 'roster') {
+    return (
+      <MotionConfig reducedMotion="user">
+        <Toaster position="top-center" />
+        <RosterPage roster={roster} onBack={() => window.history.back()} onChange={setRoster} />
+      </MotionConfig>
+    )
+  }
+
   if (page === 'history') {
     return (
       <MotionConfig reducedMotion="user">
@@ -196,13 +211,22 @@ export default function App() {
               <h1 className="text-white text-2xl font-bold">🏸 Tính tiền cầu lông</h1>
               <p className="text-emerald-100 text-sm mt-1">Chia tiền nhanh sau buổi chơi</p>
             </div>
-            <button
-              type="button"
-              onClick={openHistory}
-              className="hidden md:block h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold"
-            >
-              Lịch sử các buổi
-            </button>
+            <div className="hidden md:flex md:gap-2">
+              <button
+                type="button"
+                onClick={openHistory}
+                className="h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold"
+              >
+                Lịch sử các buổi
+              </button>
+              <button
+                type="button"
+                onClick={openRoster}
+                className="h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold"
+              >
+                Danh bạ
+              </button>
+            </div>
           </div>
         </header>
         <main className="px-4 -mt-2 space-y-4 md:max-w-5xl md:mx-auto md:px-6 md:mt-0 md:py-6 md:grid md:grid-cols-5 md:gap-6 md:space-y-0 md:items-start">
@@ -249,6 +273,13 @@ export default function App() {
               className="w-full h-12 text-emerald-700 text-sm font-semibold md:hidden"
             >
               Xem lịch sử các buổi →
+            </button>
+            <button
+              type="button"
+              onClick={openRoster}
+              className="w-full h-12 text-emerald-700 text-sm font-semibold md:hidden"
+            >
+              Danh bạ người chơi →
             </button>
           </div>
         </main>
