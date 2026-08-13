@@ -65,12 +65,59 @@ const isSettings = (v: unknown): boolean =>
   typeof v.shuttlePrice === 'number' &&
   (v.rounding === 'up1000' || v.rounding === 'exact')
 
+const isPlayer = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.id === 'string' &&
+  typeof v.name === 'string' &&
+  (v.gender === 'male' || v.gender === 'female') &&
+  typeof v.halfSession === 'boolean' &&
+  (typeof v.startTime === 'string' || v.startTime === null) &&
+  (typeof v.endTime === 'string' || v.endTime === null)
+
 const isSession = (v: unknown): boolean =>
-  isObject(v) && (v.mode === 'ratio' || v.mode === 'hourly') && Array.isArray(v.players)
+  isObject(v) &&
+  (v.mode === 'ratio' || v.mode === 'hourly') &&
+  typeof v.shuttleCount === 'number' &&
+  typeof v.shuttlePrice === 'number' &&
+  typeof v.courtFee === 'number' &&
+  typeof v.courtStart === 'string' &&
+  typeof v.courtEnd === 'string' &&
+  typeof v.maleRatio === 'number' &&
+  typeof v.femaleRatio === 'number' &&
+  (v.rounding === 'up1000' || v.rounding === 'exact') &&
+  Array.isArray(v.players) &&
+  v.players.every((p) => isPlayer(p))
+
+const isPlayerResult = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.playerId === 'string' &&
+  typeof v.name === 'string' &&
+  (v.gender === 'male' || v.gender === 'female') &&
+  typeof v.halfSession === 'boolean' &&
+  (typeof v.hours === 'number' || v.hours === null) &&
+  typeof v.courtShare === 'number' &&
+  typeof v.shuttleShare === 'number' &&
+  typeof v.raw === 'number' &&
+  typeof v.amount === 'number'
+
+const isCalcResult = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.totalCost === 'number' &&
+  typeof v.totalCollected === 'number' &&
+  typeof v.surplus === 'number' &&
+  typeof v.emptyHours === 'number' &&
+  Array.isArray(v.players) &&
+  v.players.every((p) => isPlayerResult(p))
+
+const isSavedSession = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.id === 'string' &&
+  typeof v.savedAt === 'string' &&
+  isSession(v.input) &&
+  isCalcResult(v.result)
 
 const isHistory = (v: unknown): boolean =>
-  Array.isArray(v) &&
-  v.every((e) => isObject(e) && typeof e.id === 'string' && isSession(e.input))
+  Array.isArray(v) && v.every((e) => isSavedSession(e))
 
 export const loadRoster = (): RosterEntry[] => load('roster', isRoster, [])
 export const saveRoster = (r: RosterEntry[]): void => save('roster', r)
