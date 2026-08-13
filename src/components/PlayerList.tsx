@@ -1,4 +1,5 @@
 import { useState, type TouchEvent } from 'react'
+import { Drawer } from 'vaul'
 import type { RosterEntry } from '../lib/storage'
 import { durationHours, formatHours } from '../lib/time'
 import type { Gender, Player, SessionInput } from '../lib/types'
@@ -120,6 +121,13 @@ export function PlayerList({
     }
   }
 
+  const editingPlayer = input.players.find((p) => p.id === editingId) ?? null
+
+  const closeEdit = () => {
+    if (editingPlayer) commitRename(editingPlayer)
+    setEditingId(null)
+  }
+
   const timeLabel = (p: Player) => {
     const s = p.startTime ?? input.courtStart
     const e = p.endTime ?? input.courtEnd
@@ -235,7 +243,6 @@ export function PlayerList({
         <ul className="mt-3 divide-y divide-gray-100">
           {input.players.map((p) => {
             const isOpen = openSwipeId === p.id
-            const isEditing = editingId === p.id
             return (
               <li key={p.id}>
                 <div className="relative overflow-hidden">
@@ -328,95 +335,6 @@ export function PlayerList({
                     </div>
                   </div>
                 </div>
-
-                {isEditing && (
-                  <div className="flex flex-col gap-2 mt-2 p-3 bg-emerald-50/60 rounded-xl">
-                    <div>
-                      <input
-                        aria-label={`Tên của ${p.name}`}
-                        value={editName}
-                        onChange={(e) => {
-                          setEditName(e.target.value)
-                          setEditError('')
-                        }}
-                        onBlur={() => commitRename(p)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
-                        }}
-                        className="w-full h-11 rounded-xl border border-gray-300 px-3 text-base"
-                      />
-                      {editError && <p className="text-sm text-red-500 mt-1">{editError}</p>}
-                    </div>
-                    <div className="flex rounded-xl border border-gray-300 overflow-hidden">
-                      <button
-                        type="button"
-                        aria-label={`Đặt Nam cho ${p.name}`}
-                        onClick={() => onChangeGender(p.id, 'male')}
-                        className={`flex-1 h-11 text-sm font-semibold ${
-                          p.gender === 'male' ? 'bg-emerald-600 text-white' : 'bg-white text-gray-500'
-                        }`}
-                      >
-                        Nam
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={`Đặt Nữ cho ${p.name}`}
-                        onClick={() => onChangeGender(p.id, 'female')}
-                        className={`flex-1 h-11 text-sm font-semibold ${
-                          p.gender === 'female' ? 'bg-pink-500 text-white' : 'bg-white text-gray-500'
-                        }`}
-                      >
-                        Nữ
-                      </button>
-                    </div>
-                    {input.mode === 'hourly' && (
-                      <div className="flex gap-2 items-center">
-                        <input
-                          type="time"
-                          aria-label={`Giờ vào của ${p.name}`}
-                          value={p.startTime ?? input.courtStart}
-                          onChange={(e) =>
-                            updatePlayer(p.id, {
-                              startTime: e.target.value,
-                              endTime: p.endTime ?? input.courtEnd,
-                            })
-                          }
-                          className="flex-1 h-11 rounded-xl border border-emerald-300 bg-white px-2 text-base font-semibold text-center"
-                        />
-                        <span className="text-gray-400">→</span>
-                        <input
-                          type="time"
-                          aria-label={`Giờ ra của ${p.name}`}
-                          value={p.endTime ?? input.courtEnd}
-                          onChange={(e) =>
-                            updatePlayer(p.id, {
-                              endTime: e.target.value,
-                              startTime: p.startTime ?? input.courtStart,
-                            })
-                          }
-                          className="flex-1 h-11 rounded-xl border border-emerald-300 bg-white px-2 text-base font-semibold text-center"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => updatePlayer(p.id, { startTime: null, endTime: null })}
-                          className="h-11 px-3 rounded-xl bg-white border border-emerald-300 text-emerald-700 text-xs font-semibold whitespace-nowrap"
-                        >
-                          Cả buổi
-                        </button>
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        commitRename(p)
-                        setEditingId(null)
-                      }}
-                      className="w-full h-11 rounded-xl bg-emerald-600 text-white text-sm font-bold"
-                    >
-                      Xong
-                    </button>
-                  </div>
-                )}
               </li>
             )
           })}
@@ -429,6 +347,119 @@ export function PlayerList({
             : 'Bấm vào tên để sửa thông tin người chơi'}
         </p>
       )}
+
+      <Drawer.Root
+        open={editingId !== null}
+        onOpenChange={(open) => {
+          if (!open) closeEdit()
+        }}
+      >
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
+          <Drawer.Content className="fixed bottom-0 inset-x-0 z-50 rounded-t-3xl bg-white outline-none">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mt-3" />
+            <div className="max-w-lg mx-auto p-4 pb-8">
+              <Drawer.Title className="font-bold text-gray-900 mb-3">
+                Sửa người chơi
+              </Drawer.Title>
+              <Drawer.Description className="sr-only">
+                Chỉnh sửa tên, giới tính và giờ chơi
+              </Drawer.Description>
+              {editingPlayer && (
+                <div className="flex flex-col gap-2">
+                  <div>
+                    <input
+                      aria-label={`Tên của ${editingPlayer.name}`}
+                      value={editName}
+                      onChange={(e) => {
+                        setEditName(e.target.value)
+                        setEditError('')
+                      }}
+                      onBlur={() => commitRename(editingPlayer)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                      }}
+                      className="w-full h-11 rounded-xl border border-gray-300 px-3 text-base"
+                    />
+                    {editError && <p className="text-sm text-red-500 mt-1">{editError}</p>}
+                  </div>
+                  <div className="flex rounded-xl border border-gray-300 overflow-hidden">
+                    <button
+                      type="button"
+                      aria-label={`Đặt Nam cho ${editingPlayer.name}`}
+                      onClick={() => onChangeGender(editingPlayer.id, 'male')}
+                      className={`flex-1 h-11 text-sm font-semibold ${
+                        editingPlayer.gender === 'male'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-white text-gray-500'
+                      }`}
+                    >
+                      Nam
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Đặt Nữ cho ${editingPlayer.name}`}
+                      onClick={() => onChangeGender(editingPlayer.id, 'female')}
+                      className={`flex-1 h-11 text-sm font-semibold ${
+                        editingPlayer.gender === 'female'
+                          ? 'bg-pink-500 text-white'
+                          : 'bg-white text-gray-500'
+                      }`}
+                    >
+                      Nữ
+                    </button>
+                  </div>
+                  {input.mode === 'hourly' && (
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="time"
+                        aria-label={`Giờ vào của ${editingPlayer.name}`}
+                        value={editingPlayer.startTime ?? input.courtStart}
+                        onChange={(e) =>
+                          updatePlayer(editingPlayer.id, {
+                            startTime: e.target.value,
+                            endTime: editingPlayer.endTime ?? input.courtEnd,
+                          })
+                        }
+                        className="flex-1 h-11 rounded-xl border border-emerald-300 bg-white px-2 text-base font-semibold text-center"
+                      />
+                      <span className="text-gray-400">→</span>
+                      <input
+                        type="time"
+                        aria-label={`Giờ ra của ${editingPlayer.name}`}
+                        value={editingPlayer.endTime ?? input.courtEnd}
+                        onChange={(e) =>
+                          updatePlayer(editingPlayer.id, {
+                            endTime: e.target.value,
+                            startTime: editingPlayer.startTime ?? input.courtStart,
+                          })
+                        }
+                        className="flex-1 h-11 rounded-xl border border-emerald-300 bg-white px-2 text-base font-semibold text-center"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updatePlayer(editingPlayer.id, { startTime: null, endTime: null })
+                        }
+                        className="h-11 px-3 rounded-xl bg-white border border-emerald-300 text-emerald-700 text-xs font-semibold whitespace-nowrap"
+                      >
+                        Cả buổi
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={closeEdit}
+                    className="w-full h-11 mt-1 rounded-xl bg-emerald-600 text-white text-sm font-bold"
+                  >
+                    Xong
+                  </button>
+                </div>
+              )}
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
     </section>
   )
 }

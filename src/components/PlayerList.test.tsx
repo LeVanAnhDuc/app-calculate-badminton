@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { useState } from 'react'
 import { PlayerList } from './PlayerList'
 import type { Gender, Player, SessionInput } from '../lib/types'
@@ -92,11 +92,13 @@ test('roster suggestion fills name and gender', () => {
   expect(screen.getByText('Hoa')).toBeInTheDocument()
 })
 
-test('hourly mode shows default time and expands editor', () => {
+test('hourly mode shows default time; tapping the name opens the edit drawer', () => {
   render(<Harness initial={{ ...base, mode: 'hourly' }} />)
   expect(screen.getByText(/19:00–21:00 · cả buổi/)).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   fireEvent.click(screen.getByText('Tuấn'))
-  expect(screen.getByLabelText('Giờ vào của Tuấn')).toBeInTheDocument()
+  const drawer = screen.getByRole('dialog')
+  expect(within(drawer).getByLabelText('Giờ vào của Tuấn')).toBeInTheDocument()
 })
 
 test('blocks empty names', () => {
@@ -118,9 +120,10 @@ test('blocks empty names', () => {
 test('time-bound coupling: typing start time auto-sets end time', () => {
   render(<Harness initial={{ ...base, mode: 'hourly' }} />)
 
-  // Expand editor
+  // Open the edit drawer
   fireEvent.click(screen.getByText('Tuấn'))
-  const startInput = screen.getByLabelText('Giờ vào của Tuấn') as HTMLInputElement
+  const drawer = screen.getByRole('dialog')
+  const startInput = within(drawer).getByLabelText('Giờ vào của Tuấn') as HTMLInputElement
 
   // Type a new start time
   fireEvent.change(startInput, { target: { value: '19:30' } })
@@ -159,7 +162,7 @@ test('swipe-left on a row reveals the red Xóa button; tapping it removes the pl
   expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
 })
 
-test('rename via edit panel commits on blur; duplicate name is blocked', () => {
+test('rename via edit drawer commits on blur; duplicate name is blocked', () => {
   const initial: SessionInput = {
     ...base,
     players: [
@@ -169,9 +172,10 @@ test('rename via edit panel commits on blur; duplicate name is blocked', () => {
   }
   render(<Harness initial={initial} />)
 
-  // open the edit panel by tapping the name
+  // open the edit drawer by tapping the name
   fireEvent.click(screen.getByText('Tuấn'))
-  const nameInput = screen.getByLabelText('Tên của Tuấn') as HTMLInputElement
+  const drawer = screen.getByRole('dialog')
+  const nameInput = within(drawer).getByLabelText('Tên của Tuấn') as HTMLInputElement
 
   // committing a valid new name on blur renames the player
   fireEvent.change(nameInput, { target: { value: 'Nam Anh' } })
@@ -182,18 +186,27 @@ test('rename via edit panel commits on blur; duplicate name is blocked', () => {
   // attempting to rename to an existing name is blocked with an inline error
   fireEvent.change(nameInput, { target: { value: 'lan' } })
   fireEvent.blur(nameInput)
-  expect(screen.getByText('"lan" đã có trong buổi')).toBeInTheDocument()
+  expect(within(drawer).getByText('"lan" đã có trong buổi')).toBeInTheDocument()
   expect(screen.getByText('Nam Anh')).toBeInTheDocument()
 })
 
 test('blank rename reverts to the original name without an error', () => {
   render(<Harness initial={base} />)
   fireEvent.click(screen.getByText('Tuấn'))
-  const nameInput = screen.getByLabelText('Tên của Tuấn') as HTMLInputElement
+  const drawer = screen.getByRole('dialog')
+  const nameInput = within(drawer).getByLabelText('Tên của Tuấn') as HTMLInputElement
   fireEvent.change(nameInput, { target: { value: '   ' } })
   fireEvent.blur(nameInput)
   expect(screen.getByText('Tuấn')).toBeInTheDocument()
   expect(screen.queryByText(/đã có trong buổi/)).not.toBeInTheDocument()
+})
+
+test('Xong closes the edit drawer', () => {
+  render(<Harness initial={base} />)
+  fireEvent.click(screen.getByText('Tuấn'))
+  const drawer = screen.getByRole('dialog')
+  fireEvent.click(within(drawer).getByRole('button', { name: 'Xong' }))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
 
 test('swipe no longer reveals a Sửa button — only Xóa', () => {
@@ -206,13 +219,17 @@ test('swipe no longer reveals a Sửa button — only Xóa', () => {
   expect(screen.getByRole('button', { name: 'Xóa nhanh Tuấn' })).toBeInTheDocument()
 })
 
-test('no per-row Nam/Nữ segmented switch remains; the edit panel still has one', () => {
+test('no per-row Nam/Nữ segmented switch remains; the edit drawer still has one', () => {
   render(<Harness initial={base} />)
   expect(screen.queryByRole('button', { name: 'Nam Tuấn' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Nữ Tuấn' })).not.toBeInTheDocument()
   fireEvent.click(screen.getByText('Tuấn'))
-  expect(screen.getByRole('button', { name: 'Đặt Nam cho Tuấn' })).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Đặt Nữ cho Tuấn' })).toBeInTheDocument()
+  const drawer = screen.getByRole('dialog')
+  expect(within(drawer).getByRole('button', { name: 'Đặt Nam cho Tuấn' })).toBeInTheDocument()
+  expect(within(drawer).getByRole('button', { name: 'Đặt Nữ cho Tuấn' })).toBeInTheDocument()
+  // the segmented gender switch inside the drawer still works
+  fireEvent.click(within(drawer).getByRole('button', { name: 'Đặt Nữ cho Tuấn' }))
+  expect(screen.getByText(/^0 nam · 1 nữ$/)).toBeInTheDocument()
 })
 
 test('empty player list shows a centered hint instead of an empty list', () => {
@@ -229,26 +246,32 @@ test('hint banner is always visible, one tip per line, with no dismiss button', 
   expect(screen.queryByRole('button', { name: 'Đóng gợi ý' })).not.toBeInTheDocument()
 })
 
-test('the edit panel renders outside the swipe-clipped (overflow-hidden) container', () => {
+test('the edit drawer renders as a bottom sheet outside the swipe-clipped (overflow-hidden) row', () => {
   render(<Harness initial={{ ...base, mode: 'hourly' }} />)
   fireEvent.click(screen.getByText('Tuấn'))
-  const startInput = screen.getByLabelText('Giờ vào của Tuấn')
+  const drawer = screen.getByRole('dialog')
+  const startInput = within(drawer).getByLabelText('Giờ vào của Tuấn')
+  // the drawer content is portaled out of the swipe row's clipped container
   expect(startInput.closest('.overflow-hidden')).toBeNull()
+  expect(drawer.closest('[data-testid^="swipe-row-"]')).toBeNull()
+  // it renders as a rounded-top bottom sheet with a drag handle
+  expect(drawer).toHaveClass('rounded-t-3xl')
 })
 
 test('cả buổi button resets time labels', () => {
   render(<Harness initial={{ ...base, mode: 'hourly' }} />)
 
-  // Expand editor
+  // Open the edit drawer
   fireEvent.click(screen.getByText('Tuấn'))
-  const startInput = screen.getByLabelText('Giờ vào của Tuấn') as HTMLInputElement
+  const drawer = screen.getByRole('dialog')
+  const startInput = within(drawer).getByLabelText('Giờ vào của Tuấn') as HTMLInputElement
 
   // Set a custom start time
   fireEvent.change(startInput, { target: { value: '19:30' } })
   expect(screen.getByText(/19:30–21:00/)).toBeInTheDocument()
 
   // Click "Cả buổi" button to reset
-  fireEvent.click(screen.getByRole('button', { name: 'Cả buổi' }))
+  fireEvent.click(within(drawer).getByRole('button', { name: 'Cả buổi' }))
 
   // Assert label is back to "cả buổi"
   expect(screen.getByText(/19:00–21:00 · cả buổi/)).toBeInTheDocument()
