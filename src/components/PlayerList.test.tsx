@@ -128,10 +128,14 @@ test('time-bound coupling: typing start time auto-sets end time', () => {
   // Open the edit drawer
   fireEvent.click(screen.getByText('Tuấn'))
   const drawer = screen.getByRole('dialog')
-  const startInput = within(drawer).getByLabelText('Giờ vào của Tuấn') as HTMLInputElement
 
-  // Type a new start time
-  fireEvent.change(startInput, { target: { value: '19:30' } })
+  // Pick a new start time via the hour/minute selects
+  fireEvent.change(within(drawer).getByLabelText('Giờ vào của Tuấn (giờ)'), {
+    target: { value: '19' },
+  })
+  fireEvent.change(within(drawer).getByLabelText('Giờ vào của Tuấn (phút)'), {
+    target: { value: '30' },
+  })
 
   // Assert the time label changes from "cả buổi" to show the custom duration
   // Expected: "19:30–21:00 · 1.5 giờ" or similar
@@ -269,10 +273,11 @@ test('cả buổi button resets time labels', () => {
   // Open the edit drawer
   fireEvent.click(screen.getByText('Tuấn'))
   const drawer = screen.getByRole('dialog')
-  const startInput = within(drawer).getByLabelText('Giờ vào của Tuấn') as HTMLInputElement
 
-  // Set a custom start time
-  fireEvent.change(startInput, { target: { value: '19:30' } })
+  // Set a custom start time via the minute select
+  fireEvent.change(within(drawer).getByLabelText('Giờ vào của Tuấn (phút)'), {
+    target: { value: '30' },
+  })
   expect(screen.getByText(/19:30–21:00/)).toBeInTheDocument()
 
   // Click "Cả buổi" button to reset

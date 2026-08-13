@@ -4,6 +4,7 @@ import { Drawer } from 'vaul'
 import type { RosterEntry } from '../lib/storage'
 import { durationHours, formatHours } from '../lib/time'
 import type { Gender, Player, SessionInput } from '../lib/types'
+import { TimeSelect } from './TimeSelect'
 
 interface Props {
   input: SessionInput
@@ -462,30 +463,28 @@ export function PlayerList({
                   </div>
                   {input.mode === 'hourly' && (
                     <div className="flex gap-2 items-center">
-                      <input
-                        type="time"
+                      <TimeSelect
                         aria-label={`Giờ vào của ${editingPlayer.name}`}
                         value={editingPlayer.startTime ?? input.courtStart}
-                        onChange={(e) =>
+                        onChange={(v) =>
                           updatePlayer(editingPlayer.id, {
-                            startTime: e.target.value,
+                            startTime: v,
                             endTime: editingPlayer.endTime ?? input.courtEnd,
                           })
                         }
-                        className="flex-1 h-11 rounded-xl border border-emerald-300 bg-white px-2 text-base font-semibold text-center"
+                        className="flex-1"
                       />
                       <span className="text-gray-400">→</span>
-                      <input
-                        type="time"
+                      <TimeSelect
                         aria-label={`Giờ ra của ${editingPlayer.name}`}
                         value={editingPlayer.endTime ?? input.courtEnd}
-                        onChange={(e) =>
+                        onChange={(v) =>
                           updatePlayer(editingPlayer.id, {
-                            endTime: e.target.value,
+                            endTime: v,
                             startTime: editingPlayer.startTime ?? input.courtStart,
                           })
                         }
-                        className="flex-1 h-11 rounded-xl border border-emerald-300 bg-white px-2 text-base font-semibold text-center"
+                        className="flex-1"
                       />
                       <button
                         type="button"

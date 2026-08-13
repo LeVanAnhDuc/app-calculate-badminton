@@ -3,6 +3,7 @@ import { formatVND } from '../lib/format'
 import { durationHours, formatHours } from '../lib/time'
 import type { SessionInput } from '../lib/types'
 import { MoneyInput } from './MoneyInput'
+import { TimeSelect } from './TimeSelect'
 
 interface Props {
   input: SessionInput
@@ -58,20 +59,18 @@ export function CostForm({ input, onPatch }: Props) {
         <div className="mt-3">
           <label className="text-xs text-gray-500 block mb-1">Giờ thuê sân</label>
           <div className="flex gap-2 items-center">
-            <input
-              type="time"
+            <TimeSelect
               aria-label="Giờ bắt đầu"
               value={input.courtStart}
-              onChange={(e) => onPatch({ courtStart: e.target.value })}
-              className="flex-1 h-12 rounded-xl border border-gray-300 px-3 text-lg font-semibold text-center"
+              onChange={(v) => onPatch({ courtStart: v })}
+              className="flex-1"
             />
             <span className="text-gray-400">→</span>
-            <input
-              type="time"
+            <TimeSelect
               aria-label="Giờ kết thúc"
               value={input.courtEnd}
-              onChange={(e) => onPatch({ courtEnd: e.target.value })}
-              className="flex-1 h-12 rounded-xl border border-gray-300 px-3 text-lg font-semibold text-center"
+              onChange={(v) => onPatch({ courtEnd: v })}
+              className="flex-1"
             />
           </div>
           <p className="text-xs text-gray-400 mt-1">
