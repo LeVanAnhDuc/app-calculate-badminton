@@ -115,7 +115,7 @@ export function calcSession(input: SessionInput): CalcResult {
 export function validateSession(input: SessionInput): string[] {
   const errors: string[] = []
   if (input.players.length === 0) errors.push('Cần ít nhất 1 người chơi')
-  if (shuttleTotal(input) + input.courtFee <= 0) errors.push('Tổng chi phí phải lớn hơn 0')
+  if (shuttleTotal(input) + input.courtFee <= 0) errors.push('Tổng chi phải lớn hơn 0')
   if (input.maleRatio <= 0 || input.femaleRatio <= 0) errors.push('Hệ số phải lớn hơn 0')
   if (input.mode === 'hourly') {
     const courtHours = durationHours(input.courtStart, input.courtEnd)

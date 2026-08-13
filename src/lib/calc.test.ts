@@ -147,7 +147,7 @@ test('validateSession catches invalid input', () => {
   expect(validateSession(ratioInput({ players: [] }))).toContain('Cần ít nhất 1 người chơi')
   expect(
     validateSession(ratioInput({ shuttleCount: 0, shuttlePrice: 0, courtFee: 0 })),
-  ).toContain('Tổng chi phí phải lớn hơn 0')
+  ).toContain('Tổng chi phải lớn hơn 0')
   expect(validateSession(ratioInput({ maleRatio: 0 }))).toContain('Hệ số phải lớn hơn 0')
   expect(validateSession(hourlyInput({ courtEnd: '19:00' }))).toContain(
     'Giờ thuê sân chưa hợp lệ',
