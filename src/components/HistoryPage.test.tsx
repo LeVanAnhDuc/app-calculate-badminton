@@ -47,10 +47,13 @@ function Harness({ initial }: { initial: SavedSession[] }) {
   )
 }
 
-test('newest session is expanded by default; click collapses it', () => {
+test('cards start collapsed; tapping one expands it, tapping again collapses it', () => {
   render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={() => {}} onReuse={() => {}} />)
   expect(screen.getByText(/1 buổi đã lưu/)).toBeInTheDocument()
-  // most recent card starts expanded
+  // no card auto-expands, even the newest one
+  expect(screen.queryByText('Tiền cầu (6 quả × 25.000đ)')).not.toBeInTheDocument()
+  expect(screen.queryByText('Tổng thu')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
   expect(screen.getByText('Tiền cầu (6 quả × 25.000đ)')).toBeInTheDocument()
   expect(screen.getByText('Tổng thu')).toBeInTheDocument()
   fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
@@ -61,6 +64,7 @@ test('delete asks for confirmation', () => {
   const onDelete = vi.fn()
   vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
   render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={onDelete} onReuse={() => {}} />)
+  fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
   fireEvent.click(screen.getByRole('button', { name: 'Xóa buổi này' }))
   expect(onDelete).not.toHaveBeenCalled()
   vi.spyOn(window, 'confirm').mockReturnValueOnce(true)
@@ -71,6 +75,7 @@ test('delete asks for confirmation', () => {
 test('reuse passes the session', () => {
   const onReuse = vi.fn()
   render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={() => {}} onReuse={onReuse} />)
+  fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
   fireEvent.click(screen.getByRole('button', { name: 'Dùng lại danh sách này cho buổi mới' }))
   expect(onReuse).toHaveBeenCalledWith(saved)
 })
@@ -81,8 +86,9 @@ test('session list lays out in a responsive 1/2-column grid; expanded card spans
   expect(main).toHaveClass('md:grid')
   expect(main).toHaveClass('md:grid-cols-2')
 
-  // the expanded (newest) card spans both columns — "Tổng thu" only renders
-  // inside the expanded detail section, so it uniquely identifies that card
+  // tap the newest card to expand it — "Tổng thu" only renders inside the
+  // expanded detail section, so it uniquely identifies that card
+  fireEvent.click(screen.getAllByText(/2 người · 1 nam, 1 nữ/)[0])
   const expandedCard = screen.getByText('Tổng thu').closest('section')
   expect(expandedCard).toHaveClass('md:col-span-2')
 })
@@ -131,16 +137,19 @@ test('hourly-mode detail shows hours and never shows leftover ½ buổi note', (
   render(
     <HistoryPage history={[hourlySaved]} onBack={() => {}} onDelete={() => {}} onReuse={() => {}} />,
   )
+  // expand the (only) card to see its detail
+  fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
   expect(screen.getAllByText(/2 giờ/).length).toBeGreaterThan(0)
   expect(screen.queryByText(/½ buổi/)).not.toBeInTheDocument()
 })
 
-test('deleting the expanded newest session re-expands the new newest session', () => {
+test('deleting an expanded session collapses the view instead of auto-expanding another card', () => {
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   render(<Harness initial={[saved, savedB]} />)
-  // saved (newest, id s1) starts expanded
+  // expand saved (id s1, the first/newest card)
+  fireEvent.click(screen.getAllByText(/2 người · 1 nam, 1 nữ/)[0])
   expect(screen.getByText('Tổng thu')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Xóa buổi này' }))
-  // savedB (now the only/newest remaining session) should be expanded automatically
-  expect(screen.getByText('Tổng thu')).toBeInTheDocument()
+  // savedB remains but nothing auto-expands — expandedId cleared, not re-pointed
+  expect(screen.queryByText('Tổng thu')).not.toBeInTheDocument()
 })

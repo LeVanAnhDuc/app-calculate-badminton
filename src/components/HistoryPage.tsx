@@ -24,11 +24,13 @@ function sessionDate(iso: string): string {
 }
 
 export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
-  const [expandedId, setExpandedId] = useState<string | null>(history[0]?.id ?? null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
+  // cards never auto-expand; this only guards against a deleted card
+  // staying "expanded" once it no longer exists in history
   useEffect(() => {
     if (expandedId !== null && !history.some((s) => s.id === expandedId)) {
-      setExpandedId(history[0]?.id ?? null)
+      setExpandedId(null)
     }
   }, [history, expandedId])
 
