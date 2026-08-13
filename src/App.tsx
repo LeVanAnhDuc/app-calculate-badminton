@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CostForm } from './components/CostForm'
+import { HistoryPage } from './components/HistoryPage'
 import { ModeSwitch } from './components/ModeSwitch'
 import { PlayerList } from './components/PlayerList'
 import { RatioInputs } from './components/RatioInputs'
@@ -88,7 +89,17 @@ export default function App() {
   }
 
   if (page === 'history') {
-    return <div>Lịch sử</div> // replaced in Task 11
+    return (
+      <HistoryPage
+        history={history}
+        onBack={() => setPage('main')}
+        onDelete={(id) => setHistory((h) => h.filter((s) => s.id !== id))}
+        onReuse={(s) => {
+          setSession((cur) => ({ ...cur, players: s.input.players }))
+          setPage('main')
+        }}
+      />
+    )
   }
 
   return (
