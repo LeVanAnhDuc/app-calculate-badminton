@@ -147,7 +147,7 @@ export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
                       </div>
                       <div>
                         <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Mỗi người trả</h3>
-                        <ul className="space-y-1.5 text-sm">
+                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-sm">
                           {s.result.players.map((p) => (
                             <li
                               key={p.playerId}

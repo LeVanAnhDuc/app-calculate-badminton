@@ -75,6 +75,18 @@ test('reuse passes the session', () => {
   expect(onReuse).toHaveBeenCalledWith(saved)
 })
 
+test('session list lays out in a responsive 1/2-column grid; expanded card spans both columns', () => {
+  render(<HistoryPage history={[saved, savedB]} onBack={() => {}} onDelete={() => {}} onReuse={() => {}} />)
+  const main = screen.getByRole('main')
+  expect(main).toHaveClass('md:grid')
+  expect(main).toHaveClass('md:grid-cols-2')
+
+  // the expanded (newest) card spans both columns — "Tổng thu" only renders
+  // inside the expanded detail section, so it uniquely identifies that card
+  const expandedCard = screen.getByText('Tổng thu').closest('section')
+  expect(expandedCard).toHaveClass('md:col-span-2')
+})
+
 test('empty history shows hint', () => {
   render(<HistoryPage history={[]} onBack={() => {}} onDelete={() => {}} onReuse={() => {}} />)
   expect(screen.getByText(/Chưa có buổi nào được lưu/)).toBeInTheDocument()
