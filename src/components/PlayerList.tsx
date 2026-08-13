@@ -72,11 +72,19 @@ export function PlayerList({
   const inSession = (n: string) =>
     input.players.some((p) => p.name.toLowerCase() === n.trim().toLowerCase())
 
-  const suggestions = name.trim()
+  const trimmedName = name.trim()
+
+  const suggestions = trimmedName
     ? roster.filter(
-        (r) => r.name.toLowerCase().startsWith(name.trim().toLowerCase()) && !inSession(r.name),
+        (r) => r.name.toLowerCase().startsWith(trimmedName.toLowerCase()) && !inSession(r.name),
       )
     : []
+
+  const rosterMatch = trimmedName
+    ? (roster.find((r) => r.name.toLowerCase() === trimmedName.toLowerCase()) ?? null)
+    : null
+  const showNewHint = trimmedName !== '' && rosterMatch === null && !inSession(trimmedName)
+  const showRosterHint = rosterMatch !== null
 
   const add = (n: string, g: Gender) => {
     const trimmed = n.trim()
@@ -223,6 +231,17 @@ export function PlayerList({
         </div>
       </div>
 
+      {showNewHint && (
+        <p className="text-xs text-emerald-700 mt-1.5 px-1">
+          ✨ Người mới — sẽ được thêm vào danh bạ
+        </p>
+      )}
+      {showRosterHint && (
+        <p className="text-xs text-gray-400 mt-1.5 px-1">
+          📇 Có trong danh bạ — bấm thẻ gợi ý để thêm đúng giới tính
+        </p>
+      )}
+
       <AnimatePresence>
         {suggestions.length > 0 && (
           <motion.div
@@ -233,6 +252,7 @@ export function PlayerList({
             transition={{ duration: 0.15 }}
             className="flex flex-col gap-2 mt-2"
           >
+            <p className="text-xs font-semibold text-gray-400 px-1">Từ danh bạ</p>
             {suggestions.slice(0, 6).map((r) => (
               <button
                 key={r.name}

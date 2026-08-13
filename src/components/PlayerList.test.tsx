@@ -84,6 +84,37 @@ test('half-session pill toggles in ratio mode', () => {
   expect(screen.getByText('½ buổi ✓')).toBeInTheDocument()
 })
 
+test('typing a brand-new name shows the "Người mới" hint', () => {
+  render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
+  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  fireEvent.change(nameInput, { target: { value: 'Minh' } })
+  expect(screen.getByText('✨ Người mới — sẽ được thêm vào danh bạ')).toBeInTheDocument()
+  expect(screen.queryByText(/Có trong danh bạ/)).not.toBeInTheDocument()
+})
+
+test('typing an existing roster name (case-insensitive) shows the "Có trong danh bạ" hint', () => {
+  render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
+  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  fireEvent.change(nameInput, { target: { value: 'hoa' } })
+  expect(
+    screen.getByText('📇 Có trong danh bạ — bấm thẻ gợi ý để thêm đúng giới tính'),
+  ).toBeInTheDocument()
+  expect(screen.queryByText(/Người mới/)).not.toBeInTheDocument()
+})
+
+test('suggestion dropdown shows a "Từ danh bạ" header above the cards', () => {
+  render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
+  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  fireEvent.change(nameInput, { target: { value: 'h' } })
+  expect(screen.getByText('Từ danh bạ')).toBeInTheDocument()
+})
+
+test('no roster hint at all when the input is empty', () => {
+  render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
+  expect(screen.queryByText(/Người mới/)).not.toBeInTheDocument()
+  expect(screen.queryByText(/Có trong danh bạ/)).not.toBeInTheDocument()
+})
+
 test('roster suggestion fills name and gender', async () => {
   render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
   const nameInput = screen.getByPlaceholderText('Tên người chơi')
