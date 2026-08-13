@@ -51,11 +51,40 @@ test('negative surplus is rendered in red, not green', () => {
 
 test('shows errors and disables save when result is null', () => {
   render(
-    <ResultPanel result={null} mode="ratio" errors={['Cần ít nhất 1 người chơi']} onSave={() => {}} />,
+    <ResultPanel
+      result={null}
+      mode="ratio"
+      errors={['Tổng chi phải lớn hơn 0']}
+      onSave={() => {}}
+    />,
   )
-  expect(screen.getByText('Cần ít nhất 1 người chơi')).toBeInTheDocument()
+  expect(screen.getByText('Tổng chi phải lớn hơn 0')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Lưu buổi này' })).toBeDisabled()
   expect(screen.queryByRole('button', { name: 'Xem toàn màn hình' })).not.toBeInTheDocument()
+})
+
+test('shows a friendly empty state instead of an amber error when there are no players yet', () => {
+  render(
+    <ResultPanel result={null} mode="ratio" errors={['Cần ít nhất 1 người chơi']} onSave={() => {}} />,
+  )
+  expect(screen.getByText('Chưa có ai trong buổi này')).toBeInTheDocument()
+  expect(screen.getByText('Thêm người chơi ở mục bên trên để bắt đầu chia tiền')).toBeInTheDocument()
+  expect(screen.queryByText('Cần ít nhất 1 người chơi')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Lưu buổi này' })).toBeDisabled()
+})
+
+test('other validation errors still show as the amber list even alongside more issues', () => {
+  render(
+    <ResultPanel
+      result={null}
+      mode="ratio"
+      errors={['Tổng chi phải lớn hơn 0', 'Hệ số phải lớn hơn 0']}
+      onSave={() => {}}
+    />,
+  )
+  expect(screen.getByText('Tổng chi phải lớn hơn 0')).toBeInTheDocument()
+  expect(screen.getByText('Hệ số phải lớn hơn 0')).toBeInTheDocument()
+  expect(screen.queryByText('Chưa có ai trong buổi này')).not.toBeInTheDocument()
 })
 
 test('fullscreen overlay shows player names and closes on Đóng', () => {
@@ -66,6 +95,15 @@ test('fullscreen overlay shows player names and closes on Đóng', () => {
   expect(screen.getAllByText('Lan').length).toBeGreaterThan(0)
   fireEvent.click(screen.getByRole('button', { name: 'Đóng' }))
   expect(screen.queryByRole('button', { name: 'Đóng' })).not.toBeInTheDocument()
+})
+
+test('fullscreen overlay lays out players in a responsive 1/2-column grid', () => {
+  const result = calcRatioMode(input)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+  const list = screen.getByTestId('fullscreen-player-grid')
+  expect(list).toHaveClass('grid-cols-1')
+  expect(list).toHaveClass('md:grid-cols-2')
 })
 
 test('Esc key closes the fullscreen overlay', () => {

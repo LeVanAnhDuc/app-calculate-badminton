@@ -133,13 +133,13 @@ function FullscreenResult({
           ×
         </button>
       </div>
-      <div className="max-w-lg mx-auto py-6 px-4">
+      <div className="max-w-lg md:max-w-3xl mx-auto py-6 px-4">
         {mode === 'hourly' && result.emptyHours > 0 && (
           <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mb-2">
             Có {formatHours(result.emptyHours)} sân thuê không ai chơi — phần này được chia đều.
           </p>
         )}
-        <ul className="space-y-2">
+        <ul data-testid="fullscreen-player-grid" className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {result.players.map((p) => (
             <PlayerRow key={p.playerId} p={p} mode={mode} large />
           ))}
@@ -161,8 +161,11 @@ interface Props {
   saveDisabled?: boolean
 }
 
+const NO_PLAYERS_ERROR = 'Cần ít nhất 1 người chơi'
+
 export function ResultPanel({ result, mode, errors, onSave, saveDisabled }: Props) {
   const [fullscreen, setFullscreen] = useState(false)
+  const isEmptyPlayers = errors.length === 1 && errors[0] === NO_PLAYERS_ERROR
 
   return (
     <section className="bg-white rounded-2xl shadow-sm p-4 border-2 border-emerald-100">
@@ -182,13 +185,25 @@ export function ResultPanel({ result, mode, errors, onSave, saveDisabled }: Prop
       </div>
 
       {result === null ? (
-        <ul className="space-y-1">
-          {errors.map((e) => (
-            <li key={e} className="text-sm text-amber-600">
-              {e}
-            </li>
-          ))}
-        </ul>
+        isEmptyPlayers ? (
+          <div className="flex flex-col items-center text-center py-8">
+            <span className="text-5xl mb-2" role="img" aria-label="Cầu lông">
+              🏸
+            </span>
+            <p className="font-semibold text-gray-700">Chưa có ai trong buổi này</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Thêm người chơi ở mục bên trên để bắt đầu chia tiền
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-1">
+            {errors.map((e) => (
+              <li key={e} className="text-sm text-amber-600">
+                {e}
+              </li>
+            ))}
+          </ul>
+        )
       ) : (
         <>
           {mode === 'hourly' && result.emptyHours > 0 && (
