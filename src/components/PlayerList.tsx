@@ -1,4 +1,5 @@
 import { useState, type TouchEvent } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Drawer } from 'vaul'
 import type { RosterEntry } from '../lib/storage'
 import { durationHours, formatHours } from '../lib/time'
@@ -169,14 +170,19 @@ export function PlayerList({
         </span>
       </div>
 
-      <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 text-xs text-emerald-800 space-y-1 mb-3">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
+        className="bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 text-xs text-emerald-800 space-y-1 mb-3"
+      >
         <p>💡 Bấm avatar để đổi giới tính</p>
         <p>💡 Bấm tên để sửa thông tin người chơi</p>
         <p>
           <span className="md:hidden">💡 Vuốt trái để xóa</span>
           <span className="hidden md:inline">💡 Bấm nút × để xóa</span>
         </p>
-      </div>
+      </motion.div>
 
       <div className="flex gap-2">
         <input
@@ -209,23 +215,32 @@ export function PlayerList({
         </div>
       </div>
 
-      {suggestions.length > 0 && (
-        <div className="flex flex-col gap-2 mt-2">
-          {suggestions.slice(0, 6).map((r) => (
-            <button
-              key={r.name}
-              type="button"
-              aria-label={`${r.name} · ${r.gender === 'male' ? 'Nam' : 'Nữ'}`}
-              onClick={() => add(r.name, r.gender)}
-              className="w-full h-12 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center gap-2 px-3 text-left"
-            >
-              <GenderBadge gender={r.gender} />
-              <span className="font-medium text-gray-900 flex-1">{r.name}</span>
-              <span className="text-xs text-gray-400">{r.gender === 'male' ? 'Nam' : 'Nữ'}</span>
-            </button>
-          ))}
-        </div>
-      )}
+      <AnimatePresence>
+        {suggestions.length > 0 && (
+          <motion.div
+            key="suggestions"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="flex flex-col gap-2 mt-2"
+          >
+            {suggestions.slice(0, 6).map((r) => (
+              <button
+                key={r.name}
+                type="button"
+                aria-label={`${r.name} · ${r.gender === 'male' ? 'Nam' : 'Nữ'}`}
+                onClick={() => add(r.name, r.gender)}
+                className="w-full h-12 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center gap-2 px-3 text-left"
+              >
+                <GenderBadge gender={r.gender} />
+                <span className="font-medium text-gray-900 flex-1">{r.name}</span>
+                <span className="text-xs text-gray-400">{r.gender === 'male' ? 'Nam' : 'Nữ'}</span>
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
 
@@ -238,13 +253,27 @@ export function PlayerList({
       </button>
 
       {input.players.length === 0 ? (
-        <p className="text-center text-sm text-gray-400 py-4">Chưa có người chơi nào</p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="text-center text-sm text-gray-400 py-4"
+        >
+          Chưa có người chơi nào
+        </motion.p>
       ) : (
         <ul className="mt-3 divide-y divide-gray-100">
-          {input.players.map((p) => {
-            const isOpen = openSwipeId === p.id
-            return (
-              <li key={p.id}>
+          <AnimatePresence initial={false}>
+            {input.players.map((p) => {
+              const isOpen = openSwipeId === p.id
+              return (
+                <motion.li
+                  key={p.id}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
                 <div className="relative overflow-hidden">
                   <button
                     type="button"
@@ -335,9 +364,10 @@ export function PlayerList({
                     </div>
                   </div>
                 </div>
-              </li>
+              </motion.li>
             )
           })}
+          </AnimatePresence>
         </ul>
       )}
       {input.players.length > 0 && (

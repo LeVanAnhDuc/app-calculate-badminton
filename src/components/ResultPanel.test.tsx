@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ResultPanel } from './ResultPanel'
 import { calcRatioMode } from '../lib/calc'
 import type { SessionInput } from '../lib/types'
@@ -87,14 +87,18 @@ test('other validation errors still show as the amber list even alongside more i
   expect(screen.queryByText('Chưa có ai trong buổi này')).not.toBeInTheDocument()
 })
 
-test('fullscreen overlay shows player names and closes on Đóng', () => {
+test('fullscreen overlay shows player names and closes on Đóng', async () => {
   const result = calcRatioMode(input)
   render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
   fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
   expect(screen.getAllByText('Tuấn').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Lan').length).toBeGreaterThan(0)
   fireEvent.click(screen.getByRole('button', { name: 'Đóng' }))
-  expect(screen.queryByRole('button', { name: 'Đóng' })).not.toBeInTheDocument()
+  // the overlay exits with a motion fade/scale animation, which keeps it
+  // mounted in jsdom for a tick past the click
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: 'Đóng' })).not.toBeInTheDocument(),
+  )
 })
 
 test('fullscreen overlay lays out players in a responsive 1/2-column grid', () => {
@@ -106,11 +110,13 @@ test('fullscreen overlay lays out players in a responsive 1/2-column grid', () =
   expect(list).toHaveClass('md:grid-cols-2')
 })
 
-test('Esc key closes the fullscreen overlay', () => {
+test('Esc key closes the fullscreen overlay', async () => {
   const result = calcRatioMode(input)
   render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}} />)
   fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
   expect(screen.getByRole('button', { name: 'Đóng' })).toBeInTheDocument()
   fireEvent.keyDown(window, { key: 'Escape' })
-  expect(screen.queryByRole('button', { name: 'Đóng' })).not.toBeInTheDocument()
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: 'Đóng' })).not.toBeInTheDocument(),
+  )
 })

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { formatNumber, formatVND } from '../lib/format'
 import { formatHours } from '../lib/time'
 import type { CalcResult, Mode, PlayerResult } from '../lib/types'
@@ -120,36 +121,49 @@ function FullscreenResult({
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto">
-      <div className="sticky top-0 bg-gray-50 border-b border-gray-100 flex items-center justify-between px-4 py-4">
-        <h2 className="text-lg font-bold text-gray-900">Kết quả</h2>
-        <button
-          type="button"
-          aria-label="Đóng"
-          title="Đóng"
-          onClick={onClose}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 text-2xl leading-none"
-        >
-          ×
-        </button>
-      </div>
-      <div className="max-w-lg md:max-w-3xl mx-auto py-6 px-4">
-        {mode === 'hourly' && result.emptyHours > 0 && (
-          <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mb-2">
-            Có {formatHours(result.emptyHours)} sân thuê không ai chơi — phần này được chia đều.
-          </p>
-        )}
-        <ul data-testid="fullscreen-player-grid" className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {result.players.map((p) => (
-            <PlayerRow key={p.playerId} p={p} mode={mode} large />
-          ))}
-        </ul>
-        <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
-          <TotalCollectedRow total={result.totalCollected} />
-          <SurplusRow surplus={result.surplus} />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto"
+    >
+      <motion.div
+        initial={{ scale: 0.97 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.97 }}
+        transition={{ duration: 0.2 }}
+      >
+        <div className="sticky top-0 bg-gray-50 border-b border-gray-100 flex items-center justify-between px-4 py-4">
+          <h2 className="text-lg font-bold text-gray-900">Kết quả</h2>
+          <button
+            type="button"
+            aria-label="Đóng"
+            title="Đóng"
+            onClick={onClose}
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 text-2xl leading-none"
+          >
+            ×
+          </button>
         </div>
-      </div>
-    </div>
+        <div className="max-w-lg md:max-w-3xl mx-auto py-6 px-4">
+          {mode === 'hourly' && result.emptyHours > 0 && (
+            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mb-2">
+              Có {formatHours(result.emptyHours)} sân thuê không ai chơi — phần này được chia đều.
+            </p>
+          )}
+          <ul data-testid="fullscreen-player-grid" className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {result.players.map((p) => (
+              <PlayerRow key={p.playerId} p={p} mode={mode} large />
+            ))}
+          </ul>
+          <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
+            <TotalCollectedRow total={result.totalCollected} />
+            <SurplusRow surplus={result.surplus} />
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
 
@@ -186,7 +200,12 @@ export function ResultPanel({ result, mode, errors, onSave, saveDisabled }: Prop
 
       {result === null ? (
         isEmptyPlayers ? (
-          <div className="flex flex-col items-center text-center py-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col items-center text-center py-8"
+          >
             <span className="text-5xl mb-2" role="img" aria-label="Cầu lông">
               🏸
             </span>
@@ -194,7 +213,7 @@ export function ResultPanel({ result, mode, errors, onSave, saveDisabled }: Prop
             <p className="text-sm text-gray-400 mt-1">
               Thêm người chơi ở mục bên trên để bắt đầu chia tiền
             </p>
-          </div>
+          </motion.div>
         ) : (
           <ul className="space-y-1">
             {errors.map((e) => (
@@ -232,9 +251,11 @@ export function ResultPanel({ result, mode, errors, onSave, saveDisabled }: Prop
         Lưu buổi này
       </button>
 
-      {fullscreen && result !== null && (
-        <FullscreenResult result={result} mode={mode} onClose={() => setFullscreen(false)} />
-      )}
+      <AnimatePresence>
+        {fullscreen && result !== null && (
+          <FullscreenResult result={result} mode={mode} onClose={() => setFullscreen(false)} />
+        )}
+      </AnimatePresence>
     </section>
   )
 }

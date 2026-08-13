@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
 import { useState } from 'react'
 import { PlayerList } from './PlayerList'
 import type { Gender, Player, SessionInput } from '../lib/types'
@@ -84,11 +84,16 @@ test('half-session pill toggles in ratio mode', () => {
   expect(screen.getByText('½ buổi ✓')).toBeInTheDocument()
 })
 
-test('roster suggestion fills name and gender', () => {
+test('roster suggestion fills name and gender', async () => {
   render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
   const nameInput = screen.getByPlaceholderText('Tên người chơi')
   fireEvent.change(nameInput, { target: { value: 'h' } })
   fireEvent.click(screen.getByRole('button', { name: /Hoa · Nữ/ }))
+  // the suggestion dropdown exits with a motion fade/slide animation, which
+  // keeps its (now-stale) "Hoa" button mounted in jsdom for a tick
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: /Hoa · Nữ/ })).not.toBeInTheDocument(),
+  )
   expect(screen.getByText('Hoa')).toBeInTheDocument()
 })
 
