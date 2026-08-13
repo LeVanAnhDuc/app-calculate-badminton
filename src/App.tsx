@@ -11,6 +11,7 @@ import { RoundingToggle } from './components/RoundingToggle'
 import { calcSession, validateSession } from './lib/calc'
 import {
   addToRoster,
+  HISTORY_LIMIT,
   loadCurrentSession,
   loadHistory,
   loadRoster,
@@ -133,10 +134,12 @@ export default function App() {
     const isFiniteResult =
       Number.isFinite(result.surplus) && result.players.every((p) => Number.isFinite(p.amount))
     if (!isFiniteResult) return
-    setHistory((h) => [
-      { id: uid(), savedAt: new Date().toISOString(), input: session, result },
-      ...h,
-    ])
+    setHistory((h) =>
+      [{ id: uid(), savedAt: new Date().toISOString(), input: session, result }, ...h].slice(
+        0,
+        HISTORY_LIMIT,
+      ),
+    )
     setRoster((r) =>
       session.players.reduce((acc, p) => addToRoster(acc, p.name, p.gender), r),
     )

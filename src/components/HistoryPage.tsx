@@ -192,6 +192,8 @@ export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
           })}
           <p className="text-center text-xs text-gray-400 pt-3 md:col-span-2">
             Dữ liệu lưu trên máy của bạn (localStorage)
+            <br />
+            Tự động giữ tối đa 500 buổi gần nhất — buổi cũ hơn sẽ được xóa dần
           </p>
         </main>
       </div>

@@ -132,15 +132,18 @@ export const loadCurrentSession = (): SessionInput | null =>
   load<SessionInput | null>('currentSession', isSession, null)
 export const saveCurrentSession = (s: SessionInput): void => save('currentSession', s)
 
+export const HISTORY_LIMIT = 500
+
 export function loadHistory(): SavedSession[] {
   try {
     const raw = localStorage.getItem('history')
     if (!raw) return []
     const parsed: unknown = JSON.parse(raw)
-    return Array.isArray(parsed) ? (parsed.filter(isSavedSession) as SavedSession[]) : []
+    const valid = Array.isArray(parsed) ? (parsed.filter(isSavedSession) as SavedSession[]) : []
+    return valid.slice(0, HISTORY_LIMIT)
   } catch {
     return []
   }
 }
 
-export const saveHistory = (h: SavedSession[]): void => save('history', h)
+export const saveHistory = (h: SavedSession[]): void => save('history', h.slice(0, HISTORY_LIMIT))

@@ -1,12 +1,15 @@
 import {
   addToRoster,
   DEFAULT_SETTINGS,
+  HISTORY_LIMIT,
   loadCurrentSession,
   loadHistory,
   loadRoster,
   loadSettings,
+  saveHistory,
   saveRoster,
   saveSettings,
+  type SavedSession,
 } from './storage'
 
 beforeEach(() => localStorage.clear())
@@ -154,6 +157,54 @@ test('history valid roundtrip', () => {
   localStorage.setItem('history', JSON.stringify(valid))
   const loaded = loadHistory()
   expect(loaded).toEqual(valid)
+})
+
+function makeSession(id: string, savedAt: string): SavedSession {
+  return {
+    id,
+    savedAt,
+    input: {
+      mode: 'ratio',
+      shuttleCount: 10,
+      shuttlePrice: 25000,
+      courtFee: 500000,
+      courtStart: '09:00',
+      courtEnd: '11:00',
+      maleRatio: 1.5,
+      femaleRatio: 1.0,
+      rounding: 'up1000',
+      players: [{ id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null }],
+    },
+    result: {
+      totalCost: 525000,
+      totalCollected: 525000,
+      surplus: 0,
+      emptyHours: 0,
+      players: [
+        {
+          playerId: '1',
+          name: 'Tuấn',
+          gender: 'male',
+          halfSession: false,
+          hours: null,
+          courtShare: 250000,
+          shuttleShare: 250000,
+          raw: 500000,
+          amount: 500000,
+        },
+      ],
+    },
+  }
+}
+
+test('saveHistory caps stored history at HISTORY_LIMIT, keeping the newest entries', () => {
+  // newest-first: index 0 is the newest session, index 500 is the oldest
+  const entries = Array.from({ length: HISTORY_LIMIT + 1 }, (_, i) => makeSession(`s${i}`, `s${i}`))
+  saveHistory(entries)
+  const loaded = loadHistory()
+  expect(loaded).toHaveLength(HISTORY_LIMIT)
+  expect(loaded[0].id).toBe('s0') // newest survives
+  expect(loaded.some((s) => s.id === `s${HISTORY_LIMIT}`)).toBe(false) // oldest dropped
 })
 
 test('history salvages valid entries instead of wiping everything when one entry is malformed', () => {
