@@ -464,6 +464,7 @@ export function PlayerList({
                   {input.mode === 'hourly' && (
                     <div className="flex gap-2 items-center">
                       <TimeSelect
+                        nested
                         aria-label={`Giờ vào của ${editingPlayer.name}`}
                         value={editingPlayer.startTime ?? input.courtStart}
                         onChange={(v) =>
@@ -476,6 +477,7 @@ export function PlayerList({
                       />
                       <span className="text-gray-400">→</span>
                       <TimeSelect
+                        nested
                         aria-label={`Giờ ra của ${editingPlayer.name}`}
                         value={editingPlayer.endTime ?? input.courtEnd}
                         onChange={(v) =>

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { useState } from 'react'
 import { CostForm } from './CostForm'
 import type { SessionInput } from '../lib/types'
@@ -44,4 +44,16 @@ test('hourly mode shows court time range and duration', () => {
 test('ratio mode hides court time range', () => {
   render(<Harness initial={base} />)
   expect(screen.queryByLabelText('Giờ bắt đầu')).not.toBeInTheDocument()
+})
+
+test('picking a new court start time via the (non-nested) wheel sheet updates the duration', () => {
+  render(<Harness initial={{ ...base, mode: 'hourly' }} />)
+  fireEvent.click(screen.getByLabelText('Giờ bắt đầu'))
+  const sheet = screen.getByRole('dialog')
+  fireEvent.click(within(within(sheet).getByTestId('time-wheel-hour')).getByText('20'))
+  fireEvent.click(within(sheet).getByRole('button', { name: 'Xong' }))
+
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(screen.getByLabelText('Giờ bắt đầu')).toHaveTextContent('20:00')
+  expect(screen.getByText(/= 1 giờ/)).toBeInTheDocument()
 })
