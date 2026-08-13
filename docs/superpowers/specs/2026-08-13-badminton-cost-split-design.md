@@ -86,7 +86,7 @@ Hai lựa chọn, mặc định **"Làm tròn lên 1.000đ"**:
 
 ## 4. Người chơi & danh bạ
 
-- Thêm người: nhập tên + chọn Nam/Nữ (toggle). Tên trống không thêm được; tên trùng trong buổi hiện tại thì cảnh báo.
+- Thêm người: nhập tên + chọn Nam/Nữ (toggle). Tên trống không thêm được; tên trùng (không phân biệt hoa thường) với người đã có trong buổi hiện tại thì chặn và báo "đã có trong buổi" — người dùng tự sửa tên (ví dụ thêm số) nếu nhóm có 2 người trùng tên.
 - Gõ tên hiện gợi ý từ **danh bạ** (những người từng chơi, kèm giới tính đã lưu — chọn gợi ý là điền cả hai).
 - **Danh sách buổi được giữ giữa các lần dùng**: mở app lần sau thấy nguyên danh sách lần trước, chỉ cần xóa vài người vắng/thêm người mới.
 - Bấm × chỉ loại khỏi buổi hiện tại, KHÔNG xóa khỏi danh bạ.
