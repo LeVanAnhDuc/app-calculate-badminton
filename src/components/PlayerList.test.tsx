@@ -18,12 +18,16 @@ function Harness({ initial, roster = [] }: { initial: SessionInput; roster?: Ros
     }
     setInput((s) => ({ ...s, players: [...s.players, player] }))
   }
-  const onChangeGender = (playerId: string) => {
+  const onChangeGender = (playerId: string, gender: Gender) => {
     setInput((s) => ({
       ...s,
-      players: s.players.map((p) =>
-        p.id === playerId ? { ...p, gender: p.gender === 'male' ? 'female' : 'male' } : p,
-      ),
+      players: s.players.map((p) => (p.id === playerId ? { ...p, gender } : p)),
+    }))
+  }
+  const onRenamePlayer = (playerId: string, newName: string) => {
+    setInput((s) => ({
+      ...s,
+      players: s.players.map((p) => (p.id === playerId ? { ...p, name: newName } : p)),
     }))
   }
   return (
@@ -33,6 +37,7 @@ function Harness({ initial, roster = [] }: { initial: SessionInput; roster?: Ros
       onPatch={onPatch}
       onAddPlayer={onAddPlayer}
       onChangeGender={onChangeGender}
+      onRenamePlayer={onRenamePlayer}
     />
   )
 }
@@ -150,6 +155,62 @@ test('swipe-left on a row reveals the red Xóa button; tapping it removes the pl
   fireEvent.touchEnd(row)
   fireEvent.click(screen.getByRole('button', { name: 'Xóa nhanh Tuấn' }))
   expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
+})
+
+test('rename via edit panel commits on blur; duplicate name is blocked', () => {
+  const initial: SessionInput = {
+    ...base,
+    players: [
+      ...base.players,
+      { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null },
+    ],
+  }
+  render(<Harness initial={initial} />)
+
+  // open the edit panel by tapping the name
+  fireEvent.click(screen.getByText('Tuấn'))
+  const nameInput = screen.getByLabelText('Tên của Tuấn') as HTMLInputElement
+
+  // committing a valid new name on blur renames the player
+  fireEvent.change(nameInput, { target: { value: 'Nam Anh' } })
+  fireEvent.blur(nameInput)
+  expect(screen.getByText('Nam Anh')).toBeInTheDocument()
+  expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
+
+  // attempting to rename to an existing name is blocked with an inline error
+  fireEvent.change(nameInput, { target: { value: 'lan' } })
+  fireEvent.blur(nameInput)
+  expect(screen.getByText('"lan" đã có trong buổi')).toBeInTheDocument()
+  expect(screen.getByText('Nam Anh')).toBeInTheDocument()
+})
+
+test('blank rename reverts to the original name without an error', () => {
+  render(<Harness initial={base} />)
+  fireEvent.click(screen.getByText('Tuấn'))
+  const nameInput = screen.getByLabelText('Tên của Tuấn') as HTMLInputElement
+  fireEvent.change(nameInput, { target: { value: '   ' } })
+  fireEvent.blur(nameInput)
+  expect(screen.getByText('Tuấn')).toBeInTheDocument()
+  expect(screen.queryByText(/đã có trong buổi/)).not.toBeInTheDocument()
+})
+
+test('quick gender switch on the row changes gender without going through the edit panel', () => {
+  render(<Harness initial={base} />)
+  expect(screen.getByText(/^1 nam · 0 nữ$/)).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Nữ Tuấn' }))
+  expect(screen.getByText(/^0 nam · 1 nữ$/)).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Nam Tuấn' }))
+  expect(screen.getByText(/^1 nam · 0 nữ$/)).toBeInTheDocument()
+})
+
+test('swiping a row reveals Sửa; tapping it opens the edit panel for that player', () => {
+  render(<Harness initial={{ ...base, mode: 'hourly' }} />)
+  const row = screen.getByTestId('swipe-row-1')
+  fireEvent.touchStart(row, { touches: [{ clientX: 200 }] })
+  fireEvent.touchMove(row, { touches: [{ clientX: 20 }] })
+  fireEvent.touchEnd(row)
+  fireEvent.click(screen.getByRole('button', { name: 'Sửa nhanh Tuấn' }))
+  expect(screen.getByLabelText('Giờ vào của Tuấn')).toBeInTheDocument()
 })
 
 test('cả buổi button resets time labels', () => {

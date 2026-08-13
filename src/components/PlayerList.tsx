@@ -8,10 +8,11 @@ interface Props {
   roster: RosterEntry[]
   onPatch: (p: Partial<SessionInput>) => void
   onAddPlayer: (name: string, gender: Gender) => void
-  onChangeGender: (playerId: string) => void
+  onChangeGender: (playerId: string, gender: Gender) => void
+  onRenamePlayer: (playerId: string, newName: string) => void
 }
 
-const SWIPE_OPEN_PX = 80
+const SWIPE_OPEN_PX = 160
 const SWIPE_THRESHOLD_PX = 40
 
 function GenderBadge({ gender }: { gender: Gender }) {
@@ -26,11 +27,39 @@ function GenderBadge({ gender }: { gender: Gender }) {
   )
 }
 
-export function PlayerList({ input, roster, onPatch, onAddPlayer, onChangeGender }: Props) {
+function PencilIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      <path d="m15 5 4 4" />
+    </svg>
+  )
+}
+
+export function PlayerList({
+  input,
+  roster,
+  onPatch,
+  onAddPlayer,
+  onChangeGender,
+  onRenamePlayer,
+}: Props) {
   const [name, setName] = useState('')
   const [gender, setGender] = useState<Gender>('male')
   const [error, setError] = useState('')
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editError, setEditError] = useState('')
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
   const [swipe, setSwipe] = useState<{ id: string; startX: number; deltaX: number } | null>(null)
 
@@ -63,6 +92,33 @@ export function PlayerList({ input, roster, onPatch, onAddPlayer, onChangeGender
 
   const removePlayer = (id: string) =>
     onPatch({ players: input.players.filter((p) => p.id !== id) })
+
+  const openEdit = (p: Player) => {
+    setOpenSwipeId(null)
+    setEditingId(p.id)
+    setEditName(p.name)
+    setEditError('')
+  }
+
+  const commitRename = (p: Player) => {
+    const trimmed = editName.trim()
+    if (!trimmed) {
+      setEditName(p.name)
+      setEditError('')
+      return
+    }
+    const isDuplicate = input.players.some(
+      (o) => o.id !== p.id && o.name.toLowerCase() === trimmed.toLowerCase(),
+    )
+    if (isDuplicate) {
+      setEditError(`"${trimmed}" đã có trong buổi`)
+      return
+    }
+    setEditError('')
+    if (trimmed !== p.name) {
+      onRenamePlayer(p.id, trimmed)
+    }
+  }
 
   const timeLabel = (p: Player) => {
     const s = p.startTime ?? input.courtStart
@@ -163,16 +219,28 @@ export function PlayerList({ input, roster, onPatch, onAddPlayer, onChangeGender
       <ul className="mt-3 divide-y divide-gray-100">
         {input.players.map((p) => {
           const isOpen = openSwipeId === p.id
+          const isEditing = editingId === p.id
           return (
             <li key={p.id} className="relative overflow-hidden">
-              <button
-                type="button"
-                aria-label={`Xóa nhanh ${p.name}`}
-                onClick={() => removePlayer(p.id)}
-                className="absolute inset-y-0 right-0 w-20 bg-red-500 text-white text-sm font-semibold flex items-center justify-center"
-              >
-                Xóa
-              </button>
+              <div className="absolute inset-y-0 right-0 flex">
+                <button
+                  type="button"
+                  aria-label={`Sửa nhanh ${p.name}`}
+                  title="Sửa"
+                  onClick={() => openEdit(p)}
+                  className="w-20 bg-gray-500 text-white text-sm font-semibold flex items-center justify-center"
+                >
+                  Sửa
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Xóa nhanh ${p.name}`}
+                  onClick={() => removePlayer(p.id)}
+                  className="w-20 bg-red-500 text-white text-sm font-semibold flex items-center justify-center"
+                >
+                  Xóa
+                </button>
+              </div>
               <div
                 data-testid={`swipe-row-${p.id}`}
                 className="relative bg-white py-2.5 transition-transform duration-150 ease-out"
@@ -187,24 +255,20 @@ export function PlayerList({ input, roster, onPatch, onAddPlayer, onChangeGender
                   }
                 }}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center gap-2 min-w-0">
                     <button
                       type="button"
                       aria-label={`Đổi giới tính ${p.name}`}
                       title="Đổi giới tính"
-                      onClick={() => onChangeGender(p.id)}
+                      onClick={() =>
+                        onChangeGender(p.id, p.gender === 'male' ? 'female' : 'male')
+                      }
                     >
                       <GenderBadge gender={p.gender} />
                     </button>
-                    <button
-                      type="button"
-                      className="text-left"
-                      onClick={() =>
-                        input.mode === 'hourly' && setExpandedId(expandedId === p.id ? null : p.id)
-                      }
-                    >
-                      <span className="font-medium text-gray-900 block">{p.name}</span>
+                    <button type="button" className="text-left min-w-0" onClick={() => openEdit(p)}>
+                      <span className="font-medium text-gray-900 block truncate">{p.name}</span>
                       {input.mode === 'hourly' && (
                         <span
                           className={`text-xs ${
@@ -216,13 +280,13 @@ export function PlayerList({ input, roster, onPatch, onAddPlayer, onChangeGender
                       )}
                     </button>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 shrink-0">
                     {input.mode === 'ratio' && (
                       <button
                         type="button"
                         aria-label={`½ buổi ${p.name}`}
                         onClick={() => updatePlayer(p.id, { halfSession: !p.halfSession })}
-                        className={`h-8 px-2.5 rounded-full text-xs font-semibold ${
+                        className={`h-9 px-2.5 rounded-full text-xs font-semibold ${
                           p.halfSession
                             ? 'bg-emerald-600 text-white'
                             : 'border border-gray-200 text-gray-400'
@@ -231,50 +295,133 @@ export function PlayerList({ input, roster, onPatch, onAddPlayer, onChangeGender
                         {p.halfSession ? '½ buổi ✓' : '½ buổi'}
                       </button>
                     )}
+                    <div className="flex rounded-full border border-gray-200 overflow-hidden">
+                      <button
+                        type="button"
+                        aria-label={`Nam ${p.name}`}
+                        onClick={() => onChangeGender(p.id, 'male')}
+                        className={`h-8 px-2 rounded-full text-xs font-semibold ${
+                          p.gender === 'male' ? 'bg-emerald-600 text-white' : 'text-gray-400'
+                        }`}
+                      >
+                        Nam
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Nữ ${p.name}`}
+                        onClick={() => onChangeGender(p.id, 'female')}
+                        className={`h-8 px-2 rounded-full text-xs font-semibold ${
+                          p.gender === 'female' ? 'bg-emerald-600 text-white' : 'text-gray-400'
+                        }`}
+                      >
+                        Nữ
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={`Sửa ${p.name}`}
+                      title="Sửa"
+                      onClick={() => openEdit(p)}
+                      className="hidden md:flex md:w-10 md:h-10 items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg"
+                    >
+                      <PencilIcon />
+                    </button>
                     <button
                       type="button"
                       aria-label={`Xóa ${p.name}`}
                       onClick={() => removePlayer(p.id)}
-                      className="w-8 h-8 md:w-10 md:h-10 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg text-2xl leading-none"
+                      className="hidden md:flex md:w-10 md:h-10 items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg text-2xl leading-none"
                     >
                       ×
                     </button>
                   </div>
                 </div>
 
-                {input.mode === 'hourly' && expandedId === p.id && (
-                  <div className="flex gap-2 items-center mt-2">
-                    <input
-                      type="time"
-                      aria-label={`Giờ vào của ${p.name}`}
-                      value={p.startTime ?? input.courtStart}
-                      onChange={(e) =>
-                        updatePlayer(p.id, {
-                          startTime: e.target.value,
-                          endTime: p.endTime ?? input.courtEnd,
-                        })
-                      }
-                      className="flex-1 h-11 rounded-xl border border-emerald-300 bg-white px-2 text-base font-semibold text-center"
-                    />
-                    <span className="text-gray-400">→</span>
-                    <input
-                      type="time"
-                      aria-label={`Giờ ra của ${p.name}`}
-                      value={p.endTime ?? input.courtEnd}
-                      onChange={(e) =>
-                        updatePlayer(p.id, {
-                          endTime: e.target.value,
-                          startTime: p.startTime ?? input.courtStart,
-                        })
-                      }
-                      className="flex-1 h-11 rounded-xl border border-emerald-300 bg-white px-2 text-base font-semibold text-center"
-                    />
+                {isEditing && (
+                  <div className="flex flex-col gap-2 mt-2">
+                    <div>
+                      <input
+                        aria-label={`Tên của ${p.name}`}
+                        value={editName}
+                        onChange={(e) => {
+                          setEditName(e.target.value)
+                          setEditError('')
+                        }}
+                        onBlur={() => commitRename(p)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                        }}
+                        className="w-full h-11 rounded-xl border border-gray-300 px-3 text-base"
+                      />
+                      {editError && <p className="text-sm text-red-500 mt-1">{editError}</p>}
+                    </div>
+                    <div className="flex rounded-xl border border-gray-300 overflow-hidden">
+                      <button
+                        type="button"
+                        aria-label={`Đặt Nam cho ${p.name}`}
+                        onClick={() => onChangeGender(p.id, 'male')}
+                        className={`flex-1 h-11 text-sm font-semibold ${
+                          p.gender === 'male' ? 'bg-emerald-600 text-white' : 'bg-white text-gray-500'
+                        }`}
+                      >
+                        Nam
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Đặt Nữ cho ${p.name}`}
+                        onClick={() => onChangeGender(p.id, 'female')}
+                        className={`flex-1 h-11 text-sm font-semibold ${
+                          p.gender === 'female' ? 'bg-emerald-600 text-white' : 'bg-white text-gray-500'
+                        }`}
+                      >
+                        Nữ
+                      </button>
+                    </div>
+                    {input.mode === 'hourly' && (
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="time"
+                          aria-label={`Giờ vào của ${p.name}`}
+                          value={p.startTime ?? input.courtStart}
+                          onChange={(e) =>
+                            updatePlayer(p.id, {
+                              startTime: e.target.value,
+                              endTime: p.endTime ?? input.courtEnd,
+                            })
+                          }
+                          className="flex-1 h-11 rounded-xl border border-emerald-300 bg-white px-2 text-base font-semibold text-center"
+                        />
+                        <span className="text-gray-400">→</span>
+                        <input
+                          type="time"
+                          aria-label={`Giờ ra của ${p.name}`}
+                          value={p.endTime ?? input.courtEnd}
+                          onChange={(e) =>
+                            updatePlayer(p.id, {
+                              endTime: e.target.value,
+                              startTime: p.startTime ?? input.courtStart,
+                            })
+                          }
+                          className="flex-1 h-11 rounded-xl border border-emerald-300 bg-white px-2 text-base font-semibold text-center"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => updatePlayer(p.id, { startTime: null, endTime: null })}
+                          className="h-11 px-3 rounded-xl bg-white border border-emerald-300 text-emerald-700 text-xs font-semibold whitespace-nowrap"
+                        >
+                          Cả buổi
+                        </button>
+                      </div>
+                    )}
                     <button
                       type="button"
-                      onClick={() => updatePlayer(p.id, { startTime: null, endTime: null })}
-                      className="h-11 px-3 rounded-xl bg-white border border-emerald-300 text-emerald-700 text-xs font-semibold whitespace-nowrap"
+                      onClick={() => {
+                        commitRename(p)
+                        setEditingId(null)
+                      }}
+                      className="w-full h-11 rounded-xl bg-emerald-600 text-white text-sm font-bold"
                     >
-                      Cả buổi
+                      Xong
                     </button>
                   </div>
                 )}
@@ -283,11 +430,11 @@ export function PlayerList({ input, roster, onPatch, onAddPlayer, onChangeGender
           )
         })}
       </ul>
-      {input.mode === 'hourly' && (
-        <p className="text-xs text-gray-400 mt-2">
-          Bấm vào tên để sửa giờ chơi của người đến muộn / về sớm
-        </p>
-      )}
+      <p className="text-xs text-gray-400 mt-2">
+        {input.mode === 'hourly'
+          ? 'Bấm vào tên để sửa thông tin người chơi (kể cả giờ chơi)'
+          : 'Bấm vào tên để sửa thông tin người chơi'}
+      </p>
     </section>
   )
 }
