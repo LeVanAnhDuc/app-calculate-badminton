@@ -93,6 +93,14 @@ test('session list lays out in a responsive 1/2-column grid; expanded card spans
   expect(expandedCard).toHaveClass('md:col-span-2')
 })
 
+test('sessions from different months are grouped under a month header each, newest month first', () => {
+  const august: SavedSession = { ...saved, id: 'aug1', savedAt: '2026-08-13T20:15:00.000Z' }
+  const july: SavedSession = { ...saved, id: 'jul1', savedAt: '2026-07-05T20:15:00.000Z' }
+  render(<HistoryPage history={[august, july]} onBack={() => {}} onDelete={() => {}} onReuse={() => {}} />)
+  const headers = screen.getAllByText(/^Tháng \d+\/\d{4}$/)
+  expect(headers.map((h) => h.textContent)).toEqual(['Tháng 8/2026', 'Tháng 7/2026'])
+})
+
 test('empty history shows hint', () => {
   render(<HistoryPage history={[]} onBack={() => {}} onDelete={() => {}} onReuse={() => {}} />)
   expect(screen.getByText(/Chưa có buổi nào được lưu/)).toBeInTheDocument()

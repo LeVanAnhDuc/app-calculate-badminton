@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { formatVND } from '../lib/format'
 import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
@@ -21,6 +21,16 @@ function sessionDate(iso: string): string {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function monthKey(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${d.getMonth()}`
+}
+
+function monthLabel(iso: string): string {
+  const d = new Date(iso)
+  return `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
 }
 
 export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
@@ -68,17 +78,23 @@ export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
               Chưa có buổi nào được lưu — quay lại màn hình chính và bấm "Lưu buổi này".
             </p>
           )}
-          {history.map((s) => {
+          {history.map((s, i) => {
             const males = s.input.players.filter((p) => p.gender === 'male').length
             const females = s.input.players.length - males
             const expanded = expandedId === s.id
+            const showMonthHeader = i === 0 || monthKey(s.savedAt) !== monthKey(history[i - 1].savedAt)
             return (
-              <section
-                key={s.id}
-                className={`bg-white rounded-2xl shadow-sm ${
-                  expanded ? 'border-2 border-emerald-200 md:col-span-2' : ''
-                }`}
-              >
+              <Fragment key={s.id}>
+                {showMonthHeader && (
+                  <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mt-2 first:mt-0 md:col-span-2">
+                    {monthLabel(s.savedAt)}
+                  </h2>
+                )}
+                <section
+                  className={`bg-white rounded-2xl shadow-sm ${
+                    expanded ? 'border-2 border-emerald-200 md:col-span-2' : ''
+                  }`}
+                >
                 <button
                   type="button"
                   className="w-full p-4 flex items-center justify-between text-left"
@@ -188,6 +204,7 @@ export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
                   </>
                 )}
               </section>
+              </Fragment>
             )
           })}
           <p className="text-center text-xs text-gray-400 pt-3 md:col-span-2">
