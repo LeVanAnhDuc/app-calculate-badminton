@@ -160,3 +160,22 @@ test('validateSession catches invalid input', () => {
     ),
   ).toContain('Giờ chơi của A nằm ngoài giờ thuê sân')
 })
+
+test('validateSession rejects a cleared court time input instead of letting NaN through', () => {
+  expect(validateSession(hourlyInput({ courtStart: '' }))).toContain(
+    'Giờ thuê sân chưa hợp lệ',
+  )
+  expect(validateSession(hourlyInput({ courtEnd: '' }))).toContain(
+    'Giờ thuê sân chưa hợp lệ',
+  )
+})
+
+test('validateSession rejects a cleared player time input instead of letting NaN through', () => {
+  expect(
+    validateSession(
+      hourlyInput({
+        players: [player({ name: 'A', gender: 'male', startTime: '', endTime: '21:00' })],
+      }),
+    ),
+  ).toContain('Giờ chơi của A chưa đủ 2 mốc')
+})

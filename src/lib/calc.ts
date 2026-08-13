@@ -89,7 +89,8 @@ export function calcHourlyMode(input: SessionInput): CalcResult {
     }
   }
   if (curE >= 0) covered += curE - curS
-  const emptyHours = Math.max(0, courtHours - covered)
+  const emptyHoursRaw = courtHours - covered
+  const emptyHours = emptyHoursRaw > 1e-6 ? emptyHoursRaw : 0
 
   const unitPrice = courtHours > 0 ? input.courtFee / courtHours : 0
   const emptyFee = unitPrice * emptyHours
@@ -118,20 +119,29 @@ export function validateSession(input: SessionInput): string[] {
   if (shuttleTotal(input) + input.courtFee <= 0) errors.push('Tổng chi phải lớn hơn 0')
   if (input.maleRatio <= 0 || input.femaleRatio <= 0) errors.push('Hệ số phải lớn hơn 0')
   if (input.mode === 'hourly') {
-    const courtHours = durationHours(input.courtStart, input.courtEnd)
-    if (courtHours <= 0) {
+    const HHMM = /^\d{2}:\d{2}$/
+    if (!HHMM.test(input.courtStart) || !HHMM.test(input.courtEnd)) {
       errors.push('Giờ thuê sân chưa hợp lệ')
     } else {
-      for (const p of input.players) {
-        if ((p.startTime === null) !== (p.endTime === null)) {
-          errors.push(`Giờ chơi của ${p.name} chưa đủ 2 mốc`)
-          continue
-        }
-        if (p.startTime !== null && p.endTime !== null) {
-          const off = offsetFromCourtStart(p.startTime, input.courtStart)
-          const len = durationHours(p.startTime, p.endTime)
-          if (off + len > courtHours + 1e-9) {
-            errors.push(`Giờ chơi của ${p.name} nằm ngoài giờ thuê sân`)
+      const courtHours = durationHours(input.courtStart, input.courtEnd)
+      if (!Number.isFinite(courtHours) || courtHours <= 0) {
+        errors.push('Giờ thuê sân chưa hợp lệ')
+      } else {
+        for (const p of input.players) {
+          if ((p.startTime === null) !== (p.endTime === null)) {
+            errors.push(`Giờ chơi của ${p.name} chưa đủ 2 mốc`)
+            continue
+          }
+          if (p.startTime !== null && p.endTime !== null) {
+            if (!HHMM.test(p.startTime) || !HHMM.test(p.endTime)) {
+              errors.push(`Giờ chơi của ${p.name} chưa đủ 2 mốc`)
+              continue
+            }
+            const off = offsetFromCourtStart(p.startTime, input.courtStart)
+            const len = durationHours(p.startTime, p.endTime)
+            if (off + len > courtHours + 1e-9) {
+              errors.push(`Giờ chơi của ${p.name} nằm ngoài giờ thuê sân`)
+            }
           }
         }
       }
