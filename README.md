@@ -14,6 +14,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 
 - **Danh bạ & danh sách tự động nhớ**
   - Gợi ý tên từ danh bạ khi gõ (không phân biệt hoa/thường)
+  - Chip "Hay chơi cùng" khi ô tên còn trống: bấm một phát là thêm người hay gặp nhất (xếp hạng theo số buổi đã lưu, tự bỏ ai đã có trong buổi)
   - Danh sách buổi hiện tại được giữ nguyên giữa các lần dùng — lần sau chỉ cần sửa đổi
 
 - **Lịch sử chi tiết & tái sử dụng**
@@ -48,7 +49,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (150 test cases)
+- **Testing**: Vitest + React Testing Library (167 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

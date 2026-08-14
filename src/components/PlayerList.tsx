@@ -12,6 +12,11 @@ import { TimeSelect } from './TimeSelect'
 interface Props {
   input: SessionInput
   roster: RosterEntry[]
+  /**
+   * Những người hay gặp, đã xếp hạng & lọc sẵn bởi App (suy ra từ lịch sử).
+   * Component này chỉ hiển thị — không nhận `history` thô.
+   */
+  frequent: RosterEntry[]
   onPatch: (p: Partial<SessionInput>) => void
   onAddPlayer: (name: string, gender: Gender) => void
   /**
@@ -27,6 +32,7 @@ interface Props {
 export function PlayerList({
   input,
   roster,
+  frequent,
   onPatch,
   onAddPlayer,
   onRemovePlayer,
@@ -56,6 +62,9 @@ export function PlayerList({
         (r) => r.name.toLowerCase().startsWith(trimmedName.toLowerCase()) && !inSession(r.name),
       )
     : []
+
+  // Chip chỉ hiện khi chưa gõ gì — gõ vào thì gợi ý "Từ danh bạ" tiếp quản.
+  const showFrequent = trimmedName === '' && frequent.length > 0
 
   const rosterMatch = trimmedName
     ? (roster.find((r) => r.name.toLowerCase() === trimmedName.toLowerCase()) ?? null)
@@ -221,6 +230,35 @@ export function PlayerList({
                 <span className="text-xs text-gray-400">{r.gender === 'male' ? 'Nam' : 'Nữ'}</span>
               </button>
             ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showFrequent && (
+          <motion.div
+            key="frequent"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="flex flex-col gap-2 mt-2"
+          >
+            <p className="text-xs font-semibold text-gray-400 px-1">Hay chơi cùng</p>
+            <div className="flex flex-wrap gap-2">
+              {frequent.map((r) => (
+                <button
+                  key={r.name}
+                  type="button"
+                  aria-label={`Thêm ${r.name} · ${r.gender === 'male' ? 'Nam' : 'Nữ'}`}
+                  onClick={() => add(r.name, r.gender)}
+                  className="h-12 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center gap-2 pl-2 pr-4"
+                >
+                  <GenderBadge gender={r.gender} />
+                  <span className="text-sm font-medium text-gray-900">{r.name}</span>
+                </button>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
