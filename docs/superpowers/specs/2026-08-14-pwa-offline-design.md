@@ -97,14 +97,20 @@ iOS không đọc mảng `icons` của manifest cho màn hình chính, nên thi�
 
 Giữ file SVG gốc trong `assets/icons/`, render PNG một lần rồi commit vào `public/`. **Không thêm dependency**: `@vite-pwa/assets-generator` kéo theo `sharp` (~30MB binary) nằm mãi trong `devDependencies` và trong CI, trong khi icon thay đổi cỡ một lần mỗi năm.
 
-Lệnh render (chạy lại khi sửa SVG):
+Hai đặc điểm của `sharp-cli` quyết định cách tổ chức file (đã kiểm chứng thực tế, không phải suy đoán):
+
+1. **`-o` là thư mục, không phải đường dẫn file.** Tên file ra = tên file SVG vào + `.png`. Vì vậy mỗi file SVG nguồn phải **đặt tên trùng đúng tên PNG mong muốn**.
+2. **Không ghép được nhiều lệnh** trong một lần gọi (`flatten ... resize ...` báo lỗi `Unknown arguments`). Nên thay vì dùng lệnh `resize`, mỗi SVG **tự khai `width`/`height` bằng đúng kích thước đích** — sharp render theo kích thước nội tại, vừa sắc nét vừa không cần lệnh resize.
+
+Nhờ đó chỉ còn **một lệnh duy nhất, giống nhau cho cả 4 icon**:
 
 ```bash
-npx -y sharp-cli -i assets/icons/icon-any.svg      -o public/icon-192.png            resize 192 192
-npx -y sharp-cli -i assets/icons/icon-any.svg      -o public/icon-512.png            resize 512 512
-npx -y sharp-cli -i assets/icons/icon-maskable.svg -o public/icon-maskable-512.png   resize 512 512
-npx -y sharp-cli -i assets/icons/icon-any.svg      -o public/apple-touch-icon.png    resize 180 180
+npx -y sharp-cli -i assets/icons/icon-192.svg -o public/ --format png flatten "#059669"
 ```
+
+Lệnh `flatten` kiêm hai việc: xoá kênh alpha (PNG ra có color type 2 = RGB, đã kiểm chứng) và tô nền `#059669`. Đây chính là ràng buộc "không nền trong suốt" của `apple-touch-icon` — áp cho tất cả icon luôn cho đồng nhất.
+
+Không dùng `--density`: SVG chỉ có `viewBox` mà không có `width`/`height` sẽ được render ở 100×100 rồi phóng to, cho ảnh mờ; các tỉ lệ density cần thiết (369, 138, 130) lại không tròn số nên dễ lệch một pixel.
 
 Đánh đổi đã chấp nhận: PNG là file nhị phân commit trong repo, không tự sinh lại khi ai đó sửa SVG mà quên render. Ở quy mô này là chấp nhận được.
 
@@ -170,7 +176,7 @@ function useInstallPrompt(): {
 3. Đã nhận sự kiện `appinstalled` trong phiên này.
 4. Không phải iOS **và** chưa nhận `beforeinstallprompt`.
 
-`mode === 'android'` khi đã bắt được `beforeinstallprompt`. Handler gọi `preventDefault()` để chặn thanh gợi ý mặc định của Chrome rồi giữ lại event; `install()` gọi `prompt()` trên event đã giữ và chờ `userChoice`. Event chỉ dùng được **một lần** — sau khi gọi phải bỏ đi và chuyển về `hidden`.
+`mode === 'android'` khi đã bắt được `beforeinstallprompt`. Handler gọi `preventDefault()` để chặn thanh gợi ý mặc định của Chrome rồi giữ lại event; `install()` gọi `prompt()` trên event đã giữ. Không chờ `userChoice`: dù người dùng đồng ý hay từ chối thì event cũng đã tiêu và dải mời đều phải ẩn, nên kết quả không đổi hành vi nào. Event chỉ dùng được **một lần** — sau khi gọi phải bỏ đi và chuyển về `hidden`.
 
 `mode === 'ios'` khi nhận diện được iOS qua user agent và không thuộc các trường hợp `hidden`. Nhận diện: `/iphone|ipad|ipod/i` trên `navigator.userAgent`. Chấp nhận sai sót ở iPad đời mới (mặc định báo UA desktop) — hệ quả xấu nhất là một người dùng iPad không thấy gợi ý, không phải lỗi.
 
