@@ -24,7 +24,9 @@ jobs:
       - name: Compute next version
         id: version
         run: |
-          msg=$(git log -1 --pretty=%B)
+          # markers are only honored in the commit subject line, so commit
+          # bodies that merely mention them (docs, changelogs) don't trigger
+          msg=$(git log -1 --pretty=%s)
           if echo "$msg" | grep -qiF '[skip release]'; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
