@@ -194,7 +194,7 @@ export function CostForm({ input, shuttleTypes, onPatch }: Props) {
                   onChange={(ev) => patchExtra(e.id, { label: ev.target.value })}
                   className="w-full h-11 rounded-xl border border-gray-300 px-3 text-sm text-gray-900"
                 />
-                <div className="flex gap-2 h-11">
+                <div className="flex gap-2 h-11 items-center">
                   <MoneyInput
                     aria-label={`Số tiền của ${e.label || 'khoản khác'}`}
                     value={e.amount}

@@ -260,3 +260,19 @@ test('gợi ý cách xóa cho cả hai loại thiết bị', () => {
   expect(screen.getByText('💡 Vuốt trái một dòng để xóa')).toBeInTheDocument()
   expect(screen.getByText('💡 Bấm nút thùng rác đỏ để xóa một dòng')).toBeInTheDocument()
 })
+
+// Hàng khoản phát sinh cao 44px còn nút xóa cố định 40px; thiếu items-center
+// thì flex xếp nút lên đầu hàng, lệch 2px so với ô tiền bên cạnh.
+test('nút xóa khoản phát sinh nằm giữa hàng theo chiều dọc', () => {
+  render(
+    <Harness
+      initial={{
+        ...base,
+        players: [{ id: 'p1', name: 'An', gender: 'male', paid: false, halfSession: false, startTime: null, endTime: null }],
+        extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerIds: ['p1'] }],
+      }}
+    />,
+  )
+  const row = screen.getByRole('button', { name: 'Xóa khoản Nước' }).parentElement!
+  expect(row).toHaveClass('items-center')
+})
