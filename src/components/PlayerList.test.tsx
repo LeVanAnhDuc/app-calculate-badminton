@@ -68,8 +68,7 @@ beforeEach(() => localStorage.clear())
 
 const base: SessionInput = {
   mode: 'ratio',
-  shuttleCount: 6,
-  shuttlePrice: 25000,
+  shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }],
   courtFee: 150000,
   courtStart: '19:00',
   courtEnd: '21:00',
@@ -79,6 +78,7 @@ const base: SessionInput = {
   players: [
     { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null, paid: false },
   ],
+  extras: [],
 }
 
 test('adds a player and blocks duplicates', () => {
@@ -361,7 +361,7 @@ test('hint banner is always visible, one tip per line, with no dismiss button', 
   expect(screen.getByText('💡 Bấm avatar để đổi giới tính')).toBeInTheDocument()
   expect(screen.getByText('💡 Bấm tên để sửa thông tin người chơi')).toBeInTheDocument()
   expect(screen.getByText('💡 Vuốt trái để xóa')).toBeInTheDocument()
-  expect(screen.getByText('💡 Bấm nút × để xóa')).toBeInTheDocument()
+  expect(screen.getByText('💡 Bấm nút thùng rác đỏ để xóa')).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Đóng gợi ý' })).not.toBeInTheDocument()
 })
 

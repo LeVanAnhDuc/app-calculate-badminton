@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { toast } from 'sonner'
-import { downloadResultImage } from '../lib/exportImage'
 import { formatNumber, formatVND } from '../lib/format'
 import { paidCount, unpaidAmount } from '../lib/settlement'
 import { formatHours } from '../lib/time'
 import type { CalcResult, Mode, Player, PlayerResult, SessionInput } from '../lib/types'
 import { EyeButton } from './EyeButton'
 import { PaidToggle } from './PaidToggle'
+import { QRSheet } from './QRSheet'
+import { CopyTextButton, ShareImageButton } from './ShareButtons'
 
 interface HiddenAmountRowProps {
   label: string
@@ -71,16 +71,61 @@ export function PaidSummaryLine({
   players: Player[]
   results: PlayerResult[]
 }) {
+  const [shown, setShown] = useState(false)
   const n = players.length
   const x = paidCount(players)
   if (n > 0 && x === n) {
     return <p className="text-sm text-emerald-600">✓ Đã thu đủ</p>
   }
   const unpaid = unpaidAmount(players, results)
+  // The count stays visible — it is not money, and hiding it would empty the
+  // line of meaning. Only the amount is masked, like TotalCollectedRow above.
+  // Kept as one inline sentence (no wrapper span around the whole text) so that
+  // getByText(/còn thiếu/) still resolves to a single element.
   return (
     <p className="text-sm text-gray-500">
-      Đã thu {x}/{n} · còn thiếu <span className="text-amber-600">{formatVND(unpaid)}</span>
+      Đã thu {x}/{n} · còn thiếu{' '}
+      <span className="font-semibold tracking-wider text-amber-600">
+        {shown ? formatVND(unpaid) : '•••••'}
+      </span>
+      <span className="inline-flex align-middle">
+        <EyeButton
+          shown={shown}
+          onToggle={() => setShown(!shown)}
+          shownLabel="Ẩn số tiền còn thiếu"
+          hiddenLabel="Hiện số tiền còn thiếu"
+        />
+      </span>
     </p>
+  )
+}
+
+function QRIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="5" height="5" x="3" y="3" rx="1" />
+      <rect width="5" height="5" x="16" y="3" rx="1" />
+      <rect width="5" height="5" x="3" y="16" rx="1" />
+      <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+      <path d="M21 21v.01" />
+      <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+      <path d="M3 12h.01" />
+      <path d="M12 3h.01" />
+      <path d="M12 16v.01" />
+      <path d="M16 12h1" />
+      <path d="M21 12v.01" />
+      <path d="M12 21v-1" />
+    </svg>
   )
 }
 
@@ -90,12 +135,14 @@ function PlayerRow({
   large,
   paid,
   onTogglePaid,
+  onShowQR,
 }: {
   p: PlayerResult
   mode: Mode
   large?: boolean
   paid: boolean
   onTogglePaid: () => void
+  onShowQR: () => void
 }) {
   return (
     <li
@@ -113,12 +160,35 @@ function PlayerRow({
           </span>
         </span>
         {mode === 'hourly' && (
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-400 block">
             sân {formatNumber(p.courtShare)} + cầu {formatNumber(p.shuttleShare)}
           </span>
         )}
+        {/* extras listed one line each; a session saved by v1.4.0 has only the
+            total, so it falls back to the single "+ phát sinh N" line */}
+        {p.extras.length > 0 ? (
+          p.extras.map((x, i) => (
+            <span key={i} className="text-xs text-amber-600 block pl-3">
+              · {x.label}
+              {x.sharedCount > 1 ? ` (chung, ${x.sharedCount} người)` : ''} {formatNumber(x.share)}
+            </span>
+          ))
+        ) : p.extrasTotal > 0 ? (
+          <span className="text-xs text-amber-600 block">
+            + phát sinh {formatNumber(p.extrasTotal)}
+          </span>
+        ) : null}
       </div>
       <div className="flex items-center gap-2">
+        <button
+          type="button"
+          aria-label={`Mã QR cho ${p.name}`}
+          title={`Mã QR cho ${p.name}`}
+          onClick={onShowQR}
+          className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+        >
+          <QRIcon />
+        </button>
         <PaidToggle paid={paid} name={p.name} onToggle={onTogglePaid} />
         <span className={`font-bold text-gray-900 ${large ? 'text-xl' : ''}`}>{formatVND(p.amount)}</span>
       </div>
@@ -147,72 +217,30 @@ function MaximizeIcon() {
   )
 }
 
-function DownloadIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <path d="M7 10l5 5 5-5" />
-      <path d="M12 15V3" />
-    </svg>
-  )
-}
-
-function DownloadImageButton({
-  result,
-  mode,
-  players,
-}: {
-  result: CalcResult
-  mode: Mode
-  players: Player[]
-}) {
-  const handleDownload = () => {
-    downloadResultImage(result, mode, players)
-    toast.success('Đã tải ảnh kết quả')
-  }
-  return (
-    <button
-      type="button"
-      aria-label="Tải ảnh kết quả"
-      title="Tải ảnh kết quả"
-      onClick={handleDownload}
-      className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
-    >
-      <DownloadIcon />
-    </button>
-  )
-}
-
 function FullscreenResult({
   result,
   mode,
   players,
   onTogglePaid,
+  onShowQR,
   onClose,
+  escDisabled,
 }: {
   result: CalcResult
   mode: Mode
   players: Player[]
   onTogglePaid: (playerId: string) => void
+  onShowQR: (playerId: string) => void
   onClose: () => void
+  escDisabled: boolean
 }) {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape' && !escDisabled) onClose()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
+  }, [onClose, escDisabled])
 
   // Portaled to <body>: the panel lives inside an md:sticky column whose
   // stacking context would otherwise let z-10 elements elsewhere paint on top.
@@ -234,7 +262,8 @@ function FullscreenResult({
         <div className="sticky top-0 bg-gray-50 border-b border-gray-100 flex items-center justify-between px-4 py-4">
           <h2 className="text-lg font-bold text-gray-900">Kết quả</h2>
           <div className="flex items-center gap-1">
-            <DownloadImageButton result={result} mode={mode} players={players} />
+            <ShareImageButton result={result} mode={mode} players={players} />
+            <CopyTextButton result={result} mode={mode} players={players} />
             <button
               type="button"
               aria-label="Đóng"
@@ -264,6 +293,7 @@ function FullscreenResult({
                 large
                 paid={players.find((pl) => pl.id === p.playerId)?.paid ?? false}
                 onTogglePaid={() => onTogglePaid(p.playerId)}
+                onShowQR={() => onShowQR(p.playerId)}
               />
             ))}
           </ul>
@@ -302,10 +332,12 @@ export function ResultPanel({
   saveDisabled,
 }: Props) {
   const [fullscreen, setFullscreen] = useState(false)
+  const [qrPlayerId, setQrPlayerId] = useState<string | null>(null)
   const isEmptyPlayers = errors.length === 1 && errors[0] === NO_PLAYERS_ERROR
   const handleTogglePaid = (playerId: string) => {
     onPatch({ players: players.map((pl) => (pl.id === playerId ? { ...pl, paid: !pl.paid } : pl)) })
   }
+  const qrResult = result?.players.find((p) => p.playerId === qrPlayerId) ?? null
 
   return (
     <section className="bg-white rounded-2xl shadow-sm p-4 border-2 border-emerald-100">
@@ -313,7 +345,8 @@ export function ResultPanel({
         <h2 className="text-base font-bold text-gray-900">Kết quả</h2>
         {result !== null && (
           <div className="flex items-center gap-1">
-            <DownloadImageButton result={result} mode={mode} players={players} />
+            <ShareImageButton result={result} mode={mode} players={players} />
+            <CopyTextButton result={result} mode={mode} players={players} />
             <button
               type="button"
               aria-label="Xem toàn màn hình"
@@ -373,6 +406,7 @@ export function ResultPanel({
                 mode={mode}
                 paid={players.find((pl) => pl.id === p.playerId)?.paid ?? false}
                 onTogglePaid={() => handleTogglePaid(p.playerId)}
+                onShowQR={() => setQrPlayerId(p.playerId)}
               />
             ))}
           </ul>
@@ -407,10 +441,24 @@ export function ResultPanel({
             mode={mode}
             players={players}
             onTogglePaid={handleTogglePaid}
+            onShowQR={(playerId) => setQrPlayerId(playerId)}
             onClose={() => setFullscreen(false)}
+            escDisabled={qrPlayerId !== null}
           />
         )}
       </AnimatePresence>
+
+      {qrResult !== null && (
+        <QRSheet
+          open
+          onClose={() => setQrPlayerId(null)}
+          playerName={qrResult.name}
+          amount={qrResult.amount}
+          memoDate={new Date()}
+          paid={players.find((pl) => pl.id === qrResult.playerId)?.paid ?? false}
+          onTogglePaid={() => handleTogglePaid(qrResult.playerId)}
+        />
+      )}
     </section>
   )
 }

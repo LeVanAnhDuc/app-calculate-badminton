@@ -12,6 +12,7 @@ import { RosterPage } from './components/RosterPage'
 import { RoundingToggle } from './components/RoundingToggle'
 import { calcSession, validateSession } from './lib/calc'
 import { frequentPlayers } from './lib/frequent'
+import { frequentShuttleTypes } from './lib/shuttleTypes'
 import { insertAt, toastUndo } from './lib/undo'
 import {
   addToRoster,
@@ -28,16 +29,13 @@ import {
   type SavedSession,
   type Settings,
 } from './lib/storage'
-import type { Gender, Player, SessionInput } from './lib/types'
-
-const uid = (): string =>
-  crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+import type { ExtraCost, Gender, Player, SessionInput } from './lib/types'
+import { uid } from './lib/uid'
 
 function defaultSession(s: Settings): SessionInput {
   return {
     mode: s.mode,
-    shuttleCount: 0,
-    shuttlePrice: s.shuttlePrice,
+    shuttles: [{ id: uid(), name: s.shuttleName, count: 0, price: s.shuttlePrice }],
     courtFee: 0,
     courtStart: '19:00',
     courtEnd: '21:00',
@@ -45,6 +43,7 @@ function defaultSession(s: Settings): SessionInput {
     femaleRatio: s.femaleRatio,
     rounding: s.rounding,
     players: [],
+    extras: [],
   }
 }
 
@@ -74,12 +73,15 @@ export default function App() {
 
   useEffect(() => {
     saveCurrentSession(session)
+    // Tên & giá cầu được nhớ từ DÒNG ĐẦU TIÊN; buổi không có dòng nào thì giữ giá trị cũ.
+    const first = session.shuttles[0]
     saveSettings({
+      ...loadSettings(),
       mode: session.mode,
       maleRatio: session.maleRatio,
       femaleRatio: session.femaleRatio,
-      shuttlePrice: session.shuttlePrice,
       rounding: session.rounding,
+      ...(first ? { shuttlePrice: first.price, shuttleName: first.name } : {}),
     })
   }, [session])
   useEffect(() => {
@@ -128,9 +130,50 @@ export default function App() {
     const index = session.players.findIndex((p) => p.id === playerId)
     if (index === -1) return
     const removed = session.players[index]
-    setSession((s) => ({ ...s, players: s.players.filter((p) => p.id !== playerId) }))
+
+    // A shared extra keeps its full amount when one of its bearers leaves — the
+    // remaining bearers cover that share, so TỔNG CHI does not move. An extra
+    // nobody is left to bear is dropped entirely: it would still inflate
+    // totalCost with nobody paying for it.
+    //
+    // Snapshot BEFORE updating: the extras dropped outright (with their old
+    // index) and the ids of the extras merely trimmed by one bearer.
+    const dropped: { index: number; item: ExtraCost }[] = []
+    const trimmedIds: string[] = []
+    session.extras.forEach((e, i) => {
+      if (!e.playerIds.includes(playerId)) return
+      if (e.playerIds.length === 1) dropped.push({ index: i, item: e })
+      else trimmedIds.push(e.id)
+    })
+
+    setSession((s) => ({
+      ...s,
+      players: s.players.filter((p) => p.id !== playerId),
+      extras: s.extras
+        .map((e) =>
+          e.playerIds.includes(playerId)
+            ? { ...e, playerIds: e.playerIds.filter((id) => id !== playerId) }
+            : e,
+        )
+        .filter((e) => e.playerIds.length > 0),
+    }))
+
     toastUndo(`Đã xóa "${removed.name}"`, () =>
-      setSession((s) => ({ ...s, players: insertAt(s.players, index, removed) })),
+      setSession((s) => {
+        // (a) put the id back into the extras that were only trimmed — an extra
+        //     the user deleted by hand meanwhile is skipped by map(), NOT revived
+        let extras = s.extras.map((e) =>
+          trimmedIds.includes(e.id) && !e.playerIds.includes(playerId)
+            ? { ...e, playerIds: [...e.playerIds, playerId] }
+            : e,
+        )
+        // (b) put the dropped extras back at their old index; ascending order
+        //     (forEach above already produced it) keeps the inserts from
+        //     shifting each other
+        for (const d of dropped) extras = insertAt(extras, d.index, d.item)
+        // (c) put the player back at their old index
+        return { ...s, players: insertAt(s.players, index, removed), extras }
+      }),
     )
   }
 
@@ -157,6 +200,8 @@ export default function App() {
     () => frequentPlayers(history, roster, session.players),
     [history, roster, session.players],
   )
+  // Lọc theo dòng cầu khác trong buổi do CostForm tự làm — App không cần biết.
+  const shuttleTypes = useMemo(() => frequentShuttleTypes(history, []), [history])
 
   const errors = validateSession(session)
   const result = errors.length === 0 ? calcSession(session) : null
@@ -176,7 +221,10 @@ export default function App() {
     setSession(defaultSession(loadSettings()))
     // Nothing was entered yet — there is nothing worth offering to undo.
     const isEmpty =
-      previous.players.length === 0 && previous.courtFee === 0 && previous.shuttleCount === 0
+      previous.players.length === 0 &&
+      previous.courtFee === 0 &&
+      previous.shuttles.every((l) => l.count === 0) &&
+      previous.extras.length === 0
     if (isEmpty) return
     // The only site that restores a whole snapshot: a reset has no single
     // removed element to put back.
@@ -249,6 +297,9 @@ export default function App() {
                 endTime: null,
                 paid: false,
               })),
+              // every player gets a fresh id, so old extras could not be
+              // re-pointed at anyone — the new session starts clean
+              extras: [],
             }))
             setPage('main')
           }}
@@ -291,7 +342,7 @@ export default function App() {
             <ModeSwitch mode={session.mode} onChange={(mode) => onPatch({ mode })} />
           </div>
           <div className="space-y-4 mt-4 md:mt-0 md:col-span-3">
-            <CostForm input={session} onPatch={onPatch} />
+            <CostForm input={session} shuttleTypes={shuttleTypes} onPatch={onPatch} />
             <RatioInputs
               maleRatio={session.maleRatio}
               femaleRatio={session.femaleRatio}

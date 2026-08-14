@@ -1,4 +1,12 @@
-import type { CalcResult, Gender, Mode, Player, Rounding, SessionInput } from './types'
+import type {
+  CalcResult,
+  ExtraCost,
+  Gender,
+  Mode,
+  Player,
+  Rounding,
+  SessionInput,
+} from './types'
 
 export interface RosterEntry {
   name: string
@@ -10,6 +18,7 @@ export interface Settings {
   maleRatio: number
   femaleRatio: number
   shuttlePrice: number
+  shuttleName: string
   rounding: Rounding
 }
 
@@ -25,7 +34,15 @@ export const DEFAULT_SETTINGS: Settings = {
   maleRatio: 1.5,
   femaleRatio: 1.0,
   shuttlePrice: 25000,
+  shuttleName: '',
   rounding: 'up1000',
+}
+
+/** Tài khoản người thu tiền — nhập một lần, dùng sinh VietQR cho mọi buổi. */
+export interface CollectorAccount {
+  bankBin: string
+  accountNo: string
+  accountName: string // chỉ để hiển thị cho người trả đối chiếu; '' nếu bỏ trống
 }
 
 function load<T>(key: string, guard: (v: unknown) => boolean, fallback: T): T {
@@ -65,7 +82,15 @@ const isSettings = (v: unknown): boolean =>
   typeof v.maleRatio === 'number' &&
   typeof v.femaleRatio === 'number' &&
   typeof v.shuttlePrice === 'number' &&
+  // migration: settings cũ không có `shuttleName` — loadSettings() điền '' khi load.
+  (typeof v.shuttleName === 'string' || v.shuttleName === undefined) &&
   (v.rounding === 'up1000' || v.rounding === 'exact')
+
+const isCollectorAccount = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.bankBin === 'string' &&
+  typeof v.accountNo === 'string' &&
+  typeof v.accountName === 'string'
 
 const isPlayer = (v: unknown): boolean =>
   isObject(v) &&
@@ -84,15 +109,82 @@ function normalizePlayer(p: Player): Player {
   return { ...p, paid: p.paid ?? false }
 }
 
-function normalizeSession(s: SessionInput): SessionInput {
-  return { ...s, players: s.players.map(normalizePlayer) }
+/** Hình dạng đọc từ localStorage: v1.4.0 có `playerId`, từ v1.5.0 có `playerIds`. */
+type StoredExtraCost = Omit<ExtraCost, 'playerIds'> & {
+  playerId?: string
+  playerIds?: string[]
 }
+
+/** Trường cũ chỉ tồn tại trong dữ liệu đã lưu trước tính năng nhiều loại cầu. */
+type LegacySession = SessionInput & { shuttleCount?: number; shuttlePrice?: number }
+
+/** Di trú mềm: {playerId: 'x'} → {playerIds: ['x']}. Destructure bỏ hẳn khóa cũ để
+ *  lần save kế tiếp không ghi lại `playerId` mồ côi vào localStorage. */
+function normalizeExtra(e: StoredExtraCost): ExtraCost {
+  const { playerId, playerIds, ...rest } = e
+  return { ...rest, playerIds: playerIds ?? (playerId ? [playerId] : []) }
+}
+
+/**
+ * Di trú mềm: buổi cũ không có `extras` → mảng rỗng; một cặp số lượng/giá cầu →
+ * đúng một dòng cầu. Không làm mất trường khác.
+ */
+function normalizeSession(s: LegacySession): SessionInput {
+  const { shuttleCount, shuttlePrice, ...rest } = s
+  return {
+    ...rest,
+    players: s.players.map(normalizePlayer),
+    extras: (s.extras ?? []).map((e) => normalizeExtra(e as StoredExtraCost)),
+    shuttles: s.shuttles ?? [
+      { id: LEGACY_SHUTTLE_ID, name: '', count: shuttleCount ?? 0, price: shuttlePrice ?? 0 },
+    ],
+  }
+}
+
+/** Di trú mềm: kết quả cũ không có `extrasTotal`/`extras` → 0 và []. Số tiền đã lưu
+ *  giữ nguyên tuyệt đối — không tính lại bao giờ. */
+function normalizeResult(r: CalcResult): CalcResult {
+  return {
+    ...r,
+    players: r.players.map((p) => ({ ...p, extrasTotal: p.extrasTotal ?? 0, extras: p.extras ?? [] })),
+  }
+}
+
+/** Buổi cũ chỉ có 1 loại cầu — id cố định để mỗi lần load ra cùng một React key. */
+export const LEGACY_SHUTTLE_ID = 'shuttle-legacy'
+
+const isShuttleLine = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.id === 'string' &&
+  typeof v.name === 'string' &&
+  typeof v.count === 'number' &&
+  typeof v.price === 'number'
+
+const isExtraCost = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.id === 'string' &&
+  typeof v.label === 'string' &&
+  typeof v.amount === 'number' &&
+  // migration v1.4.0 → v1.5.0: dữ liệu cũ có `playerId: string`, dữ liệu mới có
+  // `playerIds: string[]`. Chấp nhận CẢ HAI; normalizeExtra() gộp về playerIds khi load.
+  // Không được để guard này bác dữ liệu cũ.
+  ((Array.isArray(v.playerIds) && v.playerIds.every((id) => typeof id === 'string')) ||
+    typeof v.playerId === 'string')
+
+const isExtraShare = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.label === 'string' &&
+  typeof v.share === 'number' &&
+  typeof v.sharedCount === 'number'
 
 const isSession = (v: unknown): boolean =>
   isObject(v) &&
   (v.mode === 'ratio' || v.mode === 'hourly') &&
-  typeof v.shuttleCount === 'number' &&
-  typeof v.shuttlePrice === 'number' &&
+  // migration: buổi cũ có shuttleCount/shuttlePrice, buổi mới có mảng `shuttles`.
+  // Chấp nhận cả hai; normalizeSession() quy đổi dạng cũ khi load.
+  (v.shuttles === undefined
+    ? typeof v.shuttleCount === 'number' && typeof v.shuttlePrice === 'number'
+    : Array.isArray(v.shuttles) && v.shuttles.every((l) => isShuttleLine(l))) &&
   typeof v.courtFee === 'number' &&
   typeof v.courtStart === 'string' &&
   typeof v.courtEnd === 'string' &&
@@ -100,7 +192,10 @@ const isSession = (v: unknown): boolean =>
   typeof v.femaleRatio === 'number' &&
   (v.rounding === 'up1000' || v.rounding === 'exact') &&
   Array.isArray(v.players) &&
-  v.players.every((p) => isPlayer(p))
+  v.players.every((p) => isPlayer(p)) &&
+  // migration: dữ liệu cũ không có trường `extras` — chấp nhận mảng hợp lệ hoặc undefined,
+  // normalizeSession() sẽ điền extras: [] khi load.
+  (v.extras === undefined || (Array.isArray(v.extras) && v.extras.every((e) => isExtraCost(e))))
 
 const isPlayerResult = (v: unknown): boolean =>
   isObject(v) &&
@@ -112,7 +207,13 @@ const isPlayerResult = (v: unknown): boolean =>
   typeof v.courtShare === 'number' &&
   typeof v.shuttleShare === 'number' &&
   typeof v.raw === 'number' &&
-  typeof v.amount === 'number'
+  typeof v.amount === 'number' &&
+  // migration: kết quả đã lưu trước tính năng này không có `extrasTotal` — chấp nhận
+  // number hoặc undefined, normalizeResult() điền 0 khi load.
+  (typeof v.extrasTotal === 'number' || v.extrasTotal === undefined) &&
+  // migration: kết quả lưu bởi v1.4.0 không có `extras` — chấp nhận mảng hợp lệ hoặc
+  // undefined, normalizeResult() điền [] khi load.
+  (v.extras === undefined || (Array.isArray(v.extras) && v.extras.every((e) => isExtraShare(e))))
 
 const isCalcResult = (v: unknown): boolean =>
   isObject(v) &&
@@ -139,8 +240,15 @@ export function addToRoster(roster: RosterEntry[], name: string, gender: Gender)
   return [...roster.filter((r) => r.name.toLowerCase() !== key), { name: trimmed, gender }]
 }
 
-export const loadSettings = (): Settings => load('settings', isSettings, DEFAULT_SETTINGS)
+export function loadSettings(): Settings {
+  const s = load<Settings>('settings', isSettings, DEFAULT_SETTINGS)
+  return { ...s, shuttleName: s.shuttleName ?? '' }
+}
 export const saveSettings = (s: Settings): boolean => save('settings', s)
+
+export const loadCollectorAccount = (): CollectorAccount | null =>
+  load<CollectorAccount | null>('collectorAccount', isCollectorAccount, null)
+export const saveCollectorAccount = (a: CollectorAccount): boolean => save('collectorAccount', a)
 
 export function loadCurrentSession(): SessionInput | null {
   const s = load<SessionInput | null>('currentSession', isSession, null)
@@ -156,7 +264,9 @@ export function loadHistory(): SavedSession[] {
     if (!raw) return []
     const parsed: unknown = JSON.parse(raw)
     const valid = Array.isArray(parsed) ? (parsed.filter(isSavedSession) as SavedSession[]) : []
-    return valid.slice(0, HISTORY_LIMIT).map((s) => ({ ...s, input: normalizeSession(s.input) }))
+    return valid
+      .slice(0, HISTORY_LIMIT)
+      .map((s) => ({ ...s, input: normalizeSession(s.input), result: normalizeResult(s.result) }))
   } catch {
     return []
   }

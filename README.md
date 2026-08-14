@@ -8,11 +8,25 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - **Chia theo tỉ lệ**: Cộng tiền cầu & sân, chia theo hệ số giới tính (Nam/Nữ), hỗ trợ nhập ½ buổi
   - **Sân theo giờ**: Tiền sân chia theo giờ chơi thực tế từng người, tiền cầu vẫn chia theo hệ số (phù hợp khi nhóm có người đến muộn/về sớm)
 
+- **Nhiều loại cầu trong một buổi**
+  - Mỗi loại có tên, số lượng và giá riêng — tổng tiền cầu vẫn chia theo hệ số như cũ
+  - Chọn loại cầu bằng bottom sheet: chip loại hay dùng, gõ để lọc, chọn xong tự điền giá lần trước
+  - Lịch sử liệt kê rõ từng loại cầu đã dùng trong buổi
+
 - **Làm tròn và quản lý số dư**
   - Làm tròn lên 1.000đ (mặc định) hoặc giữ chính xác
   - Hiển thị số dư tổng thu vs tổng chi (ẩn sau nút 👁 mỗi lần mở ứng dụng)
 
+- **Chi phí phát sinh khác**
+  - Nhập các khoản lặt vặt (nước, thuê vợt, quấn cán…) ngay trong mục Chi phí
+  - Chọn một người, một nhóm nhỏ hay cả nhóm cùng chịu — số tiền chia đều theo đầu người
+  - Kết quả liệt kê từng khoản dưới tên mỗi người, có cả trong ảnh PNG và bản copy text
+  - Xóa người chơi thì khoản chung vẫn giữ nguyên tổng, những người còn lại gánh phần đó
+
 - **Danh bạ & danh sách tự động nhớ**
+  - Trang danh bạ theo phong cách Danh bạ iPhone: nhóm theo chữ cái đầu, tiêu đề chữ cái dính lại khi cuộn, thanh A–Z mép phải để nhảy nhanh tới nhóm
+  - Tên tiếng Việt được bỏ dấu khi gom nhóm (Ánh nằm ở A, Đức nằm cùng D), tên bắt đầu bằng số hay ký tự lạ vào nhóm #
+  - Ô tìm kiếm không dấu, không phân biệt hoa/thường ("duc" ra "Đức"); nút + trên đầu trang mở bottom sheet để thêm người
   - Gợi ý tên từ danh bạ khi gõ (không phân biệt hoa/thường)
   - Chip "Hay chơi cùng" khi ô tên còn trống: bấm một phát là thêm người hay gặp nhất (xếp hạng theo số buổi đã lưu, tự bỏ ai đã có trong buổi)
   - Danh sách buổi hiện tại được giữ nguyên giữa các lần dùng — lần sau chỉ cần sửa đổi
@@ -32,12 +46,24 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - Trạng thái đã trả hiển thị cả trong ảnh kết quả tải về
 
 - **Chia sẻ kết quả**
-  - Tải bảng kết quả về dưới dạng ảnh PNG để gửi vào nhóm chat
+  - Bấm nút chia sẻ để gửi ảnh kết quả thẳng vào Zalo/Messenger qua share sheet của điện thoại (máy không hỗ trợ sẽ tự tải ảnh PNG về)
+  - Copy kết quả dạng text (tên + số tiền + dấu ✓ đã trả) để dán vào chat
+  - Chia sẻ lại ảnh/text của buổi cũ ngay trong lịch sử, giữ đúng ngày đã lưu
+
+- **Mã VietQR cho từng người chơi**
+  - Nhập tài khoản người thu một lần — app sẽ dùng cho mọi buổi sau
+  - Mỗi người quét QR riêng (kèm sẵn số tiền + nội dung chuyển khoản) để trả
+  - Mã VietQR hiển thị trong ảnh kết quả PNG chia sẻ
+
+- **Thao tác xóa đồng nhất ở mọi danh sách**
+  - Mobile: vuốt trái để xóa — người chơi, danh bạ, dòng loại cầu, khoản phát sinh và cả buổi trong lịch sử, không còn nút xóa chiếm chỗ trên hàng
+  - Desktop: một nút thùng rác đỏ duy nhất, cùng kích thước và canh giữa như nút sửa ở mọi màn hình
+  - Mỗi danh sách đều có dòng gợi ý cách xóa, tự đổi theo thiết bị đang dùng
+  - Vuốt có khóa trục: cuộn dọc hơi chéo tay không còn kéo hàng sang ngang
 
 - **Giao diện linh hoạt**
   - Sửa giờ chơi qua bottom sheet (vaul), chọn giờ với wheel picker 24h kiểu iOS
   - Kéo tay nắm ⠿ để sắp xếp thứ tự người chơi (mobile & desktop)
-  - Vuốt trái để xóa người chơi (mobile)
   - Responsive: mobile 1 cột, desktop 2 cột sticky với animation mượt (Motion)
 
 - **Cài như app & chạy offline**
@@ -53,7 +79,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (195 test cases)
+- **Testing**: Vitest + React Testing Library (366 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

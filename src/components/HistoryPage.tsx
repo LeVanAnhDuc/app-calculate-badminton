@@ -4,8 +4,42 @@ import { paidCount } from '../lib/settlement'
 import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
 import { durationHours } from '../lib/time'
+import { TrashIcon } from './DeleteButton'
 import { PaidToggle } from './PaidToggle'
+import { payerSummary } from './PayerSelect'
+import { QRSheet } from './QRSheet'
 import { PaidSummaryLine, SurplusRow, TotalCollectedRow } from './ResultPanel'
+import { CopyTextButton, ShareImageButton } from './ShareButtons'
+import { SwipeToDelete } from './SwipeToDelete'
+
+function QRIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="5" height="5" x="3" y="3" rx="1" />
+      <rect width="5" height="5" x="16" y="3" rx="1" />
+      <rect width="5" height="5" x="3" y="16" rx="1" />
+      <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+      <path d="M21 21v.01" />
+      <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+      <path d="M3 12h.01" />
+      <path d="M12 3h.01" />
+      <path d="M12 16v.01" />
+      <path d="M16 12h1" />
+      <path d="M21 12v.01" />
+      <path d="M12 21v-1" />
+    </svg>
+  )
+}
 
 interface Props {
   history: SavedSession[]
@@ -38,6 +72,8 @@ function monthLabel(iso: string): string {
 
 export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
+  const [qrTarget, setQrTarget] = useState<{ sessionId: string; playerId: string } | null>(null)
 
   // cards never auto-expand; this only guards against a deleted card
   // staying "expanded" once it no longer exists in history
@@ -81,6 +117,14 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
               Chưa có buổi nào được lưu — quay lại màn hình chính và bấm "Lưu buổi này".
             </p>
           )}
+          {history.length > 0 && (
+            <p className="text-center text-xs text-gray-400 md:col-span-2">
+              <span className="md:hidden">💡 Vuốt trái một buổi để xóa</span>
+              <span className="hidden md:inline">
+                💡 Mở chi tiết rồi bấm nút Xóa buổi này
+              </span>
+            </p>
+          )}
           {history.map((s, i) => {
             const males = s.input.players.filter((p) => p.gender === 'male').length
             const females = s.input.players.length - males
@@ -94,9 +138,16 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                     {monthLabel(s.savedAt)}
                   </h2>
                 )}
-                <section
-                  className={`bg-white rounded-2xl shadow-sm ${
-                    expanded ? 'border-2 border-emerald-200 md:col-span-2' : ''
+                <section className={expanded ? 'md:col-span-2' : ''}>
+                <SwipeToDelete
+                  testId={`history-swipe-row-${s.id}`}
+                  label={`Xóa nhanh buổi ${sessionDate(s.savedAt)}`}
+                  isOpen={openSwipeId === s.id}
+                  onOpenChange={(open) => setOpenSwipeId(open ? s.id : null)}
+                  onDelete={() => onDelete(s.id)}
+                  className="rounded-2xl"
+                  surfaceClassName={`bg-white rounded-2xl shadow-sm ${
+                    expanded ? 'border-2 border-emerald-200' : ''
                   }`}
                 >
                 <button
@@ -131,18 +182,36 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                       <div>
                         <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Chi phí</h3>
                         <div className="space-y-1.5 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">
-                              Tiền cầu ({s.input.shuttleCount} quả × {formatVND(s.input.shuttlePrice)})
-                            </span>
-                            <span className="font-semibold text-gray-900">
-                              {formatVND(s.input.shuttleCount * s.input.shuttlePrice)}
-                            </span>
-                          </div>
+                          {s.input.shuttles
+                            .filter((l) => l.count > 0)
+                            .map((l) => (
+                              <div key={l.id} className="flex justify-between">
+                                <span className="text-gray-500">
+                                  {l.name.trim() || 'Tiền cầu'} ({l.count} quả ×{' '}
+                                  {formatVND(l.price)})
+                                </span>
+                                <span className="font-semibold text-gray-900">
+                                  {formatVND(l.count * l.price)}
+                                </span>
+                              </div>
+                            ))}
                           <div className="flex justify-between">
                             <span className="text-gray-500">Tiền sân</span>
                             <span className="font-semibold text-gray-900">{formatVND(s.input.courtFee)}</span>
                           </div>
+                          {s.input.extras.map((e) => (
+                            <div key={e.id} className="flex justify-between text-sm">
+                              {/* the amount on the right is the WHOLE `amount`,
+                                  not one share — this is the "Chi phí" block */}
+                              <span className="text-gray-500">
+                                {e.label.trim() || 'Khoản khác'} ·{' '}
+                                {payerSummary(s.input.players, e.playerIds, '?')}
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {formatVND(e.amount)}
+                              </span>
+                            </div>
+                          ))}
                           {s.input.mode === 'hourly' && (
                             <div className="flex justify-between">
                               <span className="text-gray-500">Giờ thuê sân</span>
@@ -200,39 +269,103 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                                     <span className="text-xs text-gray-400">
                                       ({p.gender === 'male' ? 'Nam' : 'Nữ'}
                                       {s.input.mode === 'ratio' && p.halfSession ? ' · ½ buổi' : ''}
-                                      {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''})
+                                      {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''}
+                                      {/* itemised extras get their own lines below, so
+                                          the suffix is kept only for v1.4.0 sessions */}
+                                      {p.extras.length === 0 && p.extrasTotal > 0
+                                        ? ` · +${formatVND(p.extrasTotal)} phát sinh`
+                                        : ''}
+                                      )
                                     </span>
+                                    {p.extras.map((x, k) => (
+                                      <span key={k} className="text-xs text-gray-400 block pl-3">
+                                        · {x.label}
+                                        {x.sharedCount > 1 ? ` (chung, ${x.sharedCount} người)` : ''}{' '}
+                                        {formatVND(x.share)}
+                                      </span>
+                                    ))}
                                   </span>
                                 </span>
-                                <span className="font-bold">{formatVND(p.amount)}</span>
+                                <span className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    aria-label={`Mã QR cho ${p.name}`}
+                                    title={`Mã QR cho ${p.name}`}
+                                    onClick={() => setQrTarget({ sessionId: s.id, playerId: p.playerId })}
+                                    className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+                                  >
+                                    <QRIcon />
+                                  </button>
+                                  <span className="font-bold">{formatVND(p.amount)}</span>
+                                </span>
                               </li>
                             )
                           })}
                         </ul>
                       </div>
                     </div>
-                    <div className="border-t border-gray-100 p-4 space-y-2 md:space-y-0 md:flex md:gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onReuse(s)}
-                        className="w-full md:flex-1 h-12 rounded-xl bg-emerald-600 text-white text-sm font-semibold"
-                      >
-                        Dùng lại danh sách này cho buổi mới
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onDelete(s.id)}
-                        className="w-full md:w-auto md:px-4 h-12 rounded-xl border border-red-200 text-red-500 text-sm font-semibold"
-                      >
-                        Xóa buổi này
-                      </button>
+                    <div className="border-t border-gray-100 p-4 space-y-2">
+                      <div className="flex gap-2">
+                        <ShareImageButton
+                          result={s.result}
+                          mode={s.input.mode}
+                          players={s.input.players}
+                          date={new Date(s.savedAt)}
+                          variant="wide"
+                        />
+                        <CopyTextButton
+                          result={s.result}
+                          mode={s.input.mode}
+                          players={s.input.players}
+                          date={new Date(s.savedAt)}
+                          variant="wide"
+                        />
+                      </div>
+                      <div className="space-y-2 md:space-y-0 md:flex md:gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onReuse(s)}
+                          className="w-full md:flex-1 h-12 rounded-xl bg-emerald-600 text-white text-sm font-semibold"
+                        >
+                          Dùng lại danh sách này cho buổi mới
+                        </button>
+                        {/* trên mobile thao tác xóa là vuốt trái cả thẻ, nên
+                            hàng nút không còn nút xóa nào */}
+                        <button
+                          type="button"
+                          onClick={() => onDelete(s.id)}
+                          className="hidden md:flex md:w-auto md:px-4 h-12 rounded-xl border border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors text-sm font-semibold items-center justify-center gap-2"
+                        >
+                          <TrashIcon />
+                          Xóa buổi này
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
+                </SwipeToDelete>
               </section>
               </Fragment>
             )
           })}
+          {(() => {
+            if (qrTarget === null) return null
+            const s = history.find((x) => x.id === qrTarget.sessionId)
+            const pr = s?.result.players.find((p) => p.playerId === qrTarget.playerId)
+            if (!s || !pr) return null
+            const paid = s.input.players.find((pl) => pl.id === pr.playerId)?.paid ?? false
+            return (
+              <QRSheet
+                open
+                onClose={() => setQrTarget(null)}
+                playerName={pr.name}
+                amount={pr.amount}
+                memoDate={new Date(s.savedAt)}
+                paid={paid}
+                onTogglePaid={() => onTogglePaid(s.id, pr.playerId)}
+              />
+            )
+          })()}
           <p className="text-center text-xs text-gray-400 pt-3 md:col-span-2">
             Dữ liệu lưu trên máy của bạn (localStorage)
             <br />

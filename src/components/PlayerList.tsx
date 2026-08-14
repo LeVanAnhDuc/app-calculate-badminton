@@ -153,7 +153,7 @@ export function PlayerList({
         <p>💡 Kéo ⠿ để sắp xếp thứ tự</p>
         <p>
           <span className="md:hidden">💡 Vuốt trái để xóa</span>
-          <span className="hidden md:inline">💡 Bấm nút × để xóa</span>
+          <span className="hidden md:inline">💡 Bấm nút thùng rác đỏ để xóa</span>
         </p>
       </motion.div>
 
