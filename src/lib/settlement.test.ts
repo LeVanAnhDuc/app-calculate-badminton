@@ -22,6 +22,7 @@ function result(playerId: string, amount: number): PlayerResult {
     hours: null,
     courtShare: amount,
     shuttleShare: 0,
+    extrasTotal: 0,
     raw: amount,
     amount,
   }

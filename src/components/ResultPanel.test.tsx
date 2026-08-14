@@ -19,6 +19,7 @@ const input: SessionInput = {
     { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null, paid: false },
     { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null, paid: false },
   ],
+  extras: [],
 }
 
 // Mirrors how App.tsx wires ResultPanel: onPatch persists a players patch back
@@ -230,6 +231,48 @@ describe('paid tracking', () => {
     const toggles = screen.getAllByRole('button', { name: 'Đánh dấu Tuấn đã trả' })
     fireEvent.click(toggles[toggles.length - 1])
     expect(screen.getAllByText(/Đã thu 1\/2 · còn thiếu/).length).toBeGreaterThan(0)
+  })
+})
+
+describe('chi phí phát sinh khác', () => {
+  const withExtras: SessionInput = {
+    ...input,
+    extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerId: '1' }],
+  }
+
+  // 17
+  test('only the player who owns an extra gets the amber "+ phát sinh" line', () => {
+    const result = calcRatioMode(withExtras)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={withExtras.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    const note = screen.getByText('+ phát sinh 20.000')
+    expect(note).toHaveClass('text-amber-600')
+    // the big number already includes the extra: 180.000 + 20.000
+    expect(screen.getByText('200.000đ')).toBeInTheDocument()
+    // Lan has no extras, so exactly one note exists on screen
+    expect(screen.getAllByText(/\+ phát sinh/)).toHaveLength(1)
+  })
+
+  test('the fullscreen overlay shows the same "+ phát sinh" line', () => {
+    const result = calcRatioMode(withExtras)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={withExtras.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+    // main panel + overlay each render one
+    expect(screen.getAllByText('+ phát sinh 20.000')).toHaveLength(2)
+  })
+
+  test('no "+ phát sinh" line at all when the session has no extras', () => {
+    const result = calcRatioMode(input)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    expect(screen.queryByText(/\+ phát sinh/)).not.toBeInTheDocument()
   })
 })
 

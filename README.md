@@ -12,6 +12,10 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - Làm tròn lên 1.000đ (mặc định) hoặc giữ chính xác
   - Hiển thị số dư tổng thu vs tổng chi (ẩn sau nút 👁 mỗi lần mở ứng dụng)
 
+- **Chi phí phát sinh khác**
+  - Nhập các khoản lặt vặt (nước, thuê vợt, quấn cán…) ngay trong mục Chi phí
+  - Mỗi khoản gán cho đúng một người, người đó chịu toàn bộ — cộng thẳng vào phần của họ trước khi làm tròn
+
 - **Danh bạ & danh sách tự động nhớ**
   - Gợi ý tên từ danh bạ khi gõ (không phân biệt hoa/thường)
   - Chip "Hay chơi cùng" khi ô tên còn trống: bấm một phát là thêm người hay gặp nhất (xếp hạng theo số buổi đã lưu, tự bỏ ai đã có trong buổi)
@@ -49,7 +53,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (167 test cases)
+- **Testing**: Vitest + React Testing Library (194 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

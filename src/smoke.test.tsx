@@ -179,6 +179,52 @@ test('undo restores a deleted player with its paid / ½ buổi state intact', as
   )
 })
 
+// 18
+// re-renders the whole App on every keystroke of two extra-cost rows; like the
+// full-flow test above it needs headroom beyond the 5s default under parallel load
+test('deleting a player also removes their extra costs, and "Hoàn tác" brings both back', { timeout: 15000 }, async () => {
+  const costSection = () => screen.getByRole('heading', { name: 'Chi phí' }).closest('section')!
+  const totalCost = () =>
+    within(costSection()).getByText('TỔNG CHI').nextElementSibling!.textContent
+  // read the session App persists rather than the player list: rows leave the
+  // DOM only once their exit animation finishes, which says nothing about state
+  const stored = () => JSON.parse(localStorage.getItem('currentSession')!)
+  const storedExtras = () => stored().extras
+  const storedNames = () => stored().players.map((p: { name: string }) => p.name)
+
+  render(<App />)
+  fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '100000' } })
+  addPlayer('An')
+  addPlayer('Nam')
+
+  // two extras, both on An (the add button defaults every new row to players[0])
+  fireEvent.click(screen.getByRole('button', { name: '+ Thêm khoản' }))
+  fireEvent.change(screen.getByLabelText('Tên khoản phát sinh'), { target: { value: 'Nước' } })
+  fireEvent.change(screen.getByLabelText('Số tiền của Nước'), { target: { value: '20000' } })
+  fireEvent.click(screen.getByRole('button', { name: '+ Thêm khoản' }))
+  // every row shares the same aria-label, so the second one is picked by index
+  fireEvent.change(screen.getAllByLabelText('Tên khoản phát sinh')[1], {
+    target: { value: 'Thuê vợt' },
+  })
+  fireEvent.change(screen.getByLabelText('Số tiền của Thuê vợt'), { target: { value: '15000' } })
+
+  expect(totalCost()).toBe('135.000đ')
+  expect(storedExtras()).toHaveLength(2)
+
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa An' }))
+  expect(storedNames()).toEqual(['Nam'])
+  // no orphaned extras left behind pointing at a player who no longer exists
+  expect(storedExtras()).toEqual([])
+  expect(totalCost()).toBe('100.000đ')
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tác' }))
+  // An goes back to index 0, both of their extras come back with them
+  expect(storedNames()).toEqual(['An', 'Nam'])
+  expect(storedExtras()).toHaveLength(2)
+  expect(storedExtras().map((e: { label: string }) => e.label)).toEqual(['Nước', 'Thuê vợt'])
+  expect(totalCost()).toBe('135.000đ')
+})
+
 test('deleting a saved session in history toasts an undo that restores it at its old spot', async () => {
   render(<App />)
   fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })

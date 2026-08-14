@@ -113,8 +113,13 @@ function PlayerRow({
           </span>
         </span>
         {mode === 'hourly' && (
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-400 block">
             sân {formatNumber(p.courtShare)} + cầu {formatNumber(p.shuttleShare)}
+          </span>
+        )}
+        {p.extrasTotal > 0 && (
+          <span className="text-xs text-amber-600 block">
+            + phát sinh {formatNumber(p.extrasTotal)}
           </span>
         )}
       </div>

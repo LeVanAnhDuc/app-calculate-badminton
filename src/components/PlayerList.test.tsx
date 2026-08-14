@@ -79,6 +79,7 @@ const base: SessionInput = {
   players: [
     { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null, paid: false },
   ],
+  extras: [],
 }
 
 test('adds a player and blocks duplicates', () => {

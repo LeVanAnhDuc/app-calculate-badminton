@@ -19,6 +19,7 @@ const input: SessionInput = {
     { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null, paid: false },
     { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null, paid: false },
   ],
+  extras: [],
 }
 
 const saved: SavedSession = {
@@ -155,6 +156,7 @@ test('hourly-mode detail shows hours and never shows leftover ½ buổi note', (
         paid: false,
       },
     ],
+    extras: [],
   }
   const hourlySaved: SavedSession = {
     id: 'h1',
@@ -179,6 +181,45 @@ test('deleting an expanded session collapses the view instead of auto-expanding 
   fireEvent.click(screen.getByRole('button', { name: 'Xóa buổi này' }))
   // savedB remains but nothing auto-expands — expandedId cleared, not re-pointed
   expect(screen.queryByText('Tổng thu')).not.toBeInTheDocument()
+})
+
+describe('chi phí phát sinh khác', () => {
+  const inputWithExtras: SessionInput = {
+    ...input,
+    extras: [
+      { id: 'e1', label: 'Nước', amount: 20000, playerId: '1' },
+      { id: 'e2', label: '   ', amount: 5000, playerId: 'da-bi-xoa' },
+    ],
+  }
+  const savedWithExtras: SavedSession = {
+    id: 'sx',
+    savedAt: '2026-08-13T20:15:00.000Z',
+    input: inputWithExtras,
+    result: calcRatioMode(inputWithExtras),
+  }
+
+  // 19
+  test('the cost block lists every extra with its label and the person charged', () => {
+    render(<HistoryPage history={[savedWithExtras]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+    fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+    expect(screen.getByText('Nước · Tuấn')).toBeInTheDocument()
+    // blank label falls back to "Khoản khác"; an owner missing from the saved
+    // player list (hand-edited data) falls back to "?"
+    expect(screen.getByText('Khoản khác · ?')).toBeInTheDocument()
+  })
+
+  test('a player carrying an extra gets the "+… phát sinh" note next to their gender', () => {
+    render(<HistoryPage history={[savedWithExtras]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+    fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+    expect(screen.getByText(/\+20\.000đ phát sinh/)).toBeInTheDocument()
+  })
+
+  test('a session saved before the feature renders exactly as it did before — no extra rows', () => {
+    render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+    fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+    expect(screen.queryByText(/phát sinh/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Khoản khác/)).not.toBeInTheDocument()
+  })
 })
 
 describe('paid tracking', () => {
