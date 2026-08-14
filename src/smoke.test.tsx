@@ -438,10 +438,10 @@ test('deleting a roster entry toasts an undo that puts it back at its old index'
 
   fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tác' }))
   await waitFor(() => expect(screen.getByText('3 người đã lưu')).toBeInTheDocument())
-  const names = screen
-    .getAllByRole('button', { name: /^Sửa / })
-    .map((b) => b.getAttribute('aria-label')!.replace('Sửa ', ''))
-  expect(names).toEqual(['An', 'Nam', 'Bình'])
+  // the roster page lists names alphabetically, so the stored order is what
+  // shows the entry went back to its old index instead of being appended
+  const stored = JSON.parse(localStorage.getItem('roster')!) as { name: string }[]
+  expect(stored.map((r) => r.name)).toEqual(['An', 'Nam', 'Bình'])
 })
 
 test('opening the roster pushes browser state; the in-app ← button navigates back', async () => {

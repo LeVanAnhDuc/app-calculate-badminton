@@ -24,6 +24,9 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - Xóa người chơi thì khoản chung vẫn giữ nguyên tổng, những người còn lại gánh phần đó
 
 - **Danh bạ & danh sách tự động nhớ**
+  - Trang danh bạ theo phong cách Danh bạ iPhone: nhóm theo chữ cái đầu, tiêu đề chữ cái dính lại khi cuộn, thanh A–Z mép phải để nhảy nhanh tới nhóm
+  - Tên tiếng Việt được bỏ dấu khi gom nhóm (Ánh nằm ở A, Đức nằm cùng D), tên bắt đầu bằng số hay ký tự lạ vào nhóm #
+  - Ô tìm kiếm không dấu, không phân biệt hoa/thường ("duc" ra "Đức"); nút + trên đầu trang mở bottom sheet để thêm người
   - Gợi ý tên từ danh bạ khi gõ (không phân biệt hoa/thường)
   - Chip "Hay chơi cùng" khi ô tên còn trống: bấm một phát là thêm người hay gặp nhất (xếp hạng theo số buổi đã lưu, tự bỏ ai đã có trong buổi)
   - Danh sách buổi hiện tại được giữ nguyên giữa các lần dùng — lần sau chỉ cần sửa đổi
@@ -67,7 +70,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (301 test cases)
+- **Testing**: Vitest + React Testing Library (317 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

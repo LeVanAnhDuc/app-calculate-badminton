@@ -13,8 +13,17 @@ const base: RosterEntry[] = [
   { name: 'Lan', gender: 'female' },
 ]
 
+/** the + button in the header; the add form lives in a drawer behind it */
+function openAddDrawer() {
+  fireEvent.click(screen.getByRole('button', { name: 'Thêm vào danh bạ' }))
+}
+
+const sectionLetters = () =>
+  screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
+
 test('adds a new entry to the roster', () => {
   render(<Harness initial={base} />)
+  openAddDrawer()
   const nameInput = screen.getByPlaceholderText('Tên người chơi')
   fireEvent.change(nameInput, { target: { value: 'Minh' } })
   fireEvent.click(screen.getByRole('button', { name: '+ Thêm vào danh bạ' }))
@@ -24,6 +33,7 @@ test('adds a new entry to the roster', () => {
 
 test('blocks case-insensitive duplicates when adding', () => {
   render(<Harness initial={base} />)
+  openAddDrawer()
   const nameInput = screen.getByPlaceholderText('Tên người chơi')
   fireEvent.change(nameInput, { target: { value: 'tuấn' } })
   fireEvent.click(screen.getByRole('button', { name: '+ Thêm vào danh bạ' }))
@@ -33,6 +43,7 @@ test('blocks case-insensitive duplicates when adding', () => {
 
 test('blocks empty names when adding', () => {
   render(<Harness initial={base} />)
+  openAddDrawer()
   fireEvent.click(screen.getByRole('button', { name: '+ Thêm vào danh bạ' }))
   expect(screen.getByText('2 người đã lưu')).toBeInTheDocument()
 })
@@ -99,6 +110,8 @@ test('swipe-left reveals the red Xóa button; tapping it deletes the entry', () 
 test('empty roster shows a hint instead of a list', () => {
   render(<Harness initial={[]} />)
   expect(screen.getByText(/Danh bạ chưa có ai/)).toBeInTheDocument()
+  // nothing to search through yet
+  expect(screen.queryByLabelText('Tìm trong danh bạ')).not.toBeInTheDocument()
 })
 
 test('footer note is shown', () => {
@@ -113,4 +126,73 @@ test('back button calls onBack', () => {
   render(<RosterPage roster={base} onBack={onBack} onChange={() => {}} />)
   fireEvent.click(screen.getByRole('button', { name: 'Quay lại' }))
   expect(onBack).toHaveBeenCalledTimes(1)
+})
+
+test('groups entries into A-Z sections, folding diacritics and Đ into D', () => {
+  render(
+    <Harness
+      initial={[
+        { name: 'Lan', gender: 'female' },
+        { name: '2Fast', gender: 'male' },
+        { name: 'Đức', gender: 'male' },
+        { name: 'Ánh', gender: 'female' },
+        { name: 'Dũng', gender: 'male' },
+      ]}
+    />,
+  )
+  expect(sectionLetters()).toEqual(['A', 'D', 'L', '#'])
+  const sectionD = screen.getByRole('heading', { level: 2, name: 'D' }).parentElement!
+  expect(
+    within(sectionD)
+      .getAllByRole('button', { name: /^Sửa / })
+      .map((b) => b.getAttribute('aria-label')),
+    // sorted on the folded name: duc before dung
+  ).toEqual(['Sửa Đức', 'Sửa Dũng'])
+})
+
+test('search filters by name, ignoring diacritics and case', () => {
+  render(<Harness initial={[{ name: 'Đức', gender: 'male' }, ...base]} />)
+  fireEvent.change(screen.getByLabelText('Tìm trong danh bạ'), { target: { value: 'DUC' } })
+  expect(screen.getByText('Đức')).toBeInTheDocument()
+  expect(screen.queryByText('Lan')).not.toBeInTheDocument()
+  // the count in the header still reflects the whole roster
+  expect(screen.getByText('3 người đã lưu')).toBeInTheDocument()
+})
+
+test('search with no match shows a hint, and the × button restores the list', () => {
+  render(<Harness initial={base} />)
+  fireEvent.change(screen.getByLabelText('Tìm trong danh bạ'), { target: { value: 'zzz' } })
+  expect(screen.getByText('Không tìm thấy ai tên "zzz"')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa từ khóa tìm kiếm' }))
+  expect(screen.getByText('Tuấn')).toBeInTheDocument()
+})
+
+test('the A-Z rail lists only the letters in use and jumps to that section', () => {
+  const scrollIntoView = vi.fn()
+  Element.prototype.scrollIntoView = scrollIntoView
+  render(<Harness initial={base} />)
+  const rail = screen.getByTestId('roster-index-rail')
+  expect(within(rail).getAllByRole('button').map((b) => b.textContent)).toEqual(['L', 'T'])
+
+  fireEvent.click(within(rail).getByRole('button', { name: 'Tới nhóm T' }))
+  expect(scrollIntoView).toHaveBeenCalled()
+})
+
+test('the A-Z rail is hidden while searching', () => {
+  render(<Harness initial={base} />)
+  expect(screen.getByTestId('roster-index-rail')).toBeInTheDocument()
+  fireEvent.change(screen.getByLabelText('Tìm trong danh bạ'), { target: { value: 'lan' } })
+  expect(screen.queryByTestId('roster-index-rail')).not.toBeInTheDocument()
+})
+
+test('adding while a search is active clears the search so the new name is visible', () => {
+  render(<Harness initial={base} />)
+  fireEvent.change(screen.getByLabelText('Tìm trong danh bạ'), { target: { value: 'lan' } })
+  openAddDrawer()
+  fireEvent.change(screen.getByPlaceholderText('Tên người chơi'), {
+    target: { value: 'Minh' },
+  })
+  fireEvent.click(screen.getByRole('button', { name: '+ Thêm vào danh bạ' }))
+  expect(screen.getByText('Minh')).toBeInTheDocument()
+  expect(screen.getByText('Tuấn')).toBeInTheDocument()
 })
