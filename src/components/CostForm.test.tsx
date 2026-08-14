@@ -10,8 +10,7 @@ function Harness({ initial }: { initial: SessionInput }) {
 
 const base: SessionInput = {
   mode: 'ratio',
-  shuttleCount: 6,
-  shuttlePrice: 25000,
+  shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }],
   courtFee: 150000,
   courtStart: '19:00',
   courtEnd: '21:00',
@@ -110,6 +109,34 @@ describe('chi phí phát sinh khác', () => {
     render(<Harness initial={base} />)
     expect(screen.getByRole('button', { name: '+ Thêm khoản' })).toBeDisabled()
     expect(screen.getByText('Thêm người chơi trước để gán khoản phát sinh')).toBeInTheDocument()
+  })
+})
+
+describe('nhiều loại cầu', () => {
+  test('thêm dòng, nhập số lượng và giá, tổng cộng đúng', () => {
+    render(<Harness initial={base} />)
+    expect(screen.getByText('150.000đ')).toBeInTheDocument() // tiền cầu 1 dòng
+
+    fireEvent.click(screen.getByRole('button', { name: '+ Thêm loại cầu' }))
+    const counts = screen.getAllByLabelText(/^Số quả của/)
+    const prices = screen.getAllByLabelText(/^Giá \/ quả của/)
+    expect(counts).toHaveLength(2)
+
+    fireEvent.change(counts[1], { target: { value: '2' } })
+    fireEvent.change(prices[1], { target: { value: '20000' } })
+
+    expect(screen.getByText('190.000đ')).toBeInTheDocument() // tiền cầu
+    expect(screen.getByText('340.000đ')).toBeInTheDocument() // TỔNG CHI
+  })
+
+  test('gõ tên loại cầu và xóa dòng', () => {
+    render(<Harness initial={base} />)
+    fireEvent.change(screen.getByLabelText('Tên loại cầu'), { target: { value: 'Hải Yến' } })
+    expect(screen.getByLabelText('Số quả của Hải Yến')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa Hải Yến' }))
+    expect(screen.queryByLabelText('Tên loại cầu')).not.toBeInTheDocument()
+    expect(screen.getByText('150.000đ')).toBeInTheDocument() // chỉ còn tiền sân
   })
 })
 

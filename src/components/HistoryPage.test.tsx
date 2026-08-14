@@ -12,8 +12,7 @@ vi.mock('../lib/shareResult', () => ({
 
 const input: SessionInput = {
   mode: 'ratio',
-  shuttleCount: 6,
-  shuttlePrice: 25000,
+  shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }],
   courtFee: 150000,
   courtStart: '19:00',
   courtEnd: '21:00',
@@ -83,6 +82,30 @@ test('cards start collapsed; tapping one expands it, tapping again collapses it'
   expect(screen.queryByText('Tổng thu')).not.toBeInTheDocument()
 })
 
+test('chi tiết liệt kê từng loại cầu', () => {
+  const multiInput: SessionInput = {
+    ...input,
+    shuttles: [
+      { id: 'a', name: 'Hải Yến', count: 4, price: 25000 },
+      { id: 'b', name: '', count: 2, price: 20000 },
+      { id: 'c', name: 'Không dùng', count: 0, price: 30000 },
+    ],
+  }
+  const multiSaved: SavedSession = {
+    ...saved,
+    input: multiInput,
+    result: calcRatioMode(multiInput),
+  }
+  render(
+    <HistoryPage history={[multiSaved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />,
+  )
+  fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/)) // mở "▼ chi tiết"
+  expect(screen.getByText('Hải Yến (4 quả × 25.000đ)')).toBeInTheDocument()
+  // dòng không đặt tên vẫn hiện dưới nhãn chung, dòng 0 quả bị bỏ qua
+  expect(screen.getByText('Tiền cầu (2 quả × 20.000đ)')).toBeInTheDocument()
+  expect(screen.queryByText(/Không dùng/)).not.toBeInTheDocument()
+})
+
 test('delete calls onDelete straight away, without a confirm dialog', () => {
   const onDelete = vi.fn()
   const confirmSpy = vi.spyOn(window, 'confirm')
@@ -133,8 +156,7 @@ test('empty history shows hint', () => {
 test('hourly-mode detail shows hours and never shows leftover ½ buổi note', () => {
   const hourlyInput: SessionInput = {
     mode: 'hourly',
-    shuttleCount: 6,
-    shuttlePrice: 25000,
+    shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }],
     courtFee: 150000,
     courtStart: '19:00',
     courtEnd: '21:00',

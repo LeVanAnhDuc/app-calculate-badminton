@@ -33,8 +33,7 @@ import { uid } from './lib/uid'
 function defaultSession(s: Settings): SessionInput {
   return {
     mode: s.mode,
-    shuttleCount: 0,
-    shuttlePrice: s.shuttlePrice,
+    shuttles: [{ id: uid(), name: s.shuttleName, count: 0, price: s.shuttlePrice }],
     courtFee: 0,
     courtStart: '19:00',
     courtEnd: '21:00',
@@ -72,12 +71,15 @@ export default function App() {
 
   useEffect(() => {
     saveCurrentSession(session)
+    // Tên & giá cầu được nhớ từ DÒNG ĐẦU TIÊN; buổi không có dòng nào thì giữ giá trị cũ.
+    const first = session.shuttles[0]
     saveSettings({
+      ...loadSettings(),
       mode: session.mode,
       maleRatio: session.maleRatio,
       femaleRatio: session.femaleRatio,
-      shuttlePrice: session.shuttlePrice,
       rounding: session.rounding,
+      ...(first ? { shuttlePrice: first.price, shuttleName: first.name } : {}),
     })
   }, [session])
   useEffect(() => {
@@ -189,7 +191,7 @@ export default function App() {
     const isEmpty =
       previous.players.length === 0 &&
       previous.courtFee === 0 &&
-      previous.shuttleCount === 0 &&
+      previous.shuttles.every((l) => l.count === 0) &&
       previous.extras.length === 0
     if (isEmpty) return
     // The only site that restores a whole snapshot: a reset has no single

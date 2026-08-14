@@ -132,14 +132,19 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                       <div>
                         <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Chi phí</h3>
                         <div className="space-y-1.5 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">
-                              Tiền cầu ({s.input.shuttleCount} quả × {formatVND(s.input.shuttlePrice)})
-                            </span>
-                            <span className="font-semibold text-gray-900">
-                              {formatVND(s.input.shuttleCount * s.input.shuttlePrice)}
-                            </span>
-                          </div>
+                          {s.input.shuttles
+                            .filter((l) => l.count > 0)
+                            .map((l) => (
+                              <div key={l.id} className="flex justify-between">
+                                <span className="text-gray-500">
+                                  {l.name.trim() || 'Tiền cầu'} ({l.count} quả ×{' '}
+                                  {formatVND(l.price)})
+                                </span>
+                                <span className="font-semibold text-gray-900">
+                                  {formatVND(l.count * l.price)}
+                                </span>
+                              </div>
+                            ))}
                           <div className="flex justify-between">
                             <span className="text-gray-500">Tiền sân</span>
                             <span className="font-semibold text-gray-900">{formatVND(s.input.courtFee)}</span>
