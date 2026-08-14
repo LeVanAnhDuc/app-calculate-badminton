@@ -15,7 +15,7 @@ const players: Player[] = [
 ]
 const result: CalcResult = {
   totalCost: 70000, totalCollected: 70000, surplus: 0, emptyHours: 0,
-  players: [{ playerId: '1', name: 'Đức', gender: 'male', halfSession: false, hours: null, courtShare: 0, shuttleShare: 0, raw: 70000, amount: 70000 }],
+  players: [{ playerId: '1', name: 'Đức', gender: 'male', halfSession: false, hours: null, courtShare: 0, shuttleShare: 0, extrasTotal: 0, raw: 70000, amount: 70000 }],
 }
 
 afterEach(() => vi.clearAllMocks())

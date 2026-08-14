@@ -8,7 +8,7 @@ const player = (over: Partial<Player>): Player => ({
 
 const pr = (over: Partial<CalcResult['players'][number]>): CalcResult['players'][number] => ({
   playerId: '1', name: 'Đức', gender: 'male', halfSession: false,
-  hours: null, courtShare: 0, shuttleShare: 0, raw: 70000, amount: 70000, ...over,
+  hours: null, courtShare: 0, shuttleShare: 0, extrasTotal: 0, raw: 70000, amount: 70000, ...over,
 })
 
 const result = (players: CalcResult['players']): CalcResult => ({
