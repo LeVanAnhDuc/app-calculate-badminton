@@ -40,6 +40,10 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - Vuốt trái để xóa người chơi (mobile)
   - Responsive: mobile 1 cột, desktop 2 cột sticky với animation mượt (Motion)
 
+- **Cài như app & chạy offline**
+  - Cài lên màn hình chính, mở thẳng như ứng dụng, không cần qua trình duyệt
+  - Dùng được đầy đủ khi mất mạng — hợp với sân cầu sóng yếu
+
 - **Không cần đăng nhập hay server**
   - Tất cả dữ liệu lưu localStorage trên máy của bạn
   - Chia sẻ link ứng dụng với bạn bè, mỗi người dùng độc lập
@@ -49,7 +53,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (167 test cases)
+- **Testing**: Vitest + React Testing Library (195 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án
