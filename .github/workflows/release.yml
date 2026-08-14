@@ -24,10 +24,12 @@ jobs:
       - name: Compute next version
         id: version
         run: |
-          # markers are only honored in the commit subject line, so commit
-          # bodies that merely mention them (docs, changelogs) don't trigger
-          msg=$(git log -1 --pretty=%s)
-          if echo "$msg" | grep -qiF '[skip release]'; then
+          # manual markers are only honored in the HEAD commit subject, so
+          # commit bodies that merely mention them (docs, changelogs) don't
+          # trigger; the automatic bump is inferred from Conventional Commit
+          # prefixes across every commit since the previous release
+          subject=$(git log -1 --pretty=%s)
+          if echo "$subject" | grep -qiF '[skip release]'; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -41,13 +43,24 @@ jobs:
             next="v1.0.0"
           else
             IFS=. read -r major minor patch <<< "${latest#v}"
-            if echo "$msg" | grep -qiF '[release major]'; then
-              next="v$((major+1)).0.0"
-            elif echo "$msg" | grep -qiF '[release minor]'; then
-              next="v$major.$((minor+1)).0"
+            range="$latest..HEAD"
+            if echo "$subject" | grep -qiF '[release major]'; then
+              bump=major
+            elif echo "$subject" | grep -qiF '[release minor]'; then
+              bump=minor
+            elif git log --pretty=%s "$range" | grep -qE '^[a-z]+(\([^)]*\))?!:' \
+              || git log --pretty=%B "$range" | grep -q 'BREAKING CHANGE'; then
+              bump=major
+            elif git log --pretty=%s "$range" | grep -qE '^feat(\([^)]*\))?:'; then
+              bump=minor
             else
-              next="v$major.$minor.$((patch+1))"
+              bump=patch
             fi
+            case "$bump" in
+              major) next="v$((major+1)).0.0" ;;
+              minor) next="v$major.$((minor+1)).0" ;;
+              patch) next="v$major.$minor.$((patch+1))" ;;
+            esac
           fi
           echo "skip=false" >> "$GITHUB_OUTPUT"
           echo "next=$next" >> "$GITHUB_OUTPUT"
