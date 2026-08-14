@@ -28,7 +28,7 @@ import {
   type SavedSession,
   type Settings,
 } from './lib/storage'
-import type { Gender, Player, SessionInput } from './lib/types'
+import type { ExtraCost, Gender, Player, SessionInput } from './lib/types'
 import { uid } from './lib/uid'
 
 function defaultSession(s: Settings): SessionInput {
@@ -129,22 +129,50 @@ export default function App() {
     const index = session.players.findIndex((p) => p.id === playerId)
     if (index === -1) return
     const removed = session.players[index]
-    // an extra cost pointing at a deleted player must not be left orphaned: it
-    // would still inflate totalCost with nobody paying for it
-    const removedExtras = session.extras.filter((e) => e.playerId === playerId)
+
+    // A shared extra keeps its full amount when one of its bearers leaves — the
+    // remaining bearers cover that share, so TỔNG CHI does not move. An extra
+    // nobody is left to bear is dropped entirely: it would still inflate
+    // totalCost with nobody paying for it.
+    //
+    // Snapshot BEFORE updating: the extras dropped outright (with their old
+    // index) and the ids of the extras merely trimmed by one bearer.
+    const dropped: { index: number; item: ExtraCost }[] = []
+    const trimmedIds: string[] = []
+    session.extras.forEach((e, i) => {
+      if (!e.playerIds.includes(playerId)) return
+      if (e.playerIds.length === 1) dropped.push({ index: i, item: e })
+      else trimmedIds.push(e.id)
+    })
+
     setSession((s) => ({
       ...s,
       players: s.players.filter((p) => p.id !== playerId),
-      extras: s.extras.filter((e) => e.playerId !== playerId),
+      extras: s.extras
+        .map((e) =>
+          e.playerIds.includes(playerId)
+            ? { ...e, playerIds: e.playerIds.filter((id) => id !== playerId) }
+            : e,
+        )
+        .filter((e) => e.playerIds.length > 0),
     }))
+
     toastUndo(`Đã xóa "${removed.name}"`, () =>
-      setSession((s) => ({
-        ...s,
-        players: insertAt(s.players, index, removed),
-        // extras order is never shown to the user (the UI always groups by
-        // owner), so appending is enough
-        extras: [...s.extras, ...removedExtras],
-      })),
+      setSession((s) => {
+        // (a) put the id back into the extras that were only trimmed — an extra
+        //     the user deleted by hand meanwhile is skipped by map(), NOT revived
+        let extras = s.extras.map((e) =>
+          trimmedIds.includes(e.id) && !e.playerIds.includes(playerId)
+            ? { ...e, playerIds: [...e.playerIds, playerId] }
+            : e,
+        )
+        // (b) put the dropped extras back at their old index; ascending order
+        //     (forEach above already produced it) keeps the inserts from
+        //     shifting each other
+        for (const d of dropped) extras = insertAt(extras, d.index, d.item)
+        // (c) put the player back at their old index
+        return { ...s, players: insertAt(s.players, index, removed), extras }
+      }),
     )
   }
 

@@ -68,7 +68,7 @@ describe('chi phí phát sinh khác', () => {
     ],
   }
 
-  // 16
+  // 16 / 28
   test('adding a row, typing an amount, switching payer and deleting the row', () => {
     render(<Harness initial={withPlayers} />)
     // no summary line until there is at least one row
@@ -78,8 +78,9 @@ describe('chi phí phát sinh khác', () => {
     fireEvent.click(screen.getByRole('button', { name: '+ Thêm khoản' }))
     const label = screen.getByLabelText('Tên khoản phát sinh')
     expect(label).toBeInTheDocument()
-    // the new row defaults to the first player
-    expect(screen.getByLabelText('Người trả khoản này')).toHaveValue('p1')
+    // the new row defaults to the FIRST player only, never the whole group
+    expect(screen.getByLabelText('Người trả khoản khác')).toHaveTextContent('Hùng')
+    expect(label).toHaveFocus()
 
     fireEvent.change(screen.getByLabelText('Số tiền của khoản khác'), {
       target: { value: '20000' },
@@ -88,12 +89,17 @@ describe('chi phí phát sinh khác', () => {
     expect(screen.getByText('20.000đ')).toBeInTheDocument()
     expect(screen.getByText('320.000đ')).toBeInTheDocument() // TỔNG CHI
 
-    // naming the row re-labels its money field
+    // naming the row re-labels its money field and its payer field
     fireEvent.change(label, { target: { value: 'Nước' } })
     expect(screen.getByLabelText('Số tiền của Nước')).toBeInTheDocument()
 
-    fireEvent.change(screen.getByLabelText('Người trả khoản này'), { target: { value: 'p2' } })
-    expect(screen.getByLabelText('Người trả khoản này')).toHaveValue('p2')
+    // switch to the whole group through the bottom sheet
+    fireEvent.click(screen.getByLabelText('Người trả khoản Nước'))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('checkbox', { name: 'Cả nhóm' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Xong' }))
+    expect(screen.getByLabelText('Người trả khoản Nước')).toHaveTextContent('Cả nhóm')
+    // the whole 20.000 is still charged once — sharing does not multiply it
+    expect(screen.getByText('320.000đ')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Xóa khoản Nước' }))
     expect(screen.queryByLabelText('Tên khoản phát sinh')).not.toBeInTheDocument()
@@ -101,22 +107,41 @@ describe('chi phí phát sinh khác', () => {
     expect(screen.getByText('300.000đ')).toBeInTheDocument()
   })
 
-  test('changing the payer reports the new playerId through onPatch', () => {
+  // 28
+  test('typing 100.000 shared by everyone moves "Phát sinh" and TỔNG CHI by the whole amount', () => {
+    render(<Harness initial={withPlayers} />)
+    fireEvent.click(screen.getByRole('button', { name: '+ Thêm khoản' }))
+    fireEvent.change(screen.getByLabelText('Tên khoản phát sinh'), { target: { value: 'Nước' } })
+    fireEvent.change(screen.getByLabelText('Số tiền của Nước'), { target: { value: '100000' } })
+    fireEvent.click(screen.getByLabelText('Người trả khoản Nước'))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('checkbox', { name: 'Cả nhóm' }))
+
+    expect(screen.getByText('100.000đ')).toBeInTheDocument() // dòng "Phát sinh"
+    expect(screen.getByText('400.000đ')).toBeInTheDocument() // TỔNG CHI
+  })
+
+  test('changing the payers reports the new playerIds through onPatch', () => {
     const onPatch = vi.fn()
     render(
       <CostForm
         input={{
           ...withPlayers,
-          extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerId: 'p1' }],
+          extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerIds: ['p1'] }],
         }}
         shuttleTypes={[]}
         onPatch={onPatch}
       />,
     )
-    fireEvent.change(screen.getByLabelText('Người trả khoản này'), { target: { value: 'p2' } })
+    fireEvent.click(screen.getByLabelText('Người trả khoản Nước'))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('checkbox', { name: 'Lan · Nữ' }))
     expect(onPatch).toHaveBeenCalledWith({
-      extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerId: 'p2' }],
+      extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerIds: ['p1', 'p2'] }],
     })
+  })
+
+  test('the hint line explains that a shared cost is split per head', () => {
+    render(<Harness initial={withPlayers} />)
+    expect(screen.getByText('Chọn ai cùng chịu — chia đều theo đầu người')).toBeInTheDocument()
   })
 
   test('with nobody in the session the add button is disabled and explains why', () => {

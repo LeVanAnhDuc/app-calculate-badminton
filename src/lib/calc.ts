@@ -1,4 +1,12 @@
-import type { CalcResult, Gender, PlayerResult, Rounding, SessionInput } from './types'
+import type {
+  CalcResult,
+  ExtraCost,
+  ExtraShare,
+  Gender,
+  PlayerResult,
+  Rounding,
+  SessionInput,
+} from './types'
 import { durationHours, toMinutes } from './time'
 
 export function roundAmount(raw: number, rounding: Rounding): number {
@@ -9,17 +17,42 @@ export function shuttleTotal(input: SessionInput): number {
   return input.shuttles.reduce((s, l) => s + l.count * l.price, 0)
 }
 
-/** Tổng các khoản phát sinh của 1 người (bỏ qua khoản mồ côi vì playerId không khớp ai). */
-export function extrasOf(input: SessionInput, playerId: string): number {
-  return input.extras
-    .filter((e) => e.playerId === playerId)
-    .reduce((s, e) => s + e.amount, 0)
+/** Những id trong playerIds thật sự còn là người chơi trong buổi, đã khử trùng lặp.
+ *  Trong mọi trạng thái UI có thể tạo ra, đây chính là `item.playerIds`. Lọc thêm một
+ *  lần chỉ là lưới an toàn cho localStorage bị sửa tay — nhờ nó, tổng phần chia của mọi
+ *  người LUÔN đúng bằng `amount`, không đồng nào bốc hơi khỏi `surplus`. */
+function bearersOf(item: ExtraCost, ids: Set<string>): string[] {
+  return [...new Set(item.playerIds)].filter((id) => ids.has(id))
 }
 
-/** Tổng mọi khoản phát sinh CÓ CHỦ trong buổi. */
+/** Từng khoản của 1 người, đã chia đều theo đầu người. Bỏ qua khoản người này không chịu
+ *  và khoản không còn ai chịu. Nhãn đã chuẩn hóa sẵn để mọi nơi hiển thị khỏi tự xử lý. */
+export function extraSharesOf(input: SessionInput, playerId: string): ExtraShare[] {
+  const ids = new Set(input.players.map((p) => p.id))
+  return input.extras.flatMap((e) => {
+    const bearers = bearersOf(e, ids)
+    if (!bearers.includes(playerId)) return []
+    return [
+      {
+        label: e.label.trim() || 'Khoản khác',
+        share: e.amount / bearers.length,
+        sharedCount: bearers.length,
+      },
+    ]
+  })
+}
+
+/** Tổng các khoản phát sinh của 1 người (raw, chưa làm tròn). */
+export function extrasOf(input: SessionInput, playerId: string): number {
+  return extraSharesOf(input, playerId).reduce((s, x) => s + x.share, 0)
+}
+
+/** Tổng mọi khoản phát sinh CÒN NGƯỜI CHỊU trong buổi (tính TRỌN `amount`, không chia). */
 export function extrasTotal(input: SessionInput): number {
   const ids = new Set(input.players.map((p) => p.id))
-  return input.extras.filter((e) => ids.has(e.playerId)).reduce((s, e) => s + e.amount, 0)
+  return input.extras
+    .filter((e) => bearersOf(e, ids).length > 0)
+    .reduce((s, e) => s + e.amount, 0)
 }
 
 function ratioOf(input: SessionInput, gender: Gender): number {
@@ -35,10 +68,11 @@ interface Share {
 function buildResult(input: SessionInput, shares: Share[], emptyHours: number): CalcResult {
   const totalCost = shuttleTotal(input) + input.courtFee + extrasTotal(input)
   const players: PlayerResult[] = input.players.map((p, i) => {
-    const extras = extrasOf(input, p.id)
+    const extras = extraSharesOf(input, p.id)
+    const extrasSum = extras.reduce((s, x) => s + x.share, 0)
     // extras are added BEFORE rounding — rounding each part separately would
     // charge an extra "round up to 1.000đ" per extra cost
-    const raw = shares[i].courtShare + shares[i].shuttleShare + extras
+    const raw = shares[i].courtShare + shares[i].shuttleShare + extrasSum
     return {
       playerId: p.id,
       name: p.name,
@@ -47,7 +81,8 @@ function buildResult(input: SessionInput, shares: Share[], emptyHours: number): 
       hours: shares[i].hours,
       courtShare: shares[i].courtShare,
       shuttleShare: shares[i].shuttleShare,
-      extrasTotal: extras,
+      extras,
+      extrasTotal: extrasSum,
       raw,
       amount: roundAmount(raw, input.rounding),
     }
@@ -181,7 +216,10 @@ export function validateSession(input: SessionInput): string[] {
     if (!Number.isFinite(e.amount) || e.amount < 0) {
       errors.push(`Số tiền của "${label}" chưa hợp lệ`)
     }
-    if (!playerIds.has(e.playerId)) {
+    // playerIds rỗng (hoặc toàn id lạ) LÀ lỗi: khoản không ai trả thì không có cách nào
+    // chia. Id lạ lẫn trong danh sách hợp lệ thì bỏ qua — bearersOf() đã bảo đảm tiền
+    // vẫn chia đúng và đủ giữa những người thật.
+    if (!e.playerIds.some((id) => playerIds.has(id))) {
       errors.push(`Khoản phát sinh "${label}" chưa chọn người trả`)
     }
   }

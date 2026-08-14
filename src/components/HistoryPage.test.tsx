@@ -214,8 +214,8 @@ describe('chi phí phát sinh khác', () => {
   const inputWithExtras: SessionInput = {
     ...input,
     extras: [
-      { id: 'e1', label: 'Nước', amount: 20000, playerId: '1' },
-      { id: 'e2', label: '   ', amount: 5000, playerId: 'da-bi-xoa' },
+      { id: 'e1', label: 'Nước', amount: 20000, playerIds: ['1'] },
+      { id: 'e2', label: '   ', amount: 5000, playerIds: ['da-bi-xoa'] },
     ],
   }
   const savedWithExtras: SavedSession = {
@@ -226,19 +226,60 @@ describe('chi phí phát sinh khác', () => {
   }
 
   // 19
-  test('the cost block lists every extra with its label and the person charged', () => {
+  test('the cost block lists every extra with its label and the people charged', () => {
     render(<HistoryPage history={[savedWithExtras]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
     fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
     expect(screen.getByText('Nước · Tuấn')).toBeInTheDocument()
-    // blank label falls back to "Khoản khác"; an owner missing from the saved
+    // blank label falls back to "Khoản khác"; a bearer missing from the saved
     // player list (hand-edited data) falls back to "?"
     expect(screen.getByText('Khoản khác · ?')).toBeInTheDocument()
   })
 
-  test('a player carrying an extra gets the "+… phát sinh" note next to their gender', () => {
+  test('a player carrying an extra gets one itemised line under their name', () => {
     render(<HistoryPage history={[savedWithExtras]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
     fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+    expect(screen.getByText(/· Nước 20\.000đ/)).toBeInTheDocument()
+    // the grey "(Nam · +… phát sinh)" suffix is gone once the line exists
+    expect(screen.queryByText(/\+20\.000đ phát sinh/)).not.toBeInTheDocument()
+  })
+
+  // 34
+  test('a shared extra shows "Cả nhóm" in the cost block and "(chung, N người)" per bearer', () => {
+    const sharedInput: SessionInput = {
+      ...input,
+      extras: [{ id: 'e1', label: 'Nước', amount: 100000, playerIds: ['1', '2'] }],
+    }
+    const sharedSaved: SavedSession = {
+      id: 'ss',
+      savedAt: '2026-08-13T20:15:00.000Z',
+      input: sharedInput,
+      result: calcRatioMode(sharedInput),
+    }
+    render(<HistoryPage history={[sharedSaved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+    fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+    expect(screen.getByText('Nước · Cả nhóm')).toBeInTheDocument()
+    // the cost block prints the WHOLE amount, not one share
+    expect(screen.getByText('100.000đ')).toBeInTheDocument()
+    expect(screen.getAllByText(/· Nước \(chung, 2 người\) 50\.000đ/)).toHaveLength(2)
+  })
+
+  // 34
+  test('a session saved by v1.4.0 renders exactly as it did before — the suffix, no "·" lines', () => {
+    const base = calcRatioMode(input)
+    const legacySaved: SavedSession = {
+      ...saved,
+      id: 'legacy',
+      result: {
+        ...base,
+        players: base.players.map((p, i) =>
+          i === 0 ? { ...p, extras: [], extrasTotal: 20000 } : p,
+        ),
+      },
+    }
+    render(<HistoryPage history={[legacySaved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+    fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
     expect(screen.getByText(/\+20\.000đ phát sinh/)).toBeInTheDocument()
+    expect(screen.queryByText(/^· /)).not.toBeInTheDocument()
   })
 
   test('a session saved before the feature renders exactly as it did before — no extra rows', () => {

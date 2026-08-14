@@ -228,6 +228,118 @@ test('deleting a player also removes their extra costs, and "Hoàn tác" brings 
   expect(totalCost()).toBe('135.000đ')
 })
 
+/** Adds one extra row, names it, prices it and returns nothing. */
+function addExtra(label: string, amount: string) {
+  fireEvent.click(screen.getByRole('button', { name: '+ Thêm khoản' }))
+  const labels = screen.getAllByLabelText('Tên khoản phát sinh')
+  fireEvent.change(labels[labels.length - 1], { target: { value: label } })
+  fireEvent.change(screen.getByLabelText(`Số tiền của ${label}`), { target: { value: amount } })
+}
+
+function openPayers(label: string) {
+  fireEvent.click(screen.getByLabelText(`Người trả khoản ${label}`))
+  return screen.getByRole('dialog')
+}
+
+const storedSession = () => JSON.parse(localStorage.getItem('currentSession')!)
+const totalCostText = () =>
+  within(screen.getByRole('heading', { name: 'Chi phí' }).closest('section')!)
+    .getByText('TỔNG CHI').nextElementSibling!.textContent
+
+// 31
+// re-renders the whole App on every keystroke; needs headroom beyond the 5s
+// default under parallel load, like the other full-App tests in this file
+test('deleting a bearer of a shared extra keeps TỔNG CHI and re-splits it; undo puts the share back', { timeout: 15000 }, async () => {
+  render(<App />)
+  fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
+  addPlayer('An')
+  addPlayer('Bình')
+  addPlayer('Cường')
+
+  addExtra('Nước', '100000')
+  fireEvent.click(within(openPayers('Nước')).getByRole('checkbox', { name: 'Cả nhóm' }))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Xong' }))
+
+  expect(storedSession().extras[0].playerIds).toHaveLength(3)
+  expect(totalCostText()).toBe('250.000đ')
+  expect(screen.getAllByText(/· Nước \(chung, 3 người\) 33\.333/)).toHaveLength(3)
+
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa Cường' }))
+  // the water crate still costs 100.000 — the two who are left cover it
+  expect(storedSession().players.map((p: { name: string }) => p.name)).toEqual(['An', 'Bình'])
+  expect(storedSession().extras[0].playerIds).toHaveLength(2)
+  expect(totalCostText()).toBe('250.000đ')
+  expect(screen.getAllByText(/· Nước \(chung, 2 người\) 50\.000/)).toHaveLength(2)
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tác' }))
+  expect(storedSession().players.map((p: { name: string }) => p.name)).toEqual([
+    'An',
+    'Bình',
+    'Cường',
+  ])
+  expect(storedSession().extras[0].playerIds).toHaveLength(3)
+  expect(totalCostText()).toBe('250.000đ')
+  expect(screen.getAllByText(/· Nước \(chung, 3 người\) 33\.333/)).toHaveLength(3)
+})
+
+// 32
+test('an extra left with nobody is dropped outright and comes back at its old index on undo', { timeout: 15000 }, async () => {
+  render(<App />)
+  fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '100000' } })
+  addPlayer('An')
+  addPlayer('Bình')
+
+  // extras[0] is An's alone; extras[1] sits after it and belongs to Bình
+  addExtra('Thuê vợt', '20000')
+  addExtra('Nước', '30000')
+  const sheet = openPayers('Nước')
+  fireEvent.click(within(sheet).getByRole('checkbox', { name: 'Bình · Nam' }))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('checkbox', { name: 'An · Nam' }))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Xong' }))
+  expect(totalCostText()).toBe('150.000đ')
+
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa An' }))
+  expect(storedSession().extras.map((e: { label: string }) => e.label)).toEqual(['Nước'])
+  expect(totalCostText()).toBe('130.000đ')
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tác' }))
+  // back at index 0, not appended to the end — CostForm renders array order
+  expect(storedSession().extras.map((e: { label: string }) => e.label)).toEqual([
+    'Thuê vợt',
+    'Nước',
+  ])
+  expect(
+    screen.getAllByLabelText('Tên khoản phát sinh').map((el) => (el as HTMLInputElement).value),
+  ).toEqual(['Thuê vợt', 'Nước'])
+  expect(totalCostText()).toBe('150.000đ')
+})
+
+// 33
+test('undo does not resurrect a trimmed extra the user deleted by hand while the toast was up', { timeout: 15000 }, async () => {
+  render(<App />)
+  fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '100000' } })
+  addPlayer('An')
+  addPlayer('Bình')
+
+  addExtra('Nước', '60000')
+  fireEvent.click(within(openPayers('Nước')).getByRole('checkbox', { name: 'Cả nhóm' }))
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Xong' }))
+
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa An' }))
+  expect(storedSession().extras[0].playerIds).toHaveLength(1)
+
+  // the toast is still on screen — delete the (now Bình-only) extra by hand
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa khoản Nước' }))
+  expect(storedSession().extras).toEqual([])
+
+  const undo = await screen.findByRole('button', { name: 'Hoàn tác' })
+  expect(() => fireEvent.click(undo)).not.toThrow()
+  expect(storedSession().players.map((p: { name: string }) => p.name)).toEqual(['An', 'Bình'])
+  // the extra stays deleted; nothing is revived and no id is duplicated
+  expect(storedSession().extras).toEqual([])
+  expect(totalCostText()).toBe('100.000đ')
+})
+
 test('deleting a saved session in history toasts an undo that restores it at its old spot', async () => {
   render(<App />)
   fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })

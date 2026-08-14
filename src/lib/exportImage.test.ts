@@ -1,4 +1,10 @@
-import { formatDateLabel, formatFilenameDate, renderResultImage } from './exportImage'
+import {
+  extraShareLine,
+  formatDateLabel,
+  formatFilenameDate,
+  playerNote,
+  renderResultImage,
+} from './exportImage'
 import type { CalcResult, Player, PlayerResult } from './types'
 
 test('formatDateLabel renders DD/MM/YYYY with zero-padding', () => {
@@ -40,12 +46,19 @@ describe('chi phí phát sinh khác', () => {
       hours: null,
       courtShare: 100000,
       shuttleShare: 50000,
+      extras: [],
       extrasTotal: 0,
       raw: 150000,
       amount: 150000,
       ...over,
     }
   }
+
+  const share = (label: string, amount: number, sharedCount = 1) => ({
+    label,
+    share: amount,
+    sharedCount,
+  })
 
   function result(players: PlayerResult[]): CalcResult {
     return {
@@ -62,25 +75,66 @@ describe('chi phí phát sinh khác', () => {
     { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null, paid: false },
   ]
 
-  // 20
-  test('extras do not change the canvas height — the note is appended to the existing line', () => {
+  // 22 (replaces the old assertion that extras never changed the height — since
+  // every extra is now printed on its own line, rows grow instead)
+  test('rows grow by one line per extra, so the canvas is exactly as tall as it needs to be', () => {
     stubCanvas()
     const plain = result([playerResult(), playerResult({ playerId: '2', name: 'Lan', gender: 'female' })])
     const withExtras = result([
-      playerResult({ extrasTotal: 20000, raw: 170000, amount: 170000 }),
-      playerResult({ playerId: '2', name: 'Lan', gender: 'female', extrasTotal: 5000 }),
+      playerResult({
+        extras: [share('Nước', 15000), share('Thuê vợt', 20000)],
+        extrasTotal: 35000,
+        raw: 185000,
+        amount: 185000,
+      }),
+      playerResult({
+        playerId: '2',
+        name: 'Lan',
+        gender: 'female',
+        extras: [share('Nước', 15000)],
+        extrasTotal: 15000,
+      }),
     ])
 
     const a = renderResultImage(plain, 'ratio', '13/08/2026', players)
     const b = renderResultImage(withExtras, 'ratio', '13/08/2026', players)
 
-    expect(b.height).toBe(a.height)
+    // header 90 + two plain 64px rows + footer 44 = 262 CSS px, ×2 for SCALE
+    expect(a.height).toBe(262 * 2)
+    // 90 + (64 + 2×20) + (64 + 1×20) + 44 = 322 CSS px
+    expect(b.height).toBe(322 * 2)
     expect(b.width).toBe(a.width)
   })
 
   test('rendering a result that carries extras does not crash', () => {
     stubCanvas()
-    const withExtras = result([playerResult({ extrasTotal: 20000, raw: 170000, amount: 170000 })])
+    const withExtras = result([
+      playerResult({
+        extras: [share('Nước', 20000)],
+        extrasTotal: 20000,
+        raw: 170000,
+        amount: 170000,
+      }),
+    ])
     expect(() => renderResultImage(withExtras, 'hourly', '13/08/2026', players)).not.toThrow()
+  })
+
+  // 23
+  test('extraShareLine marks a shared extra with its head count and leaves a solo one alone', () => {
+    expect(extraShareLine(share('Nước', 15000))).toBe('· Nước 15.000đ')
+    expect(extraShareLine(share('Nước', 33333.333, 3))).toBe('· Nước (chung, 3 người) 33.333đ')
+  })
+
+  // 24
+  test('playerNote never repeats a total that is already itemised, but keeps it for v1.4.0 data', () => {
+    const itemised = playerResult({
+      extras: [share('Nước', 20000)],
+      extrasTotal: 20000,
+    })
+    expect(playerNote('ratio', itemised)).not.toMatch(/phát sinh/)
+    expect(playerNote('ratio', itemised)).toBe('Nam')
+
+    const legacy = playerResult({ extras: [], extrasTotal: 20000 })
+    expect(playerNote('ratio', legacy)).toBe('Nam · + 20.000đ phát sinh')
   })
 })

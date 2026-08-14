@@ -19,7 +19,9 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 
 - **Chi phí phát sinh khác**
   - Nhập các khoản lặt vặt (nước, thuê vợt, quấn cán…) ngay trong mục Chi phí
-  - Mỗi khoản gán cho đúng một người, người đó chịu toàn bộ — cộng thẳng vào phần của họ trước khi làm tròn
+  - Chọn một người, một nhóm nhỏ hay cả nhóm cùng chịu — số tiền chia đều theo đầu người
+  - Kết quả liệt kê từng khoản dưới tên mỗi người, có cả trong ảnh PNG và bản copy text
+  - Xóa người chơi thì khoản chung vẫn giữ nguyên tổng, những người còn lại gánh phần đó
 
 - **Danh bạ & danh sách tự động nhớ**
   - Gợi ý tên từ danh bạ khi gõ (không phân biệt hoa/thường)
@@ -58,7 +60,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (235 test cases)
+- **Testing**: Vitest + React Testing Library (274 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

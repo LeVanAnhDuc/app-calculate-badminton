@@ -116,11 +116,20 @@ function PlayerRow({
             sân {formatNumber(p.courtShare)} + cầu {formatNumber(p.shuttleShare)}
           </span>
         )}
-        {p.extrasTotal > 0 && (
+        {/* extras listed one line each; a session saved by v1.4.0 has only the
+            total, so it falls back to the single "+ phát sinh N" line */}
+        {p.extras.length > 0 ? (
+          p.extras.map((x, i) => (
+            <span key={i} className="text-xs text-amber-600 block pl-3">
+              · {x.label}
+              {x.sharedCount > 1 ? ` (chung, ${x.sharedCount} người)` : ''} {formatNumber(x.share)}
+            </span>
+          ))
+        ) : p.extrasTotal > 0 ? (
           <span className="text-xs text-amber-600 block">
             + phát sinh {formatNumber(p.extrasTotal)}
           </span>
-        )}
+        ) : null}
       </div>
       <div className="flex items-center gap-2">
         <PaidToggle paid={paid} name={p.name} onToggle={onTogglePaid} />

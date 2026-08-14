@@ -5,6 +5,7 @@ import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
 import { durationHours } from '../lib/time'
 import { PaidToggle } from './PaidToggle'
+import { payerSummary } from './PayerSelect'
 import { PaidSummaryLine, SurplusRow, TotalCollectedRow } from './ResultPanel'
 import { CopyTextButton, ShareImageButton } from './ShareButtons'
 
@@ -151,9 +152,11 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                           </div>
                           {s.input.extras.map((e) => (
                             <div key={e.id} className="flex justify-between text-sm">
+                              {/* the amount on the right is the WHOLE `amount`,
+                                  not one share — this is the "Chi phí" block */}
                               <span className="text-gray-500">
                                 {e.label.trim() || 'Khoản khác'} ·{' '}
-                                {s.input.players.find((p) => p.id === e.playerId)?.name ?? '?'}
+                                {payerSummary(s.input.players, e.playerIds, '?')}
                               </span>
                               <span className="font-semibold text-gray-900">
                                 {formatVND(e.amount)}
@@ -218,11 +221,20 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                                       ({p.gender === 'male' ? 'Nam' : 'Nữ'}
                                       {s.input.mode === 'ratio' && p.halfSession ? ' · ½ buổi' : ''}
                                       {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''}
-                                      {p.extrasTotal > 0
+                                      {/* itemised extras get their own lines below, so
+                                          the suffix is kept only for v1.4.0 sessions */}
+                                      {p.extras.length === 0 && p.extrasTotal > 0
                                         ? ` · +${formatVND(p.extrasTotal)} phát sinh`
                                         : ''}
                                       )
                                     </span>
+                                    {p.extras.map((x, k) => (
+                                      <span key={k} className="text-xs text-gray-400 block pl-3">
+                                        · {x.label}
+                                        {x.sharedCount > 1 ? ` (chung, ${x.sharedCount} người)` : ''}{' '}
+                                        {formatVND(x.share)}
+                                      </span>
+                                    ))}
                                   </span>
                                 </span>
                                 <span className="font-bold">{formatVND(p.amount)}</span>

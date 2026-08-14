@@ -188,6 +188,7 @@ test('history valid roundtrip', () => {
             hours: null,
             courtShare: 250000,
             shuttleShare: 250000,
+            extras: [],
             extrasTotal: 0,
             raw: 500000,
             amount: 500000,
@@ -281,6 +282,7 @@ function makeSession(id: string, savedAt: string): SavedSession {
           hours: null,
           courtShare: 250000,
           shuttleShare: 250000,
+          extras: [],
           extrasTotal: 0,
           raw: 500000,
           amount: 500000,
@@ -340,6 +342,7 @@ test('history salvages valid entries instead of wiping everything when one entry
           hours: null,
           courtShare: 250000,
           shuttleShare: 250000,
+          extras: [],
           extrasTotal: 0,
           raw: 500000,
           amount: 500000,
@@ -433,8 +436,8 @@ describe('chi phí phát sinh khác', () => {
   // 14
   test('round-trip: a session with two extras comes back with every field intact', () => {
     const extras = [
-      { id: 'e1', label: 'Nước', amount: 15000, playerId: '1' },
-      { id: 'e2', label: 'Thuê vợt', amount: 20000, playerId: '2' },
+      { id: 'e1', label: 'Nước', amount: 15000, playerIds: ['1'] },
+      { id: 'e2', label: 'Thuê vợt', amount: 20000, playerIds: ['2'] },
     ]
     saveCurrentSession({ ...legacyInput, extras })
     expect(loadCurrentSession()!.extras).toEqual(extras)
@@ -448,6 +451,118 @@ describe('chi phí phát sinh khác', () => {
     )
     expect(() => loadCurrentSession()).not.toThrow()
     expect(loadCurrentSession()).toBeNull()
+  })
+
+  describe('di trú v1.4.0 → khoản dùng chung', () => {
+    // 17
+    test('an extra saved as {playerId} loads as {playerIds}, with the old key gone for good', () => {
+      localStorage.setItem(
+        'currentSession',
+        JSON.stringify({
+          ...legacyInput,
+          extras: [{ id: 'e1', label: 'Nước', amount: 15000, playerId: 'p1' }],
+        }),
+      )
+      const loaded = loadCurrentSession()
+      expect(loaded).not.toBeNull()
+      expect(loaded!.extras).toEqual([
+        { id: 'e1', label: 'Nước', amount: 15000, playerIds: ['p1'] },
+      ])
+      // the orphaned key must not be written back on the next save
+      expect(loaded!.extras[0]).not.toHaveProperty('playerId')
+    })
+
+    // 18
+    test('history migrates too: playerIds filled in, extras defaulted to [], saved money untouched', () => {
+      localStorage.setItem(
+        'history',
+        JSON.stringify([
+          {
+            id: 'session1',
+            savedAt: '2024-01-01T10:00:00Z',
+            input: {
+              ...legacyInput,
+              extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerId: '1' }],
+            },
+            result: {
+              totalCost: 770000,
+              totalCollected: 770000,
+              surplus: 0,
+              emptyHours: 0,
+              players: [
+                {
+                  playerId: '1',
+                  name: 'Tuấn',
+                  gender: 'male',
+                  halfSession: false,
+                  hours: null,
+                  courtShare: 300000,
+                  shuttleShare: 150000,
+                  extrasTotal: 20000,
+                  raw: 470000,
+                  amount: 470000,
+                },
+              ],
+            },
+          },
+        ]),
+      )
+      const loaded = loadHistory()
+      expect(loaded).toHaveLength(1)
+      expect(loaded[0].input.extras[0].playerIds).toEqual(['1'])
+      expect(loaded[0].result.players[0].extras).toEqual([])
+      // saved money is NEVER recomputed
+      expect(loaded[0].result.players[0].extrasTotal).toBe(20000)
+      expect(loaded[0].result.players[0].amount).toBe(470000)
+    })
+
+    // 19
+    test('the guard accepts both shapes side by side — neither session is filtered out', () => {
+      const entry = (id: string, extras: unknown) => ({
+        id,
+        savedAt: '2024-01-01T10:00:00Z',
+        input: { ...legacyInput, extras },
+        result: {
+          totalCost: 1,
+          totalCollected: 1,
+          surplus: 0,
+          emptyHours: 0,
+          players: [],
+        },
+      })
+      localStorage.setItem(
+        'history',
+        JSON.stringify([
+          entry('old', [{ id: 'e1', label: 'Nước', amount: 1000, playerId: '1' }]),
+          entry('new', [{ id: 'e2', label: 'Nước', amount: 1000, playerIds: ['1', '2'] }]),
+        ]),
+      )
+      const loaded = loadHistory()
+      expect(loaded.map((s) => s.id)).toEqual(['old', 'new'])
+      expect(loaded[0].input.extras[0].playerIds).toEqual(['1'])
+      expect(loaded[1].input.extras[0].playerIds).toEqual(['1', '2'])
+    })
+
+    // 20
+    test('the guard still rejects a playerIds array that is not made of strings', () => {
+      localStorage.setItem(
+        'currentSession',
+        JSON.stringify({
+          ...legacyInput,
+          extras: [{ id: 'e1', label: 'Nước', amount: 1000, playerIds: [1, 2] }],
+        }),
+      )
+      expect(() => loadCurrentSession()).not.toThrow()
+      expect(loadCurrentSession()).toBeNull()
+    })
+
+    // 21
+    test('round-trip: a shared extra keeps all three ids, in order', () => {
+      const extras = [{ id: 'e1', label: 'Nước', amount: 90000, playerIds: ['a', 'b', 'c'] }]
+      saveCurrentSession({ ...legacyInput, extras })
+      expect(loadCurrentSession()!.extras).toEqual(extras)
+      expect(loadCurrentSession()!.extras[0].playerIds).toEqual(['a', 'b', 'c'])
+    })
   })
 })
 
