@@ -226,6 +226,23 @@ test('swipe-left on a row reveals the red Xóa button; tapping it removes the pl
   expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
 })
 
+test('swipe gesture does not trigger a setState-in-render React error', () => {
+  const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  try {
+    render(<Harness initial={base} />)
+    const row = screen.getByTestId('swipe-row-1')
+    fireEvent.touchStart(row, { touches: [{ clientX: 200 }] })
+    fireEvent.touchMove(row, { touches: [{ clientX: 100 }] })
+    fireEvent.touchEnd(row)
+    const renderPhaseErrors = errorSpy.mock.calls.filter((args) =>
+      args.some((a) => typeof a === 'string' && a.includes('while rendering a different component')),
+    )
+    expect(renderPhaseErrors).toEqual([])
+  } finally {
+    errorSpy.mockRestore()
+  }
+})
+
 test('rename via edit drawer commits on blur; duplicate name is blocked', () => {
   const initial: SessionInput = {
     ...base,
@@ -338,4 +355,38 @@ test('cả buổi button resets time labels', () => {
 
   // Assert label is back to "cả buổi"
   expect(screen.getByText(/19:00–21:00 · cả buổi/)).toBeInTheDocument()
+})
+
+test('each row has a drag handle labeled "Sắp xếp {tên}" with touch-action none', () => {
+  const initial: SessionInput = {
+    ...base,
+    players: [
+      ...base.players,
+      { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null },
+    ],
+  }
+  render(<Harness initial={initial} />)
+  const handle = screen.getByRole('button', { name: 'Sắp xếp Tuấn' })
+  expect(handle).toBeInTheDocument()
+  expect(handle).toHaveClass('touch-none')
+  expect(screen.getByRole('button', { name: 'Sắp xếp Lan' })).toBeInTheDocument()
+})
+
+test('hint banner mentions drag-to-reorder', () => {
+  render(<Harness initial={base} />)
+  expect(screen.getByText('💡 Kéo ⠿ để sắp xếp thứ tự')).toBeInTheDocument()
+})
+
+test('players render as list items inside a list, in players-array order', () => {
+  const initial: SessionInput = {
+    ...base,
+    players: [
+      ...base.players,
+      { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null },
+    ],
+  }
+  render(<Harness initial={initial} />)
+  const items = screen.getAllByRole('listitem')
+  expect(items[0]).toHaveTextContent('Tuấn')
+  expect(items[1]).toHaveTextContent('Lan')
 })
