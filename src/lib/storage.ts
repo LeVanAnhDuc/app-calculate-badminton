@@ -1,4 +1,12 @@
-import type { CalcResult, Gender, Mode, Player, Rounding, SessionInput } from './types'
+import type {
+  CalcResult,
+  ExtraCost,
+  Gender,
+  Mode,
+  Player,
+  Rounding,
+  SessionInput,
+} from './types'
 
 export interface RosterEntry {
   name: string
@@ -84,14 +92,35 @@ function normalizePlayer(p: Player): Player {
   return { ...p, paid: p.paid ?? false }
 }
 
-/** Di trú mềm: buổi cũ không có `extras` → mảng rỗng. Không làm mất trường khác. */
-function normalizeSession(s: SessionInput): SessionInput {
-  return { ...s, players: s.players.map(normalizePlayer), extras: s.extras ?? [] }
+/** Hình dạng đọc từ localStorage: v1.4.0 có `playerId`, từ v1.5.0 có `playerIds`. */
+type StoredExtraCost = Omit<ExtraCost, 'playerIds'> & {
+  playerId?: string
+  playerIds?: string[]
 }
 
-/** Di trú mềm: kết quả cũ không có `extrasTotal` → 0. Số tiền đã lưu giữ nguyên. */
+/** Di trú mềm: {playerId: 'x'} → {playerIds: ['x']}. Destructure bỏ hẳn khóa cũ để
+ *  lần save kế tiếp không ghi lại `playerId` mồ côi vào localStorage. */
+function normalizeExtra(e: StoredExtraCost): ExtraCost {
+  const { playerId, playerIds, ...rest } = e
+  return { ...rest, playerIds: playerIds ?? (playerId ? [playerId] : []) }
+}
+
+/** Di trú mềm: buổi cũ không có `extras` → mảng rỗng. Không làm mất trường khác. */
+function normalizeSession(s: SessionInput): SessionInput {
+  return {
+    ...s,
+    players: s.players.map(normalizePlayer),
+    extras: (s.extras ?? []).map((e) => normalizeExtra(e as StoredExtraCost)),
+  }
+}
+
+/** Di trú mềm: kết quả cũ không có `extrasTotal`/`extras` → 0 và []. Số tiền đã lưu
+ *  giữ nguyên tuyệt đối — không tính lại bao giờ. */
 function normalizeResult(r: CalcResult): CalcResult {
-  return { ...r, players: r.players.map((p) => ({ ...p, extrasTotal: p.extrasTotal ?? 0 })) }
+  return {
+    ...r,
+    players: r.players.map((p) => ({ ...p, extrasTotal: p.extrasTotal ?? 0, extras: p.extras ?? [] })),
+  }
 }
 
 const isExtraCost = (v: unknown): boolean =>
@@ -99,7 +128,17 @@ const isExtraCost = (v: unknown): boolean =>
   typeof v.id === 'string' &&
   typeof v.label === 'string' &&
   typeof v.amount === 'number' &&
-  typeof v.playerId === 'string'
+  // migration v1.4.0 → v1.5.0: dữ liệu cũ có `playerId: string`, dữ liệu mới có
+  // `playerIds: string[]`. Chấp nhận CẢ HAI; normalizeExtra() gộp về playerIds khi load.
+  // Không được để guard này bác dữ liệu cũ.
+  ((Array.isArray(v.playerIds) && v.playerIds.every((id) => typeof id === 'string')) ||
+    typeof v.playerId === 'string')
+
+const isExtraShare = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.label === 'string' &&
+  typeof v.share === 'number' &&
+  typeof v.sharedCount === 'number'
 
 const isSession = (v: unknown): boolean =>
   isObject(v) &&
@@ -131,7 +170,10 @@ const isPlayerResult = (v: unknown): boolean =>
   typeof v.amount === 'number' &&
   // migration: kết quả đã lưu trước tính năng này không có `extrasTotal` — chấp nhận
   // number hoặc undefined, normalizeResult() điền 0 khi load.
-  (typeof v.extrasTotal === 'number' || v.extrasTotal === undefined)
+  (typeof v.extrasTotal === 'number' || v.extrasTotal === undefined) &&
+  // migration: kết quả lưu bởi v1.4.0 không có `extras` — chấp nhận mảng hợp lệ hoặc
+  // undefined, normalizeResult() điền [] khi load.
+  (v.extras === undefined || (Array.isArray(v.extras) && v.extras.every((e) => isExtraShare(e))))
 
 const isCalcResult = (v: unknown): boolean =>
   isObject(v) &&

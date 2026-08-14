@@ -5,6 +5,7 @@ import { durationHours, formatHours } from '../lib/time'
 import type { ExtraCost, SessionInput } from '../lib/types'
 import { uid } from '../lib/uid'
 import { MoneyInput } from './MoneyInput'
+import { PayerSelect } from './PayerSelect'
 import { TimeSelect } from './TimeSelect'
 
 interface Props {
@@ -31,7 +32,11 @@ export function CostForm({ input, onPatch }: Props) {
 
   const addExtra = () => {
     if (noPlayers) return
-    const extra: ExtraCost = { id: uid(), label: '', amount: 0, playerId: input.players[0].id }
+    // deliberately only the FIRST player, not the whole group: defaulting to
+    // "Cả nhóm" would silently spread a hastily typed racket rental across
+    // everyone with no signal. Mis-assigning to An is visible at a glance in
+    // the result panel.
+    const extra: ExtraCost = { id: uid(), label: '', amount: 0, playerIds: [input.players[0].id] }
     onPatch({ extras: [...extras, extra] })
     setFocusId(extra.id)
   }
@@ -108,11 +113,13 @@ export function CostForm({ input, onPatch }: Props) {
       )}
       <div className="mt-4">
         <h3 className="text-xs text-gray-500">Chi phí phát sinh khác</h3>
-        <p className="text-xs text-gray-400">Chỉ người được chọn trả khoản này</p>
+        <p className="text-xs text-gray-400">Chọn ai cùng chịu — chia đều theo đầu người</p>
         {extras.length > 0 && (
           <ul className="mt-2 space-y-2">
+            {/* two lines per row: on a 390px viewport a single line left the
+                label field under 100px wide, so "Quấn cán" already overflowed */}
             {extras.map((e) => (
-              <li key={e.id} className="flex gap-2 h-11">
+              <li key={e.id} className="rounded-xl bg-gray-50 p-2 space-y-2">
                 <input
                   ref={(el) => {
                     labelRefs.current[e.id] = el
@@ -121,34 +128,31 @@ export function CostForm({ input, onPatch }: Props) {
                   placeholder="Tên khoản (nước, thuê vợt…)"
                   value={e.label}
                   onChange={(ev) => patchExtra(e.id, { label: ev.target.value })}
-                  className="flex-1 min-w-0 h-11 rounded-xl border border-gray-300 px-3 text-sm text-gray-900"
+                  className="w-full h-11 rounded-xl border border-gray-300 px-3 text-sm text-gray-900"
                 />
-                <MoneyInput
-                  aria-label={`Số tiền của ${e.label || 'khoản khác'}`}
-                  value={e.amount}
-                  onChange={(v) => patchExtra(e.id, { amount: v })}
-                  className="w-28 h-11! text-base!"
-                />
-                <select
-                  aria-label="Người trả khoản này"
-                  value={e.playerId}
-                  onChange={(ev) => patchExtra(e.id, { playerId: ev.target.value })}
-                  className="w-28 h-11 rounded-xl border border-gray-300 px-2 text-sm text-gray-900"
-                >
-                  {input.players.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  aria-label={`Xóa khoản ${e.label || 'khác'}`}
-                  onClick={() => removeExtra(e.id)}
-                  className="w-9 h-9 shrink-0 self-center text-gray-400 text-xl leading-none"
-                >
-                  ×
-                </button>
+                <div className="flex gap-2 h-11">
+                  <MoneyInput
+                    aria-label={`Số tiền của ${e.label || 'khoản khác'}`}
+                    value={e.amount}
+                    onChange={(v) => patchExtra(e.id, { amount: v })}
+                    className="w-32 h-11! text-base!"
+                  />
+                  <PayerSelect
+                    players={input.players}
+                    value={e.playerIds}
+                    onChange={(playerIds) => patchExtra(e.id, { playerIds })}
+                    aria-label={`Người trả khoản ${e.label || 'khác'}`}
+                    className="flex-1 min-w-0"
+                  />
+                  <button
+                    type="button"
+                    aria-label={`Xóa khoản ${e.label || 'khác'}`}
+                    onClick={() => removeExtra(e.id)}
+                    className="w-9 h-9 shrink-0 self-center text-gray-400 text-xl leading-none"
+                  >
+                    ×
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

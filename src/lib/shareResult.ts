@@ -1,5 +1,6 @@
 import {
   downloadResultImage,
+  extraShareLine,
   formatDateLabel,
   formatFilenameDate,
   playerNote,
@@ -19,9 +20,14 @@ export function formatResultText(
   players: Player[],
 ): string {
   const paidById = new Map(players.map((p) => [p.id, p.paid]))
-  const lines = result.players.map((p) => {
+  const lines = result.players.flatMap((p) => {
     const mark = paidById.get(p.playerId) ? '✓' : '○'
-    return `${mark} ${p.name} (${playerNote(mode, p)}): ${formatVND(p.amount)}`
+    return [
+      `${mark} ${p.name} (${playerNote(mode, p)}): ${formatVND(p.amount)}`,
+      // v1.4.0 sessions have no extras → no child lines, and playerNote still
+      // carries the "· + N phát sinh" suffix, so the text is byte-identical
+      ...p.extras.map((x) => `   ${extraShareLine(x)}`),
+    ]
   })
   return [`🏸 Tính tiền cầu lông ${dateLabel}`, ...lines].join('\n')
 }

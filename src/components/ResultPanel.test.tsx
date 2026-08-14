@@ -237,25 +237,62 @@ describe('paid tracking', () => {
 describe('chi phí phát sinh khác', () => {
   const withExtras: SessionInput = {
     ...input,
-    extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerId: '1' }],
+    extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerIds: ['1'] }],
   }
 
-  // 17
-  test('only the player who owns an extra gets the amber "+ phát sinh" line', () => {
+  // 17 / 29
+  test('only the player charged for an extra gets the amber detail line', () => {
     const result = calcRatioMode(withExtras)
     render(
       <ResultPanel result={result} mode="ratio" errors={[]} players={withExtras.players} onSave={() => {}}
         onNewSession={() => {}} onPatch={() => {}} />,
     )
-    const note = screen.getByText('+ phát sinh 20.000')
+    const note = screen.getByText(/· Nước 20\.000/)
     expect(note).toHaveClass('text-amber-600')
+    // a solo extra is not labelled "(chung, …)"
+    expect(note).not.toHaveTextContent('chung')
     // the big number already includes the extra: 180.000 + 20.000
     expect(screen.getByText('200.000đ')).toBeInTheDocument()
     // Lan has no extras, so exactly one note exists on screen
-    expect(screen.getAllByText(/\+ phát sinh/)).toHaveLength(1)
+    expect(screen.getAllByText(/· Nước/)).toHaveLength(1)
   })
 
-  test('the fullscreen overlay shows the same "+ phát sinh" line', () => {
+  // 29
+  test('a player carrying two extras gets one line each, itemised by label', () => {
+    const twoExtras: SessionInput = {
+      ...input,
+      extras: [
+        { id: 'e1', label: 'Nước', amount: 15000, playerIds: ['1'] },
+        { id: 'e2', label: 'Thuê vợt', amount: 20000, playerIds: ['1'] },
+      ],
+    }
+    const result = calcRatioMode(twoExtras)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={twoExtras.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    expect(screen.getByText(/· Nước 15\.000/)).toBeInTheDocument()
+    expect(screen.getByText(/· Thuê vợt 20\.000/)).toBeInTheDocument()
+    // no lump-sum line survives next to the itemised ones
+    expect(screen.queryByText(/\+ phát sinh/)).not.toBeInTheDocument()
+  })
+
+  // 29
+  test('a shared extra says how many heads it was split between, on every bearer', () => {
+    const shared: SessionInput = {
+      ...input,
+      extras: [{ id: 'e1', label: 'Nước', amount: 100000, playerIds: ['1', '2'] }],
+    }
+    const result = calcRatioMode(shared)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={shared.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    expect(screen.getAllByText(/· Nước \(chung, 2 người\) 50\.000/)).toHaveLength(2)
+  })
+
+  // 29
+  test('the fullscreen overlay itemises exactly the same lines', () => {
     const result = calcRatioMode(withExtras)
     render(
       <ResultPanel result={result} mode="ratio" errors={[]} players={withExtras.players} onSave={() => {}}
@@ -263,16 +300,34 @@ describe('chi phí phát sinh khác', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
     // main panel + overlay each render one
-    expect(screen.getAllByText('+ phát sinh 20.000')).toHaveLength(2)
+    expect(screen.getAllByText(/· Nước 20\.000/)).toHaveLength(2)
   })
 
-  test('no "+ phát sinh" line at all when the session has no extras', () => {
+  // 30
+  test('fallback: a v1.4.0 result (a total but no itemisation) still shows one "+ phát sinh" line', () => {
+    const base = calcRatioMode(input)
+    const legacy = {
+      ...base,
+      players: base.players.map((p, i) =>
+        i === 0 ? { ...p, extras: [], extrasTotal: 35000 } : p,
+      ),
+    }
+    render(
+      <ResultPanel result={legacy} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    expect(screen.getByText('+ phát sinh 35.000')).toBeInTheDocument()
+    expect(screen.queryByText(/^· /)).not.toBeInTheDocument()
+  })
+
+  test('no extras line at all when the session has no extras', () => {
     const result = calcRatioMode(input)
     render(
       <ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
         onNewSession={() => {}} onPatch={() => {}} />,
     )
     expect(screen.queryByText(/\+ phát sinh/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^· /)).not.toBeInTheDocument()
   })
 })
 
