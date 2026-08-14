@@ -4,6 +4,7 @@ import { Drawer } from 'vaul'
 import type { RosterEntry } from '../lib/storage'
 import { durationHours, formatHours } from '../lib/time'
 import type { Gender, Player, SessionInput } from '../lib/types'
+import { useEdgeAutoScroll } from '../lib/useEdgeAutoScroll'
 import { GenderBadge } from './GenderBadge'
 import { PlayerRow } from './PlayerRow'
 import { TimeSelect } from './TimeSelect'
@@ -33,7 +34,7 @@ export function PlayerList({
   const [editError, setEditError] = useState('')
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
-  void isDragging
+  useEdgeAutoScroll(isDragging)
 
   const males = input.players.filter((p) => p.gender === 'male').length
   const females = input.players.length - males
