@@ -131,7 +131,8 @@ Plugin tự chèn `<link rel="manifest">`, không khai tay.
 ## 4. Chiến lược cache & cập nhật
 
 ```
-registerType: 'autoUpdate'
+registerType: 'prompt'          // KHÔNG kèm UI — xem giải thích bên dưới
+includeManifestIcons: false
 workbox: {
   globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
   navigateFallback: 'index.html',
@@ -139,9 +140,23 @@ workbox: {
 devOptions: { enabled: false }
 ```
 
-**`autoUpdate`**: service worker tải bản mới ngầm, tự áp dụng ở lần mở app kế tiếp. Không thêm UI, không toast, không nút "Tải lại".
+**Cập nhật ngầm, áp dụng ở lần mở app kế tiếp. Không UI, không toast, không nút "Tải lại".**
 
-Rủi ro đã cân nhắc và chấp nhận: nếu bản mới kích hoạt trong lúc app đang mở, trang có thể reload. **Điều này an toàn vì `App.tsx` ghi localStorage ngay mỗi lần state đổi** (các `useEffect` ở dòng 74–90 lưu `currentSession`, `settings`, `roster`, `history`), không chờ bấm nút. Người dùng cùng lắm mất vài ký tự đang gõ dở trong một ô nhập.
+Cách đạt được điều đó không hiển nhiên, nên ghi lại đầy đủ để người sau không "sửa" ngược:
+
+`registerType: 'autoUpdate'` — cái tên nghe đúng ý — thực tế **không** làm việc này. Nó bật `skipWaiting` + `clientsClaim` và khiến `registerSW.js` gọi thẳng `window.location.reload()` ngay khi bản mới activate, không hỏi gì. Đã kiểm chứng bằng cách đọc mã nguồn plugin và `dist/sw.js` sinh ra thật (`self.skipWaiting(),e.clientsClaim()`).
+
+`registerType: 'prompt'` mà **không** truyền `onNeedReload` cho ra đúng hành vi mong muốn: service worker mới tải ngầm rồi đứng ở trạng thái waiting, tự kích hoạt khi mọi tab của app đã đóng — tức lần mở app sau. Không một dòng UI nào.
+
+**Vì sao không chọn reload cưỡng bức.** Dữ liệu tiền thì an toàn thật: `App.tsx` ghi localStorage ngay mỗi lần state đổi (các `useEffect` ở dòng 74–90 lưu `currentSession`, `settings`, `roster`, `history`), không chờ bấm nút. Nhưng có ba thứ **không** nằm trong localStorage và sẽ mất khi reload cưỡng bức:
+
+- trạng thái điều hướng (`page`) — đang xem Lịch sử/Danh bạ thì bị đá về trang chính;
+- toast **"Hoàn tác"** — mất luôn cơ hội hoàn tác thao tác xóa vừa làm;
+- bottom sheet chỉnh giờ đang mở — bị ngắt giữa.
+
+Tình huống này xảy ra đúng trong bối cảnh tính năng nhắm tới: đang ở sân, sóng chập chờn, mạng vừa có lại đúng lúc app kiểm tra bản mới. Đánh đổi đã chấp nhận: bản mới tới tay người dùng chậm hơn một phiên.
+
+Đổi lại `registerType` thành `'autoUpdate'` là một **thay đổi hành vi**, không phải dọn dẹp — đừng làm mà không đọc phần này.
 
 **`devOptions.enabled: false`**: không đăng ký service worker khi `npm run dev`, tránh cảnh sửa code mà trình duyệt vẫn phục vụ bản cache cũ.
 

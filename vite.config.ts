@@ -12,10 +12,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // service worker tải bản mới ngầm, tự áp dụng ở lần mở app kế tiếp.
+      // service worker tải bản mới ngầm, đứng waiting, tự áp dụng ở lần mở
+      // app kế tiếp — KHÔNG kèm UI (không toast, không onNeedReload).
       // An toàn vì App.tsx ghi localStorage ngay mỗi lần state đổi.
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      // Xem docs/superpowers/specs/2026-08-14-pwa-offline-design.md mục 4
+      // trước khi đổi lại thành 'autoUpdate'.
+      registerType: 'prompt',
+      includeManifestIcons: false,
       manifest: PWA_MANIFEST,
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
