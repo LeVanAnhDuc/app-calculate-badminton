@@ -2,10 +2,12 @@ import {
   addToRoster,
   DEFAULT_SETTINGS,
   HISTORY_LIMIT,
+  loadCollectorAccount,
   loadCurrentSession,
   loadHistory,
   loadRoster,
   loadSettings,
+  saveCollectorAccount,
   saveHistory,
   saveRoster,
   saveSettings,
@@ -350,4 +352,21 @@ test('history salvages valid entries instead of wiping everything when one entry
   const bad = { id: 'session2', savedAt: 'bad-date', input: { mode: 'ratio' }, result: null }
   localStorage.setItem('history', JSON.stringify([good, bad]))
   expect(loadHistory()).toEqual([good])
+})
+
+test('collectorAccount roundtrip; default null', () => {
+  expect(loadCollectorAccount()).toBeNull()
+  saveCollectorAccount({ bankBin: '970422', accountNo: '0011002233', accountName: 'NGUYEN VAN A' })
+  expect(loadCollectorAccount()).toEqual({
+    bankBin: '970422',
+    accountNo: '0011002233',
+    accountName: 'NGUYEN VAN A',
+  })
+})
+
+test('collectorAccount rejects corrupt or incomplete data', () => {
+  localStorage.setItem('collectorAccount', '{not json')
+  expect(loadCollectorAccount()).toBeNull()
+  localStorage.setItem('collectorAccount', JSON.stringify({ bankBin: '970422' }))
+  expect(loadCollectorAccount()).toBeNull()
 })

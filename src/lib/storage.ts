@@ -28,6 +28,13 @@ export const DEFAULT_SETTINGS: Settings = {
   rounding: 'up1000',
 }
 
+/** Tài khoản người thu tiền — nhập một lần, dùng sinh VietQR cho mọi buổi. */
+export interface CollectorAccount {
+  bankBin: string
+  accountNo: string
+  accountName: string // chỉ để hiển thị cho người trả đối chiếu; '' nếu bỏ trống
+}
+
 function load<T>(key: string, guard: (v: unknown) => boolean, fallback: T): T {
   try {
     const raw = localStorage.getItem(key)
@@ -66,6 +73,12 @@ const isSettings = (v: unknown): boolean =>
   typeof v.femaleRatio === 'number' &&
   typeof v.shuttlePrice === 'number' &&
   (v.rounding === 'up1000' || v.rounding === 'exact')
+
+const isCollectorAccount = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.bankBin === 'string' &&
+  typeof v.accountNo === 'string' &&
+  typeof v.accountName === 'string'
 
 const isPlayer = (v: unknown): boolean =>
   isObject(v) &&
@@ -141,6 +154,10 @@ export function addToRoster(roster: RosterEntry[], name: string, gender: Gender)
 
 export const loadSettings = (): Settings => load('settings', isSettings, DEFAULT_SETTINGS)
 export const saveSettings = (s: Settings): boolean => save('settings', s)
+
+export const loadCollectorAccount = (): CollectorAccount | null =>
+  load<CollectorAccount | null>('collectorAccount', isCollectorAccount, null)
+export const saveCollectorAccount = (a: CollectorAccount): boolean => save('collectorAccount', a)
 
 export function loadCurrentSession(): SessionInput | null {
   const s = load<SessionInput | null>('currentSession', isSession, null)
