@@ -1,4 +1,5 @@
 import type { Gender } from '../lib/types'
+import { CapCentred } from './CapCentred'
 
 export function GenderBadge({ gender }: { gender: Gender }) {
   return (
@@ -7,7 +8,7 @@ export function GenderBadge({ gender }: { gender: Gender }) {
         gender === 'male' ? 'bg-emerald-100 text-emerald-700' : 'bg-pink-100 text-pink-700'
       }`}
     >
-      {gender === 'male' ? 'N' : 'Nữ'}
+      <CapCentred>{gender === 'male' ? 'N' : 'Nữ'}</CapCentred>
     </span>
   )
 }

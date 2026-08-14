@@ -223,3 +223,8 @@ test('nút xóa từ khóa tìm kiếm dùng icon SVG chứ không phải glyph 
   expect(btn.querySelector('svg')).not.toBeNull()
   expect(btn.textContent).toBe('')
 })
+
+test('chữ cái đầu trong avatar danh bạ được canh giữa theo chiều cao chữ hoa', () => {
+  render(<Harness initial={base} />)
+  expect(screen.getByText('T', { selector: 'span' })).toHaveClass('-translate-y-[0.0625em]')
+})

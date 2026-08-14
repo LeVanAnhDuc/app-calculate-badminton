@@ -5,6 +5,7 @@ import type { RosterEntry } from '../lib/storage'
 import type { Gender } from '../lib/types'
 import { groupByLetter, matchesQuery } from '../lib/alphabet'
 import { insertAt, toastUndo } from '../lib/undo'
+import { CapCentred } from './CapCentred'
 import { DeleteButton } from './DeleteButton'
 import { ArrowLeftIcon, CloseIcon, PencilIcon, PlusIcon } from './icons'
 import { SwipeToDelete } from './SwipeToDelete'
@@ -25,7 +26,7 @@ function Avatar({ entry }: { entry: RosterEntry }) {
         entry.gender === 'male' ? 'bg-emerald-100 text-emerald-700' : 'bg-pink-100 text-pink-700'
       }`}
     >
-      {entry.name.trim().charAt(0).toUpperCase() || '?'}
+      <CapCentred>{entry.name.trim().charAt(0).toUpperCase() || '?'}</CapCentred>
     </span>
   )
 }

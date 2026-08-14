@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Drawer } from 'vaul'
 import type { Player } from '../lib/types'
 import { GenderBadge } from './GenderBadge'
+import { CheckIcon } from './icons'
 
 interface Props {
   players: Player[]
@@ -104,7 +105,11 @@ export function PayerSelect({
                         {players.length} người
                       </span>
                     </span>
-                    {allSelected && <span className="text-emerald-600">✓</span>}
+                    {allSelected && (
+                      <span className="text-emerald-600 shrink-0">
+                        <CheckIcon size={18} />
+                      </span>
+                    )}
                   </button>
                 </div>
                 <div className="max-h-[50vh] overflow-y-auto space-y-1.5">
@@ -126,7 +131,11 @@ export function PayerSelect({
                       >
                         <GenderBadge gender={p.gender} />
                         <span className="text-gray-900 truncate">{p.name}</span>
-                        {checked && <span className="ml-auto text-emerald-600">✓</span>}
+                        {checked && (
+                          <span className="ml-auto text-emerald-600 shrink-0">
+                            <CheckIcon size={18} />
+                          </span>
+                        )}
                       </button>
                     )
                   })}

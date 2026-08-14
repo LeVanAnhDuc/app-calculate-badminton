@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'motion/react'
+import { CheckIcon } from './icons'
 
 const SIZES = {
-  md: { hit: 'w-10 h-10', circle: 'w-7 h-7', check: 'text-sm' },
-  sm: { hit: 'w-9 h-9', circle: 'w-6 h-6', check: 'text-xs' },
+  md: { hit: 'w-10 h-10', circle: 'w-7 h-7', check: 16 },
+  sm: { hit: 'w-9 h-9', circle: 'w-6 h-6', check: 14 },
 } as const
 
 interface PaidToggleProps {
@@ -40,9 +41,9 @@ export function PaidToggle({ paid, name, onToggle, size = 'md' }: PaidToggleProp
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
               transition={{ type: 'spring', bounce: 0.4, duration: 0.3 }}
-              className={`text-white leading-none ${check}`}
+              className="text-white flex items-center justify-center"
             >
-              ✓
+              <CheckIcon size={check} />
             </motion.span>
           )}
         </AnimatePresence>

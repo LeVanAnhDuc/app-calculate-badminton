@@ -587,3 +587,11 @@ test('nút Đóng của lớp toàn màn hình dùng icon SVG chứ không phả
   expect(btn.querySelector('svg')).not.toBeNull()
   expect(btn.textContent).toBe('')
 })
+
+test('dấu tích đã trả là icon SVG chứ không phải glyph chữ', () => {
+  const paid = { ...input, players: input.players.map((p) => ({ ...p, paid: true })) }
+  render(<Harness initialInput={paid} />)
+  const toggle = screen.getAllByRole('button', { name: /^Bỏ đánh dấu/ })[0]
+  expect(toggle.querySelector('svg')).not.toBeNull()
+  expect(toggle.textContent).toBe('')
+})

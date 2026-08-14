@@ -154,3 +154,11 @@ test('unticking everyone inside the sheet is allowed; the trigger reports the em
   fireEvent.click(within(dialog).getByRole('button', { name: 'Xong' }))
   expect(screen.getByLabelText('Người trả khoản Nước')).toHaveTextContent('Chọn người trả')
 })
+
+test('dấu tích trong danh sách là icon SVG chứ không phải glyph chữ', () => {
+  render(<Harness initial={['1']} />)
+  fireEvent.click(screen.getByLabelText('Người trả khoản Nước'))
+  const row = screen.getByRole('checkbox', { name: 'An · Nam' })
+  expect(row.querySelector('svg')).not.toBeNull()
+  expect(row.textContent).toBe('NAn')
+})

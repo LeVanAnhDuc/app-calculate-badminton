@@ -57,6 +57,14 @@ export function CloseIcon({ size }: IconProps) {
   )
 }
 
+export function CheckIcon({ size = 16 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M20 6 9 17l-5-5" />
+    </Icon>
+  )
+}
+
 export function PencilIcon({ size = 16 }: IconProps) {
   return (
     <Icon size={size}>
