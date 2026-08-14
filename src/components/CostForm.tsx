@@ -1,18 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import { extrasTotal, shuttleTotal } from '../lib/calc'
 import { formatVND } from '../lib/format'
+import type { ShuttleType } from '../lib/shuttleTypes'
 import { durationHours, formatHours } from '../lib/time'
 import type { ExtraCost, SessionInput, ShuttleLine } from '../lib/types'
 import { uid } from '../lib/uid'
 import { MoneyInput } from './MoneyInput'
+import { ShuttleTypeSelect } from './ShuttleTypeSelect'
 import { TimeSelect } from './TimeSelect'
 
 interface Props {
   input: SessionInput
+  /** Loại cầu hay dùng, đã xếp hạng sẵn bởi App (suy ra từ lịch sử). */
+  shuttleTypes: ShuttleType[]
   onPatch: (p: Partial<SessionInput>) => void
 }
 
-export function CostForm({ input, onPatch }: Props) {
+export function CostForm({ input, shuttleTypes, onPatch }: Props) {
   const courtHours = durationHours(input.courtStart, input.courtEnd)
   const extras = input.extras
   const noPlayers = input.players.length === 0
@@ -55,16 +59,23 @@ export function CostForm({ input, onPatch }: Props) {
     <section className="bg-white rounded-2xl shadow-sm p-4">
       <h2 className="text-base font-bold text-gray-900 mb-3">Chi phí</h2>
       <ul className="space-y-2">
-        {shuttles.map((l) => {
+        {shuttles.map((l, i) => {
           const label = l.name.trim() || 'loại cầu'
           return (
             <li key={l.id} className="flex gap-2 items-center">
-              <input
-                aria-label="Tên loại cầu"
-                placeholder="Tên loại cầu"
+              <ShuttleTypeSelect
+                aria-label={`Loại cầu ${i + 1}`}
                 value={l.name}
-                onChange={(ev) => patchShuttle(l.id, { name: ev.target.value })}
-                className="flex-1 min-w-0 h-11 rounded-xl border border-gray-300 px-3 text-sm text-gray-900"
+                suggestions={shuttleTypes.filter(
+                  (t) =>
+                    !shuttles.some(
+                      (o) => o.id !== l.id && o.name.trim().toLowerCase() === t.name.toLowerCase(),
+                    ),
+                )}
+                onChange={(name, price) =>
+                  patchShuttle(l.id, price === undefined ? { name } : { name, price })
+                }
+                className="flex-1 min-w-0"
               />
               <input
                 aria-label={`Số quả của ${label}`}

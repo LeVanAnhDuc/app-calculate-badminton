@@ -1,11 +1,24 @@
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { useState } from 'react'
 import { CostForm } from './CostForm'
+import type { ShuttleType } from '../lib/shuttleTypes'
 import type { SessionInput } from '../lib/types'
 
-function Harness({ initial }: { initial: SessionInput }) {
+function Harness({
+  initial,
+  shuttleTypes = [],
+}: {
+  initial: SessionInput
+  shuttleTypes?: ShuttleType[]
+}) {
   const [input, setInput] = useState(initial)
-  return <CostForm input={input} onPatch={(p) => setInput((s) => ({ ...s, ...p }))} />
+  return (
+    <CostForm
+      input={input}
+      shuttleTypes={shuttleTypes}
+      onPatch={(p) => setInput((s) => ({ ...s, ...p }))}
+    />
+  )
 }
 
 const base: SessionInput = {
@@ -96,6 +109,7 @@ describe('chi phí phát sinh khác', () => {
           ...withPlayers,
           extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerId: 'p1' }],
         }}
+        shuttleTypes={[]}
         onPatch={onPatch}
       />,
     )
@@ -129,14 +143,50 @@ describe('nhiều loại cầu', () => {
     expect(screen.getByText('340.000đ')).toBeInTheDocument() // TỔNG CHI
   })
 
-  test('gõ tên loại cầu và xóa dòng', () => {
+  test('đặt tên loại cầu qua sheet rồi xóa dòng', () => {
     render(<Harness initial={base} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Loại cầu 1' }))
     fireEvent.change(screen.getByLabelText('Tên loại cầu'), { target: { value: 'Hải Yến' } })
-    expect(screen.getByLabelText('Số quả của Hải Yến')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Xong' }))
 
+    expect(screen.getByLabelText('Số quả của Hải Yến')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Xóa Hải Yến' }))
-    expect(screen.queryByLabelText('Tên loại cầu')).not.toBeInTheDocument()
-    expect(screen.getByText('150.000đ')).toBeInTheDocument() // chỉ còn tiền sân
+    expect(screen.getByText('150.000đ')).toBeInTheDocument()
+  })
+
+  test('chọn gợi ý điền cả tên và giá', () => {
+    render(
+      <Harness
+        initial={{ ...base, shuttles: [{ id: 's1', name: '', count: 2, price: 0 }] }}
+        shuttleTypes={[{ name: 'Ba Sao', price: 20000 }]}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Loại cầu 1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Chọn Ba Sao · 20.000đ' }))
+
+    expect(screen.getByLabelText('Số quả của Ba Sao')).toBeInTheDocument()
+    expect(screen.getByText('190.000đ')).toBeInTheDocument() // 40.000 cầu + 150.000 sân
+  })
+
+  test('gợi ý bỏ loại cầu đã có ở dòng khác', () => {
+    render(
+      <Harness
+        initial={{
+          ...base,
+          shuttles: [
+            { id: 's1', name: 'Ba Sao', count: 2, price: 20000 },
+            { id: 's2', name: '', count: 0, price: 0 },
+          ],
+        }}
+        shuttleTypes={[
+          { name: 'Ba Sao', price: 20000 },
+          { name: 'Hải Yến', price: 25000 },
+        ]}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Loại cầu 2' }))
+    expect(screen.queryByRole('button', { name: 'Chọn Ba Sao · 20.000đ' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Chọn Hải Yến · 25.000đ' })).toBeInTheDocument()
   })
 })
 

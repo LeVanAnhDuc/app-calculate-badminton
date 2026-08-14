@@ -11,6 +11,7 @@ import { RosterPage } from './components/RosterPage'
 import { RoundingToggle } from './components/RoundingToggle'
 import { calcSession, validateSession } from './lib/calc'
 import { frequentPlayers } from './lib/frequent'
+import { frequentShuttleTypes } from './lib/shuttleTypes'
 import { insertAt, toastUndo } from './lib/undo'
 import {
   addToRoster,
@@ -170,6 +171,8 @@ export default function App() {
     () => frequentPlayers(history, roster, session.players),
     [history, roster, session.players],
   )
+  // Lọc theo dòng cầu khác trong buổi do CostForm tự làm — App không cần biết.
+  const shuttleTypes = useMemo(() => frequentShuttleTypes(history, []), [history])
 
   const errors = validateSession(session)
   const result = errors.length === 0 ? calcSession(session) : null
@@ -310,7 +313,7 @@ export default function App() {
             <ModeSwitch mode={session.mode} onChange={(mode) => onPatch({ mode })} />
           </div>
           <div className="space-y-4 mt-4 md:mt-0 md:col-span-3">
-            <CostForm input={session} onPatch={onPatch} />
+            <CostForm input={session} shuttleTypes={shuttleTypes} onPatch={onPatch} />
             <RatioInputs
               maleRatio={session.maleRatio}
               femaleRatio={session.femaleRatio}
