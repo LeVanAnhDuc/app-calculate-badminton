@@ -4,6 +4,7 @@ import { Drawer } from 'vaul'
 import type { RosterEntry } from '../lib/storage'
 import { durationHours, formatHours } from '../lib/time'
 import type { Gender, Player, SessionInput } from '../lib/types'
+import { GenderBadge } from './GenderBadge'
 import { TimeSelect } from './TimeSelect'
 
 interface Props {
@@ -17,18 +18,6 @@ interface Props {
 
 const SWIPE_OPEN_PX = 80
 const SWIPE_THRESHOLD_PX = 40
-
-function GenderBadge({ gender }: { gender: Gender }) {
-  return (
-    <span
-      className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
-        gender === 'male' ? 'bg-emerald-100 text-emerald-700' : 'bg-pink-100 text-pink-700'
-      }`}
-    >
-      {gender === 'male' ? 'N' : 'Nữ'}
-    </span>
-  )
-}
 
 function PencilIcon() {
   return (
