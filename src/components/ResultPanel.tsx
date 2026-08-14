@@ -218,7 +218,9 @@ function DownloadImageButton({
   players: Player[]
 }) {
   const handleDownload = () => {
-    void downloadResultImage(result, mode, players).then(() => toast.success('Đã tải ảnh kết quả'))
+    void downloadResultImage(result, mode, players)
+      .then(() => toast.success('Đã tải ảnh kết quả'))
+      .catch(() => toast.error('Không tạo được ảnh kết quả'))
   }
   return (
     <button
@@ -240,6 +242,7 @@ function FullscreenResult({
   onTogglePaid,
   onShowQR,
   onClose,
+  escDisabled,
 }: {
   result: CalcResult
   mode: Mode
@@ -247,14 +250,15 @@ function FullscreenResult({
   onTogglePaid: (playerId: string) => void
   onShowQR: (playerId: string) => void
   onClose: () => void
+  escDisabled: boolean
 }) {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape' && !escDisabled) onClose()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
+  }, [onClose, escDisabled])
 
   // Portaled to <body>: the panel lives inside an md:sticky column whose
   // stacking context would otherwise let z-10 elements elsewhere paint on top.
@@ -455,6 +459,7 @@ export function ResultPanel({
             onTogglePaid={handleTogglePaid}
             onShowQR={(playerId) => setQrPlayerId(playerId)}
             onClose={() => setFullscreen(false)}
+            escDisabled={qrPlayerId !== null}
           />
         )}
       </AnimatePresence>

@@ -178,6 +178,20 @@ test('Esc key closes the fullscreen overlay', async () => {
   )
 })
 
+test('Esc key does not close the fullscreen overlay while a QR sheet is open on top of it', async () => {
+  const result = calcRatioMode(input)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
+      onNewSession={() => {}} onPatch={() => {}} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+  // the overlay stacks on top of the still-mounted main panel, so there are
+  // now two "Mã QR cho Tuấn" buttons — scope to the one inside the overlay
+  const overlay = screen.getByTestId('fullscreen-overlay')
+  fireEvent.click(within(overlay).getByRole('button', { name: 'Mã QR cho Tuấn' }))
+  expect(await screen.findByPlaceholderText('Số tài khoản')).toBeInTheDocument()
+  fireEvent.keyDown(window, { key: 'Escape' })
+  expect(screen.getByTestId('fullscreen-overlay')).toBeInTheDocument()
+})
+
 describe('paid tracking', () => {
   test('no settlement line is shown when there is no result (validation error state)', () => {
     render(

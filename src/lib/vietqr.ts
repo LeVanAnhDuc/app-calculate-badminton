@@ -34,7 +34,7 @@ export function crc16(s: string): string {
 export function normalizeMemo(s: string): string {
   return s
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '') // combining diacritics from NFD
+    .replace(/[\u0300-\u036f]/g, '') // combining diacritics from NFD
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'D')
     .replace(/[^A-Za-z0-9 /.-]/g, '')
