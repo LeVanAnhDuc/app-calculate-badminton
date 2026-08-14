@@ -362,7 +362,7 @@ test('each row has a drag handle labeled "Sắp xếp {tên}" with touch-action 
     ...base,
     players: [
       ...base.players,
-      { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null },
+      { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null, paid: false },
     ],
   }
   render(<Harness initial={initial} />)
@@ -382,7 +382,7 @@ test('players render as list items inside a list, in players-array order', () =>
     ...base,
     players: [
       ...base.players,
-      { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null },
+      { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null, paid: false },
     ],
   }
   render(<Harness initial={initial} />)
