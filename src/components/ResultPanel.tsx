@@ -8,6 +8,7 @@ import { paidCount, unpaidAmount } from '../lib/settlement'
 import { formatHours } from '../lib/time'
 import type { CalcResult, Mode, Player, PlayerResult, SessionInput } from '../lib/types'
 import { EyeButton } from './EyeButton'
+import { PaidToggle } from './PaidToggle'
 
 interface HiddenAmountRowProps {
   label: string
@@ -63,29 +64,6 @@ export function TotalCollectedRow({ total }: { total: number }) {
   )
 }
 
-export function PaidToggle({
-  paid,
-  name,
-  onToggle,
-}: {
-  paid: boolean
-  name: string
-  onToggle: () => void
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={paid ? `Bỏ đánh dấu ${name} đã trả` : `Đánh dấu ${name} đã trả`}
-      onClick={onToggle}
-      className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-full ${
-        paid ? 'bg-emerald-600 text-white' : 'border-2 border-gray-300'
-      }`}
-    >
-      {paid && <span className="text-base leading-none">✓</span>}
-    </button>
-  )
-}
-
 export function PaidSummaryLine({
   players,
   results,
@@ -121,7 +99,7 @@ function PlayerRow({
 }) {
   return (
     <li
-      className={`flex justify-between items-center rounded-xl px-3 py-2.5 ${
+      className={`flex justify-between items-center rounded-xl px-3 py-2.5 transition-colors duration-200 ${
         paid ? 'bg-emerald-50' : 'bg-gray-50'
       }`}
     >

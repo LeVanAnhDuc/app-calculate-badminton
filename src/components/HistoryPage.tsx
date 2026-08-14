@@ -4,7 +4,8 @@ import { paidCount } from '../lib/settlement'
 import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
 import { durationHours } from '../lib/time'
-import { PaidSummaryLine, PaidToggle, SurplusRow, TotalCollectedRow } from './ResultPanel'
+import { PaidToggle } from './PaidToggle'
+import { PaidSummaryLine, SurplusRow, TotalCollectedRow } from './ResultPanel'
 
 interface Props {
   history: SavedSession[]
@@ -184,7 +185,7 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                             return (
                               <li
                                 key={p.playerId}
-                                className={`flex justify-between items-center rounded-lg px-3 py-2 ${
+                                className={`flex justify-between items-center rounded-lg px-3 py-2 transition-colors duration-200 ${
                                   paid ? 'bg-emerald-50' : 'bg-gray-50'
                                 }`}
                               >
