@@ -60,11 +60,11 @@ test('surplus hidden behind eye toggle by default', () => {
   const result = calcRatioMode({ ...input, courtFee: 151000 })
   render(<ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
       onNewSession={() => {}} onPatch={() => {}} />)
-  // both Tổng thu and Số dư are hidden by default
-  expect(screen.getAllByText('•••••')).toHaveLength(2)
+  // "còn thiếu", Tổng thu and Số dư are all hidden by default
+  expect(screen.getAllByText('•••••')).toHaveLength(3)
   fireEvent.click(screen.getByRole('button', { name: 'Hiện số dư' }))
-  // Tổng thu stays hidden; only the surplus row was revealed
-  expect(screen.getAllByText('•••••')).toHaveLength(1)
+  // the other two stay hidden; only the surplus row was revealed
+  expect(screen.getAllByText('•••••')).toHaveLength(2)
   expect(screen.getByText(/\+\d/)).toBeInTheDocument()
 })
 
@@ -220,6 +220,38 @@ describe('paid tracking', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Đánh dấu Lan đã trả' }))
     expect(screen.getByText('✓ Đã thu đủ')).toBeInTheDocument()
     expect(screen.queryByText(/còn thiếu/)).not.toBeInTheDocument()
+  })
+
+  // scoped to the settlement line: Tổng thu and Số dư mask themselves with the
+  // same ••••• in this same panel
+  test('the amount owed starts hidden behind ••••• and the eye reveals it', () => {
+    render(<Harness initialInput={input} />)
+    const line = screen.getByText(/còn thiếu/)
+    expect(line).toHaveTextContent('còn thiếu •••••')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hiện số tiền còn thiếu' }))
+    expect(line).toHaveTextContent('còn thiếu 300.000đ')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ẩn số tiền còn thiếu' }))
+    expect(line).toHaveTextContent('còn thiếu •••••')
+  })
+
+  test('revealing the amount in the panel leaves the overlay copy independently hidden', () => {
+    render(<Harness initialInput={input} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Hiện số tiền còn thiếu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+    // panel revealed, overlay still masked — same per-instance behaviour as
+    // Tổng thu / Số dư
+    expect(screen.getAllByRole('button', { name: 'Hiện số tiền còn thiếu' })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: 'Ẩn số tiền còn thiếu' })).toHaveLength(1)
+  })
+
+  test('"✓ Đã thu đủ" has no amount, so it has no eye button', () => {
+    render(<Harness initialInput={input} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Đánh dấu Tuấn đã trả' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Đánh dấu Lan đã trả' }))
+    expect(screen.getByText('✓ Đã thu đủ')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /số tiền còn thiếu/ })).not.toBeInTheDocument()
   })
 
   test('the fullscreen overlay shows the same settlement summary and toggle works there too', () => {
