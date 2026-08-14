@@ -28,9 +28,7 @@ import {
   type Settings,
 } from './lib/storage'
 import type { Gender, Player, SessionInput } from './lib/types'
-
-const uid = (): string =>
-  crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+import { uid } from './lib/uid'
 
 function defaultSession(s: Settings): SessionInput {
   return {
@@ -44,6 +42,7 @@ function defaultSession(s: Settings): SessionInput {
     femaleRatio: s.femaleRatio,
     rounding: s.rounding,
     players: [],
+    extras: [],
   }
 }
 
@@ -127,9 +126,22 @@ export default function App() {
     const index = session.players.findIndex((p) => p.id === playerId)
     if (index === -1) return
     const removed = session.players[index]
-    setSession((s) => ({ ...s, players: s.players.filter((p) => p.id !== playerId) }))
+    // an extra cost pointing at a deleted player must not be left orphaned: it
+    // would still inflate totalCost with nobody paying for it
+    const removedExtras = session.extras.filter((e) => e.playerId === playerId)
+    setSession((s) => ({
+      ...s,
+      players: s.players.filter((p) => p.id !== playerId),
+      extras: s.extras.filter((e) => e.playerId !== playerId),
+    }))
     toastUndo(`Đã xóa "${removed.name}"`, () =>
-      setSession((s) => ({ ...s, players: insertAt(s.players, index, removed) })),
+      setSession((s) => ({
+        ...s,
+        players: insertAt(s.players, index, removed),
+        // extras order is never shown to the user (the UI always groups by
+        // owner), so appending is enough
+        extras: [...s.extras, ...removedExtras],
+      })),
     )
   }
 
@@ -175,7 +187,10 @@ export default function App() {
     setSession(defaultSession(loadSettings()))
     // Nothing was entered yet — there is nothing worth offering to undo.
     const isEmpty =
-      previous.players.length === 0 && previous.courtFee === 0 && previous.shuttleCount === 0
+      previous.players.length === 0 &&
+      previous.courtFee === 0 &&
+      previous.shuttleCount === 0 &&
+      previous.extras.length === 0
     if (isEmpty) return
     // The only site that restores a whole snapshot: a reset has no single
     // removed element to put back.
@@ -248,6 +263,9 @@ export default function App() {
                 endTime: null,
                 paid: false,
               })),
+              // every player gets a fresh id, so old extras could not be
+              // re-pointed at anyone — the new session starts clean
+              extras: [],
             }))
             setPage('main')
           }}

@@ -12,6 +12,13 @@ export interface Player {
   paid: boolean                 // đã trả tiền hay chưa, mặc định false
 }
 
+export interface ExtraCost {
+  id: string
+  label: string                 // "Thuê vợt", "Nước" — có thể rỗng lúc vừa thêm
+  amount: number                // VND, số nguyên ≥ 0
+  playerId: string              // Player.id của người chịu TOÀN BỘ khoản này
+}
+
 export interface SessionInput {
   mode: Mode
   shuttleCount: number
@@ -23,6 +30,7 @@ export interface SessionInput {
   femaleRatio: number
   rounding: Rounding
   players: Player[]
+  extras: ExtraCost[]           // mặc định [] — mảng phẳng, không nhóm sẵn theo người
 }
 
 export interface PlayerResult {
@@ -33,7 +41,8 @@ export interface PlayerResult {
   hours: number | null          // null in mode 'ratio'
   courtShare: number            // raw (unrounded)
   shuttleShare: number          // raw (unrounded)
-  raw: number
+  extrasTotal: number           // tổng khoản phát sinh của riêng người này (raw)
+  raw: number                   // courtShare + shuttleShare + extrasTotal
   amount: number                // rounded per input.rounding
 }
 

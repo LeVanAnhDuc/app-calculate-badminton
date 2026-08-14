@@ -9,6 +9,19 @@ export function shuttleTotal(input: SessionInput): number {
   return input.shuttleCount * input.shuttlePrice
 }
 
+/** Tổng các khoản phát sinh của 1 người (bỏ qua khoản mồ côi vì playerId không khớp ai). */
+export function extrasOf(input: SessionInput, playerId: string): number {
+  return input.extras
+    .filter((e) => e.playerId === playerId)
+    .reduce((s, e) => s + e.amount, 0)
+}
+
+/** Tổng mọi khoản phát sinh CÓ CHỦ trong buổi. */
+export function extrasTotal(input: SessionInput): number {
+  const ids = new Set(input.players.map((p) => p.id))
+  return input.extras.filter((e) => ids.has(e.playerId)).reduce((s, e) => s + e.amount, 0)
+}
+
 function ratioOf(input: SessionInput, gender: Gender): number {
   return gender === 'male' ? input.maleRatio : input.femaleRatio
 }
@@ -20,9 +33,12 @@ interface Share {
 }
 
 function buildResult(input: SessionInput, shares: Share[], emptyHours: number): CalcResult {
-  const totalCost = shuttleTotal(input) + input.courtFee
+  const totalCost = shuttleTotal(input) + input.courtFee + extrasTotal(input)
   const players: PlayerResult[] = input.players.map((p, i) => {
-    const raw = shares[i].courtShare + shares[i].shuttleShare
+    const extras = extrasOf(input, p.id)
+    // extras are added BEFORE rounding — rounding each part separately would
+    // charge an extra "round up to 1.000đ" per extra cost
+    const raw = shares[i].courtShare + shares[i].shuttleShare + extras
     return {
       playerId: p.id,
       name: p.name,
@@ -31,6 +47,7 @@ function buildResult(input: SessionInput, shares: Share[], emptyHours: number): 
       hours: shares[i].hours,
       courtShare: shares[i].courtShare,
       shuttleShare: shares[i].shuttleShare,
+      extrasTotal: extras,
       raw,
       amount: roundAmount(raw, input.rounding),
     }
@@ -116,7 +133,9 @@ export function calcSession(input: SessionInput): CalcResult {
 export function validateSession(input: SessionInput): string[] {
   const errors: string[] = []
   if (input.players.length === 0) errors.push('Cần ít nhất 1 người chơi')
-  if (shuttleTotal(input) + input.courtFee <= 0) errors.push('Tổng chi phải lớn hơn 0')
+  if (shuttleTotal(input) + input.courtFee + extrasTotal(input) <= 0) {
+    errors.push('Tổng chi phải lớn hơn 0')
+  }
   if (input.maleRatio <= 0 || input.femaleRatio <= 0) errors.push('Hệ số phải lớn hơn 0')
   if (input.mode === 'hourly') {
     const HHMM = /^\d{2}:\d{2}$/
@@ -145,6 +164,18 @@ export function validateSession(input: SessionInput): string[] {
           }
         }
       }
+    }
+  }
+  // Khoản phát sinh: nhãn rỗng KHÔNG phải lỗi (hàng được tạo rỗng rồi gõ dần),
+  // amount === 0 cũng hợp lệ.
+  const playerIds = new Set(input.players.map((p) => p.id))
+  for (const e of input.extras) {
+    const label = e.label.trim() || 'Khoản khác'
+    if (!Number.isFinite(e.amount) || e.amount < 0) {
+      errors.push(`Số tiền của "${label}" chưa hợp lệ`)
+    }
+    if (!playerIds.has(e.playerId)) {
+      errors.push(`Khoản phát sinh "${label}" chưa chọn người trả`)
     }
   }
   return errors

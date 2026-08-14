@@ -34,6 +34,7 @@ function session(savedAt: string, players: Player[]): SavedSession {
     femaleRatio: 1,
     rounding: 'up1000',
     players,
+    extras: [],
   }
   return { id: savedAt, savedAt, input, result: emptyResult }
 }

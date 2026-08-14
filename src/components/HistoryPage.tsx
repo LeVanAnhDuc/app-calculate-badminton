@@ -143,6 +143,17 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                             <span className="text-gray-500">Tiền sân</span>
                             <span className="font-semibold text-gray-900">{formatVND(s.input.courtFee)}</span>
                           </div>
+                          {s.input.extras.map((e) => (
+                            <div key={e.id} className="flex justify-between text-sm">
+                              <span className="text-gray-500">
+                                {e.label.trim() || 'Khoản khác'} ·{' '}
+                                {s.input.players.find((p) => p.id === e.playerId)?.name ?? '?'}
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {formatVND(e.amount)}
+                              </span>
+                            </div>
+                          ))}
                           {s.input.mode === 'hourly' && (
                             <div className="flex justify-between">
                               <span className="text-gray-500">Giờ thuê sân</span>
@@ -200,7 +211,11 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                                     <span className="text-xs text-gray-400">
                                       ({p.gender === 'male' ? 'Nam' : 'Nữ'}
                                       {s.input.mode === 'ratio' && p.halfSession ? ' · ½ buổi' : ''}
-                                      {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''})
+                                      {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''}
+                                      {p.extrasTotal > 0
+                                        ? ` · +${formatVND(p.extrasTotal)} phát sinh`
+                                        : ''}
+                                      )
                                     </span>
                                   </span>
                                 </span>
