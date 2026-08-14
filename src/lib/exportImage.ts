@@ -31,7 +31,7 @@ export function formatFilenameDate(date: Date): string {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
 }
 
-function playerNote(mode: Mode, p: CalcResult['players'][number]): string {
+export function playerNote(mode: Mode, p: CalcResult['players'][number]): string {
   const genderLabel = p.gender === 'male' ? 'Nam' : 'Nữ'
   if (mode === 'ratio' && p.halfSession) return `${genderLabel} · ½ buổi`
   if (mode === 'hourly' && p.hours !== null) return `${genderLabel} · ${formatHours(p.hours)}`
