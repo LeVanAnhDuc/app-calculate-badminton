@@ -4,9 +4,11 @@ import {
   HISTORY_LIMIT,
   loadCurrentSession,
   loadHistory,
+  loadInstallDismissed,
   loadRoster,
   loadSettings,
   saveHistory,
+  saveInstallDismissed,
   saveRoster,
   saveSettings,
   type SavedSession,
@@ -350,4 +352,23 @@ test('history salvages valid entries instead of wiping everything when one entry
   const bad = { id: 'session2', savedAt: 'bad-date', input: { mode: 'ratio' }, result: null }
   localStorage.setItem('history', JSON.stringify([good, bad]))
   expect(loadHistory()).toEqual([good])
+})
+
+test('installDismissed mặc định false khi chưa có gì trong localStorage', () => {
+  expect(loadInstallDismissed()).toBe(false)
+})
+
+test('installDismissed lưu và đọc lại được', () => {
+  saveInstallDismissed(true)
+  expect(loadInstallDismissed()).toBe(true)
+})
+
+test('installDismissed bỏ qua dữ liệu hỏng, trả về false', () => {
+  localStorage.setItem('installDismissed', 'khong-phai-json')
+  expect(loadInstallDismissed()).toBe(false)
+})
+
+test('installDismissed bỏ qua giá trị sai kiểu', () => {
+  localStorage.setItem('installDismissed', '"co"')
+  expect(loadInstallDismissed()).toBe(false)
 })

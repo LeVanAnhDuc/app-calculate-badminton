@@ -163,3 +163,7 @@ export function loadHistory(): SavedSession[] {
 }
 
 export const saveHistory = (h: SavedSession[]): boolean => save('history', h.slice(0, HISTORY_LIMIT))
+
+export const loadInstallDismissed = (): boolean =>
+  load('installDismissed', (v) => typeof v === 'boolean', false)
+export const saveInstallDismissed = (v: boolean): boolean => save('installDismissed', v)
