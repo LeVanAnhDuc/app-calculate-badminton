@@ -4,9 +4,23 @@ import { PlayerList } from './PlayerList'
 import type { Gender, Player, SessionInput } from '../lib/types'
 import type { RosterEntry } from '../lib/storage'
 
-function Harness({ initial, roster = [] }: { initial: SessionInput; roster?: RosterEntry[] }) {
+function Harness({
+  initial,
+  roster = [],
+  onRemovePlayer,
+}: {
+  initial: SessionInput
+  roster?: RosterEntry[]
+  onRemovePlayer?: (playerId: string) => void
+}) {
   const [input, setInput] = useState(initial)
   const onPatch = (p: Partial<SessionInput>) => setInput((s) => ({ ...s, ...p }))
+  // App owns the real removal (plus its "Hoàn tác" toast); the harness stands
+  // in for it so the list still shrinks in these component-level tests
+  const removePlayer = (playerId: string) => {
+    onRemovePlayer?.(playerId)
+    setInput((s) => ({ ...s, players: s.players.filter((p) => p.id !== playerId) }))
+  }
   const onAddPlayer = (name: string, gender: Gender) => {
     const player: Player = {
       id: name,
@@ -37,6 +51,7 @@ function Harness({ initial, roster = [] }: { initial: SessionInput; roster?: Ros
       roster={roster}
       onPatch={onPatch}
       onAddPlayer={onAddPlayer}
+      onRemovePlayer={removePlayer}
       onChangeGender={onChangeGender}
       onRenamePlayer={onRenamePlayer}
     />
@@ -72,10 +87,27 @@ test('adds a player and blocks duplicates', () => {
   expect(screen.getByText(/đã có trong buổi/)).toBeInTheDocument()
 })
 
-test('remove button removes from session', () => {
+test('remove button reports the player id via onRemovePlayer instead of patching the list itself', () => {
+  const onRemovePlayer = vi.fn()
+  render(<Harness initial={base} onRemovePlayer={onRemovePlayer} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa Tuấn' }))
+  expect(onRemovePlayer).toHaveBeenCalledWith('1')
+  expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
+})
+
+test('the quick (swipe) delete button also goes through onRemovePlayer', () => {
+  const onRemovePlayer = vi.fn()
+  render(<Harness initial={base} onRemovePlayer={onRemovePlayer} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa nhanh Tuấn' }))
+  expect(onRemovePlayer).toHaveBeenCalledWith('1')
+})
+
+test('no window.confirm is shown before deleting a player', () => {
+  const confirmSpy = vi.spyOn(window, 'confirm')
   render(<Harness initial={base} />)
   fireEvent.click(screen.getByRole('button', { name: 'Xóa Tuấn' }))
-  expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
+  expect(confirmSpy).not.toHaveBeenCalled()
+  confirmSpy.mockRestore()
 })
 
 test('half-session pill toggles in ratio mode', () => {

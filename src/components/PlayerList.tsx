@@ -14,6 +14,12 @@ interface Props {
   roster: RosterEntry[]
   onPatch: (p: Partial<SessionInput>) => void
   onAddPlayer: (name: string, gender: Gender) => void
+  /**
+   * Only reports which player to drop — the removal itself (and the "Hoàn
+   * tác" toast that can put it back) is owned by App, so undo can re-insert
+   * into the freshest list instead of a snapshot captured here.
+   */
+  onRemovePlayer: (playerId: string) => void
   onChangeGender: (playerId: string, gender: Gender) => void
   onRenamePlayer: (playerId: string, newName: string) => void
 }
@@ -23,6 +29,7 @@ export function PlayerList({
   roster,
   onPatch,
   onAddPlayer,
+  onRemovePlayer,
   onChangeGender,
   onRenamePlayer,
 }: Props) {
@@ -71,8 +78,10 @@ export function PlayerList({
   const updatePlayer = (id: string, patch: Partial<Player>) =>
     onPatch({ players: input.players.map((p) => (p.id === id ? { ...p, ...patch } : p)) })
 
-  const removePlayer = (id: string) =>
-    onPatch({ players: input.players.filter((p) => p.id !== id) })
+  const removePlayer = (id: string) => {
+    setOpenSwipeId(null)
+    onRemovePlayer(id)
+  }
 
   const openEdit = (p: Player) => {
     setOpenSwipeId(null)

@@ -19,7 +19,12 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Lịch sử chi tiết & tái sử dụng**
   - Xem lại chi tiết từng buổi (chi phí, hệ số, kết quả tính)
   - "Dùng lại danh sách này" để nạp người chơi của buổi cũ vào buổi mới
-  - Xóa buổi với xác nhận
+  - Xóa buổi chỉ bằng một chạm, lỡ tay thì bấm "Hoàn tác"
+
+- **Xóa an toàn với "Hoàn tác"**
+  - Xóa người chơi, buổi đã lưu hay người trong danh bạ không còn phải bấm xác nhận
+  - Thông báo "Hoàn tác" hiện 6 giây, khôi phục lại đúng vị trí cũ và giữ nguyên mọi thay đổi bạn làm trong lúc đó
+  - Bấm "Buổi mới" nhầm cũng lấy lại được toàn bộ buổi đang nhập
 
 - **Theo dõi ai đã trả tiền**
   - Đánh dấu ✓ đã trả cho từng người ngay trên bảng kết quả và trong lịch sử
@@ -43,7 +48,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (137 test cases)
+- **Testing**: Vitest + React Testing Library (150 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

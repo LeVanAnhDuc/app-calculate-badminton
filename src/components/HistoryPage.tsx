@@ -221,7 +221,7 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                       </button>
                       <button
                         type="button"
-                        onClick={() => window.confirm('Xóa buổi này?') && onDelete(s.id)}
+                        onClick={() => onDelete(s.id)}
                         className="w-full md:w-auto md:px-4 h-12 rounded-xl border border-red-200 text-red-500 text-sm font-semibold"
                       >
                         Xóa buổi này
