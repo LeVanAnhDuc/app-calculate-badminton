@@ -48,7 +48,7 @@ test('settings roundtrip', () => {
 })
 
 test('currentSession rejects incomplete session input', () => {
-  // Missing shuttleCount, courtFee, etc
+  // Missing shuttles, courtFee, etc
   localStorage.setItem('currentSession', JSON.stringify({ mode: 'ratio', players: [] }))
   expect(loadCurrentSession()).toBeNull()
 })
@@ -57,8 +57,7 @@ test('currentSession rejects malformed players', () => {
   // Player missing gender
   const incomplete = {
     mode: 'ratio' as const,
-    shuttleCount: 10,
-    shuttlePrice: 25000,
+    shuttles: [{ id: 's1', name: '', count: 10, price: 25000 }],
     courtFee: 500000,
     courtStart: '09:00',
     courtEnd: '11:00',
@@ -74,8 +73,7 @@ test('currentSession rejects malformed players', () => {
 test('currentSession valid roundtrip', () => {
   const valid = {
     mode: 'ratio' as const,
-    shuttleCount: 10,
-    shuttlePrice: 25000,
+    shuttles: [{ id: 's1', name: '', count: 10, price: 25000 }],
     courtFee: 500000,
     courtStart: '09:00',
     courtEnd: '11:00',
@@ -104,8 +102,7 @@ test('migration: old currentSession without `paid` on players loads intact with 
   // simulates data saved before paid tracking existed — no `paid` field at all
   const legacy = {
     mode: 'ratio' as const,
-    shuttleCount: 10,
-    shuttlePrice: 25000,
+    shuttles: [{ id: 's1', name: '', count: 10, price: 25000 }],
     courtFee: 500000,
     courtStart: '09:00',
     courtEnd: '11:00',
@@ -134,8 +131,7 @@ test('history rejects invalid result', () => {
         savedAt: 123, // should be string
         input: {
           mode: 'ratio',
-          shuttleCount: 10,
-          shuttlePrice: 25000,
+          shuttles: [{ id: 's1', name: '', count: 10, price: 25000 }],
           courtFee: 500000,
           courtStart: '09:00',
           courtEnd: '11:00',
@@ -158,8 +154,7 @@ test('history valid roundtrip', () => {
       savedAt: '2024-01-01T10:00:00Z',
       input: {
         mode: 'ratio' as const,
-        shuttleCount: 10,
-        shuttlePrice: 25000,
+        shuttles: [{ id: 's1', name: '', count: 10, price: 25000 }],
         courtFee: 500000,
         courtStart: '09:00',
         courtEnd: '11:00',
@@ -215,8 +210,7 @@ test('migration: old history entry without `paid` on players loads intact, not f
       savedAt: '2024-01-01T10:00:00Z',
       input: {
         mode: 'ratio' as const,
-        shuttleCount: 10,
-        shuttlePrice: 25000,
+        shuttles: [{ id: 's1', name: '', count: 10, price: 25000 }],
         courtFee: 500000,
         courtStart: '09:00',
         courtEnd: '11:00',
@@ -261,8 +255,7 @@ function makeSession(id: string, savedAt: string): SavedSession {
     savedAt,
     input: {
       mode: 'ratio',
-      shuttleCount: 10,
-      shuttlePrice: 25000,
+      shuttles: [{ id: 's1', name: '', count: 10, price: 25000 }],
       courtFee: 500000,
       courtStart: '09:00',
       courtEnd: '11:00',
@@ -313,8 +306,7 @@ test('history salvages valid entries instead of wiping everything when one entry
     savedAt: '2024-01-01T10:00:00Z',
     input: {
       mode: 'ratio' as const,
-      shuttleCount: 10,
-      shuttlePrice: 25000,
+      shuttles: [{ id: 's1', name: '', count: 10, price: 25000 }],
       courtFee: 500000,
       courtStart: '09:00',
       courtEnd: '11:00',
@@ -363,8 +355,7 @@ test('history salvages valid entries instead of wiping everything when one entry
 describe('chi phí phát sinh khác', () => {
   const legacyInput = {
     mode: 'ratio' as const,
-    shuttleCount: 10,
-    shuttlePrice: 25000,
+    shuttles: [{ id: 's1', name: '', count: 10, price: 25000 }],
     courtFee: 500000,
     courtStart: '09:00',
     courtEnd: '11:00',
@@ -457,5 +448,57 @@ describe('chi phí phát sinh khác', () => {
     )
     expect(() => loadCurrentSession()).not.toThrow()
     expect(loadCurrentSession()).toBeNull()
+  })
+})
+
+describe('di trú shuttles', () => {
+  const legacyInput = {
+    mode: 'ratio',
+    shuttleCount: 10,
+    shuttlePrice: 25000,
+    courtFee: 150000,
+    courtStart: '19:00',
+    courtEnd: '21:00',
+    maleRatio: 1.5,
+    femaleRatio: 1,
+    rounding: 'up1000',
+    players: [],
+    extras: [],
+  }
+
+  test('buổi cũ load ra đúng một dòng cầu', () => {
+    localStorage.setItem('currentSession', JSON.stringify(legacyInput))
+    const s = loadCurrentSession()
+    expect(s?.shuttles).toEqual([
+      { id: 'shuttle-legacy', name: '', count: 10, price: 25000 },
+    ])
+    expect(s).not.toHaveProperty('shuttleCount')
+    expect(s).not.toHaveProperty('shuttlePrice')
+  })
+
+  test('buổi mới round-trip nguyên vẹn', () => {
+    const shuttles = [
+      { id: 'a', name: 'Hải Yến', count: 4, price: 25000 },
+      { id: 'b', name: 'Ba Sao', count: 2, price: 20000 },
+    ]
+    localStorage.setItem('currentSession', JSON.stringify({ ...legacyInput, shuttleCount: undefined, shuttlePrice: undefined, shuttles }))
+    expect(loadCurrentSession()?.shuttles).toEqual(shuttles)
+  })
+
+  test('shuttles sai kiểu thì buổi bị loại', () => {
+    localStorage.setItem(
+      'currentSession',
+      JSON.stringify({ ...legacyInput, shuttles: [{ id: 'a', name: 'X', count: 'nhiều', price: 1 }] }),
+    )
+    expect(loadCurrentSession()).toBeNull()
+  })
+
+  test('settings cũ thiếu shuttleName thì mặc định rỗng', () => {
+    localStorage.setItem(
+      'settings',
+      JSON.stringify({ mode: 'ratio', maleRatio: 1.5, femaleRatio: 1, shuttlePrice: 25000, rounding: 'up1000' }),
+    )
+    expect(loadSettings().shuttleName).toBe('')
+    expect(loadSettings().shuttlePrice).toBe(25000)
   })
 })

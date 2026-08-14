@@ -10,6 +10,7 @@ export interface Settings {
   maleRatio: number
   femaleRatio: number
   shuttlePrice: number
+  shuttleName: string
   rounding: Rounding
 }
 
@@ -25,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   maleRatio: 1.5,
   femaleRatio: 1.0,
   shuttlePrice: 25000,
+  shuttleName: '',
   rounding: 'up1000',
 }
 
@@ -65,6 +67,8 @@ const isSettings = (v: unknown): boolean =>
   typeof v.maleRatio === 'number' &&
   typeof v.femaleRatio === 'number' &&
   typeof v.shuttlePrice === 'number' &&
+  // migration: settings cũ không có `shuttleName` — loadSettings() điền '' khi load.
+  (typeof v.shuttleName === 'string' || v.shuttleName === undefined) &&
   (v.rounding === 'up1000' || v.rounding === 'exact')
 
 const isPlayer = (v: unknown): boolean =>
@@ -84,15 +88,39 @@ function normalizePlayer(p: Player): Player {
   return { ...p, paid: p.paid ?? false }
 }
 
-/** Di trú mềm: buổi cũ không có `extras` → mảng rỗng. Không làm mất trường khác. */
-function normalizeSession(s: SessionInput): SessionInput {
-  return { ...s, players: s.players.map(normalizePlayer), extras: s.extras ?? [] }
+/** Trường cũ chỉ tồn tại trong dữ liệu đã lưu trước tính năng nhiều loại cầu. */
+type LegacySession = SessionInput & { shuttleCount?: number; shuttlePrice?: number }
+
+/**
+ * Di trú mềm: buổi cũ không có `extras` → mảng rỗng; một cặp số lượng/giá cầu →
+ * đúng một dòng cầu. Không làm mất trường khác.
+ */
+function normalizeSession(s: LegacySession): SessionInput {
+  const { shuttleCount, shuttlePrice, ...rest } = s
+  return {
+    ...rest,
+    players: s.players.map(normalizePlayer),
+    extras: s.extras ?? [],
+    shuttles: s.shuttles ?? [
+      { id: LEGACY_SHUTTLE_ID, name: '', count: shuttleCount ?? 0, price: shuttlePrice ?? 0 },
+    ],
+  }
 }
 
 /** Di trú mềm: kết quả cũ không có `extrasTotal` → 0. Số tiền đã lưu giữ nguyên. */
 function normalizeResult(r: CalcResult): CalcResult {
   return { ...r, players: r.players.map((p) => ({ ...p, extrasTotal: p.extrasTotal ?? 0 })) }
 }
+
+/** Buổi cũ chỉ có 1 loại cầu — id cố định để mỗi lần load ra cùng một React key. */
+export const LEGACY_SHUTTLE_ID = 'shuttle-legacy'
+
+const isShuttleLine = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.id === 'string' &&
+  typeof v.name === 'string' &&
+  typeof v.count === 'number' &&
+  typeof v.price === 'number'
 
 const isExtraCost = (v: unknown): boolean =>
   isObject(v) &&
@@ -104,8 +132,11 @@ const isExtraCost = (v: unknown): boolean =>
 const isSession = (v: unknown): boolean =>
   isObject(v) &&
   (v.mode === 'ratio' || v.mode === 'hourly') &&
-  typeof v.shuttleCount === 'number' &&
-  typeof v.shuttlePrice === 'number' &&
+  // migration: buổi cũ có shuttleCount/shuttlePrice, buổi mới có mảng `shuttles`.
+  // Chấp nhận cả hai; normalizeSession() quy đổi dạng cũ khi load.
+  (v.shuttles === undefined
+    ? typeof v.shuttleCount === 'number' && typeof v.shuttlePrice === 'number'
+    : Array.isArray(v.shuttles) && v.shuttles.every((l) => isShuttleLine(l))) &&
   typeof v.courtFee === 'number' &&
   typeof v.courtStart === 'string' &&
   typeof v.courtEnd === 'string' &&
@@ -158,7 +189,10 @@ export function addToRoster(roster: RosterEntry[], name: string, gender: Gender)
   return [...roster.filter((r) => r.name.toLowerCase() !== key), { name: trimmed, gender }]
 }
 
-export const loadSettings = (): Settings => load('settings', isSettings, DEFAULT_SETTINGS)
+export function loadSettings(): Settings {
+  const s = load<Settings>('settings', isSettings, DEFAULT_SETTINGS)
+  return { ...s, shuttleName: s.shuttleName ?? '' }
+}
 export const saveSettings = (s: Settings): boolean => save('settings', s)
 
 export function loadCurrentSession(): SessionInput | null {

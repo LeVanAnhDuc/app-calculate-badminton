@@ -12,6 +12,13 @@ export interface Player {
   paid: boolean                 // đã trả tiền hay chưa, mặc định false
 }
 
+export interface ShuttleLine {
+  id: string
+  name: string                  // "Hải Yến 3 sao" — có thể rỗng lúc vừa thêm
+  count: number                 // số quả, nguyên ≥ 0
+  price: number                 // VND / quả, ≥ 0
+}
+
 export interface ExtraCost {
   id: string
   label: string                 // "Thuê vợt", "Nước" — có thể rỗng lúc vừa thêm
@@ -21,8 +28,7 @@ export interface ExtraCost {
 
 export interface SessionInput {
   mode: Mode
-  shuttleCount: number
-  shuttlePrice: number
+  shuttles: ShuttleLine[]       // nhiều loại cầu trong cùng buổi; [] = không mua cầu
   courtFee: number
   courtStart: string            // "HH:mm", used in mode 'hourly'
   courtEnd: string

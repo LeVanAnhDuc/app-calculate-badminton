@@ -6,7 +6,7 @@ export function roundAmount(raw: number, rounding: Rounding): number {
 }
 
 export function shuttleTotal(input: SessionInput): number {
-  return input.shuttleCount * input.shuttlePrice
+  return input.shuttles.reduce((s, l) => s + l.count * l.price, 0)
 }
 
 /** Tổng các khoản phát sinh của 1 người (bỏ qua khoản mồ côi vì playerId không khớp ai). */
@@ -164,6 +164,13 @@ export function validateSession(input: SessionInput): string[] {
           }
         }
       }
+    }
+  }
+  // Dòng cầu: tên rỗng KHÔNG phải lỗi (hàng được tạo rỗng rồi gõ dần), giống extras.
+  for (const l of input.shuttles) {
+    const name = l.name.trim() || 'loại cầu'
+    if (!Number.isFinite(l.count) || l.count < 0 || !Number.isFinite(l.price) || l.price < 0) {
+      errors.push(`Số lượng/giá của "${name}" chưa hợp lệ`)
     }
   }
   // Khoản phát sinh: nhãn rỗng KHÔNG phải lỗi (hàng được tạo rỗng rồi gõ dần),
