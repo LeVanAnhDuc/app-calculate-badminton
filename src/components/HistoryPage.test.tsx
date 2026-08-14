@@ -403,3 +403,10 @@ test('gợi ý cách xóa buổi cho cả hai loại thiết bị', () => {
   expect(screen.getByText('💡 Vuốt trái một buổi để xóa')).toBeInTheDocument()
   expect(screen.getByText('💡 Mở chi tiết rồi bấm nút Xóa buổi này')).toBeInTheDocument()
 })
+
+test('nút Quay lại dùng icon SVG chứ không phải glyph chữ', () => {
+  render(<Harness initial={[saved]} />)
+  const btn = screen.getByRole('button', { name: 'Quay lại' })
+  expect(btn.querySelector('svg')).not.toBeNull()
+  expect(btn.textContent).toBe('')
+})

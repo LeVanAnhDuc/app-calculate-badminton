@@ -577,3 +577,13 @@ test('QR button opens the QR sheet; without a stored account the setup form appe
   fireEvent.click(screen.getByRole('button', { name: 'Mã QR cho Tuấn' }))
   expect(await screen.findByPlaceholderText('Số tài khoản')).toBeInTheDocument()
 })
+
+test('nút Đóng của lớp toàn màn hình dùng icon SVG chứ không phải glyph chữ', () => {
+  const result = calcRatioMode(input)
+  render(<ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
+      onNewSession={() => {}} onPatch={() => {}} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+  const btn = screen.getByRole('button', { name: 'Đóng' })
+  expect(btn.querySelector('svg')).not.toBeNull()
+  expect(btn.textContent).toBe('')
+})

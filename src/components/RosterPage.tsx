@@ -6,6 +6,7 @@ import type { Gender } from '../lib/types'
 import { groupByLetter, matchesQuery } from '../lib/alphabet'
 import { insertAt, toastUndo } from '../lib/undo'
 import { DeleteButton } from './DeleteButton'
+import { ArrowLeftIcon, CloseIcon, PencilIcon, PlusIcon } from './icons'
 import { SwipeToDelete } from './SwipeToDelete'
 
 interface Props {
@@ -26,25 +27,6 @@ function Avatar({ entry }: { entry: RosterEntry }) {
     >
       {entry.name.trim().charAt(0).toUpperCase() || '?'}
     </span>
-  )
-}
-
-function PencilIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-      <path d="m15 5 4 4" />
-    </svg>
   )
 }
 
@@ -208,9 +190,9 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
               type="button"
               aria-label="Quay lại"
               onClick={onBack}
-              className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center text-xl shrink-0"
+              className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0"
             >
-              ←
+              <ArrowLeftIcon />
             </button>
             <div className="flex-1 min-w-0">
               <h1 className="text-white text-xl font-bold">Danh bạ người chơi</h1>
@@ -220,9 +202,9 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
               type="button"
               aria-label="Thêm vào danh bạ"
               onClick={openAdd}
-              className="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center text-2xl leading-none shrink-0"
+              className="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0"
             >
-              +
+              <PlusIcon />
             </button>
           </div>
 
@@ -244,9 +226,9 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
                   type="button"
                   aria-label="Xóa từ khóa tìm kiếm"
                   onClick={() => setQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full text-emerald-100 text-lg leading-none"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full text-emerald-100 flex items-center justify-center"
                 >
-                  ×
+                  <CloseIcon size={16} />
                 </button>
               )}
             </div>

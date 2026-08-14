@@ -1,4 +1,5 @@
 import { useInstallPrompt } from '../lib/installPrompt'
+import { CloseIcon } from './icons'
 
 export function InstallBanner() {
   const { mode, install, dismiss } = useInstallPrompt()
@@ -20,9 +21,9 @@ export function InstallBanner() {
           type="button"
           onClick={dismiss}
           aria-label="Tắt lời mời cài app"
-          className="h-11 w-11 -mt-2 -mr-2 shrink-0 text-emerald-700 text-lg"
+          className="h-11 w-11 -mt-2 -mr-2 shrink-0 text-emerald-700 flex items-center justify-center"
         >
-          ✕
+          <CloseIcon size={18} />
         </button>
       </div>
       {mode === 'android' && (

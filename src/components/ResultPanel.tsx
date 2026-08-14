@@ -6,6 +6,7 @@ import { paidCount, unpaidAmount } from '../lib/settlement'
 import { formatHours } from '../lib/time'
 import type { CalcResult, Mode, Player, PlayerResult, SessionInput } from '../lib/types'
 import { EyeButton } from './EyeButton'
+import { CloseIcon } from './icons'
 import { PaidToggle } from './PaidToggle'
 import { QRSheet } from './QRSheet'
 import { CopyTextButton, ShareImageButton } from './ShareButtons'
@@ -269,9 +270,9 @@ function FullscreenResult({
               aria-label="Đóng"
               title="Đóng"
               onClick={onClose}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 text-2xl leading-none"
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
             >
-              ×
+              <CloseIcon size={18} />
             </button>
           </div>
         </div>

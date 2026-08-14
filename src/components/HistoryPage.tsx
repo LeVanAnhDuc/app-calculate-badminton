@@ -4,7 +4,7 @@ import { paidCount } from '../lib/settlement'
 import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
 import { durationHours } from '../lib/time'
-import { TrashIcon } from './DeleteButton'
+import { ArrowLeftIcon, TrashIcon } from './icons'
 import { PaidToggle } from './PaidToggle'
 import { payerSummary } from './PayerSelect'
 import { QRSheet } from './QRSheet'
@@ -98,9 +98,9 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
               type="button"
               aria-label="Quay lại"
               onClick={onBack}
-              className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center text-xl shrink-0"
+              className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0"
             >
-              ←
+              <ArrowLeftIcon />
             </button>
             <div>
               <h1 className="text-white text-xl font-bold">Lịch sử các buổi</h1>

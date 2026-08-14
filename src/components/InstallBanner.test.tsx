@@ -41,3 +41,11 @@ test('bấm nút tắt gọi dismiss()', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Tắt lời mời cài app' }))
   expect(dismiss).toHaveBeenCalledTimes(1)
 })
+
+test('nút tắt dùng icon SVG chứ không phải glyph chữ', () => {
+  mockHook.mockReturnValue({ mode: 'android', install, dismiss })
+  render(<InstallBanner />)
+  const btn = screen.getByRole('button', { name: 'Tắt lời mời cài app' })
+  expect(btn.querySelector('svg')).not.toBeNull()
+  expect(btn.textContent).toBe('')
+})

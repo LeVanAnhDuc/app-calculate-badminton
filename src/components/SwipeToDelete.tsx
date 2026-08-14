@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode, type TouchEvent } from 'react'
-import { TrashIcon } from './DeleteButton'
+import { TrashIcon } from './icons'
 
 const OPEN_PX = 80
 const THRESHOLD_PX = 40

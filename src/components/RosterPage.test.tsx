@@ -202,3 +202,24 @@ test('adding while a search is active clears the search so the new name is visib
   expect(screen.getByText('Minh')).toBeInTheDocument()
   expect(screen.getByText('Tuấn')).toBeInTheDocument()
 })
+
+// Glyph chữ được vẽ trên đường baseline, mà font chừa phần chân chữ không cân
+// bên dưới, nên "←" / "+" / "×" nằm thấp hơn tâm nút ~3px dù hộp đã canh giữa.
+// Chỉ icon SVG mới cân được.
+test.each([
+  ['Quay lại'],
+  ['Thêm vào danh bạ'],
+])('nút %s dùng icon SVG chứ không phải glyph chữ', (label) => {
+  render(<Harness initial={base} />)
+  const btn = screen.getByRole('button', { name: label })
+  expect(btn.querySelector('svg')).not.toBeNull()
+  expect(btn.textContent).toBe('')
+})
+
+test('nút xóa từ khóa tìm kiếm dùng icon SVG chứ không phải glyph chữ', () => {
+  render(<Harness initial={base} />)
+  fireEvent.change(screen.getByLabelText('Tìm trong danh bạ'), { target: { value: 'zz' } })
+  const btn = screen.getByRole('button', { name: 'Xóa từ khóa tìm kiếm' })
+  expect(btn.querySelector('svg')).not.toBeNull()
+  expect(btn.textContent).toBe('')
+})
