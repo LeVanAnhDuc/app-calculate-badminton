@@ -25,7 +25,7 @@ function addPlayer(name: string) {
 test('full flow: add players, see results, save session persists to history', { timeout: 15000 }, () => {
   render(<App />)
   // costs: 6 shuttles ×25k default price, court 150k
-  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
   // players
   const nameInput = screen.getByPlaceholderText('Tên người chơi')
@@ -51,7 +51,7 @@ test('hourly mode: save persists finite amounts, verified through the real loade
   render(<App />)
   fireEvent.click(screen.getByRole('button', { name: 'Sân theo giờ' }))
   // default court times 19:00–21:00 are left untouched
-  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
   const nameInput = screen.getByPlaceholderText('Tên người chơi')
   fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
@@ -76,7 +76,7 @@ test('saving shows a toast and disables the save button briefly to prevent dupli
   // tests would never see an AnimatePresence exit animation finish
   vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ['setTimeout', 'clearTimeout'] })
   render(<App />)
-  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
   const nameInput = screen.getByPlaceholderText('Tên người chơi')
   fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
@@ -106,7 +106,7 @@ test('session state is restored from localStorage', () => {
 
 test('"Buổi mới" resets straight away and "Hoàn tác" brings the previous session back', async () => {
   render(<App />)
-  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
   // "Tuấn" appears both in the player row and in the result panel's amount
   // breakdown, so scope on the row's own quick-delete button instead
@@ -120,13 +120,13 @@ test('"Buổi mới" resets straight away and "Hoàn tác" brings the previous s
   )
   expect(screen.getByText('Chưa có người chơi nào')).toBeInTheDocument()
   expect(screen.getByLabelText('Tiền sân')).toHaveValue('')
-  expect(screen.getByLabelText('Số quả cầu')).toHaveValue('')
+  expect(screen.getByLabelText('Số quả của loại cầu')).toHaveValue('')
 
   // the undo toast restores the whole previous session snapshot
   fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tác' }))
   expect(await screen.findByRole('button', { name: 'Xóa Tuấn' })).toBeInTheDocument()
   expect(screen.getByLabelText('Tiền sân')).toHaveValue('150.000')
-  expect(screen.getByLabelText('Số quả cầu')).toHaveValue('6')
+  expect(screen.getByLabelText('Số quả của loại cầu')).toHaveValue('6')
 })
 
 test('"Buổi mới" on an already-empty session resets silently — nothing to undo', async () => {
@@ -342,7 +342,7 @@ test('undo does not resurrect a trimmed extra the user deleted by hand while the
 
 test('deleting a saved session in history toasts an undo that restores it at its old spot', async () => {
   render(<App />)
-  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
   addPlayer('Tuấn')
   fireEvent.click(screen.getByRole('button', { name: 'Lưu buổi này' }))
@@ -366,7 +366,7 @@ test('a failed history save surfaces an error toast instead of failing silently'
   })
 
   render(<App />)
-  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
   const nameInput = screen.getByPlaceholderText('Tên người chơi')
   fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
@@ -380,7 +380,7 @@ test('a failed history save surfaces an error toast instead of failing silently'
 
 test('paid toggle in history detail persists through the real loader', () => {
   render(<App />)
-  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
   const nameInput = screen.getByPlaceholderText('Tên người chơi')
   fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
