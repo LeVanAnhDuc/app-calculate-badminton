@@ -139,7 +139,9 @@ test('"Buổi mới" on an already-empty session resets silently — nothing to 
   expect(screen.getByText('Chưa có người chơi nào')).toBeInTheDocument()
 })
 
-test('deleting a player toasts an undo that restores it in place, keeping later changes', async () => {
+// waits on AnimatePresence exit animations to unmount the deleted row twice over;
+// needs headroom beyond the 5s default under parallel load
+test('deleting a player toasts an undo that restores it in place, keeping later changes', { timeout: 15000 }, async () => {
   render(<App />)
   addPlayer('An')
   addPlayer('Nam')
@@ -158,7 +160,8 @@ test('deleting a player toasts an undo that restores it in place, keeping later 
   await waitFor(() => expect(playerNames()).toEqual(['An', 'Nam', 'Bình', 'Hùng']))
 })
 
-test('undo restores a deleted player with its paid / ½ buổi state intact', async () => {
+// same exit-animation wait as the test above
+test('undo restores a deleted player with its paid / ½ buổi state intact', { timeout: 15000 }, async () => {
   render(<App />)
   addPlayer('An')
   addPlayer('Nam')
