@@ -28,6 +28,11 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Chia sẻ kết quả**
   - Tải bảng kết quả về dưới dạng ảnh PNG để gửi vào nhóm chat
 
+- **Mã VietQR cho từng người chơi**
+  - Nhập tài khoản người thu một lần — app sẽ dùng cho mọi buổi sau
+  - Mỗi người quét QR riêng (kèm sẵn số tiền + nội dung chuyển khoản) để trả
+  - Mã VietQR hiển thị trong ảnh kết quả PNG chia sẻ
+
 - **Giao diện linh hoạt**
   - Sửa giờ chơi qua bottom sheet (vaul), chọn giờ với wheel picker 24h kiểu iOS
   - Kéo tay nắm ⠿ để sắp xếp thứ tự người chơi (mobile & desktop)
@@ -43,7 +48,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (137 test cases)
+- **Testing**: Vitest + React Testing Library (160 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án
