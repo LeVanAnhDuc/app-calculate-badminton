@@ -109,6 +109,19 @@ test('fullscreen overlay shows player names and closes on Đóng', async () => {
   )
 })
 
+test('fullscreen overlay is portaled to document.body so ancestor stacking contexts cannot cover it', () => {
+  const result = calcRatioMode(input)
+  const { container } = render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}}
+      onNewSession={() => {}} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+  const overlay = screen.getByTestId('fullscreen-overlay')
+  // the app renders the result column inside an md:sticky container, which
+  // creates its own stacking context — a fixed z-50 overlay nested there
+  // loses to z-10 elements elsewhere on the page, so it must escape via portal
+  expect(container.contains(overlay)).toBe(false)
+  expect(overlay.parentElement).toBe(document.body)
+})
+
 test('fullscreen overlay lays out players in a responsive 1/2-column grid', () => {
   const result = calcRatioMode(input)
   render(<ResultPanel result={result} mode="ratio" errors={[]} onSave={() => {}}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import { downloadResultImage } from '../lib/exportImage'
@@ -160,8 +161,11 @@ function FullscreenResult({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [onClose])
 
-  return (
+  // Portaled to <body>: the panel lives inside an md:sticky column whose
+  // stacking context would otherwise let z-10 elements elsewhere paint on top.
+  return createPortal(
     <motion.div
+      data-testid="fullscreen-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -206,7 +210,8 @@ function FullscreenResult({
           </div>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   )
 }
 
