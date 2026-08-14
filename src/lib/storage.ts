@@ -1,4 +1,4 @@
-import type { CalcResult, Gender, Mode, Rounding, SessionInput } from './types'
+import type { CalcResult, Gender, Mode, Player, Rounding, SessionInput } from './types'
 
 export interface RosterEntry {
   name: string
@@ -74,7 +74,19 @@ const isPlayer = (v: unknown): boolean =>
   (v.gender === 'male' || v.gender === 'female') &&
   typeof v.halfSession === 'boolean' &&
   (typeof v.startTime === 'string' || v.startTime === null) &&
-  (typeof v.endTime === 'string' || v.endTime === null)
+  (typeof v.endTime === 'string' || v.endTime === null) &&
+  // migration: dữ liệu cũ không có trường `paid` — chấp nhận boolean hoặc undefined,
+  // normalizePlayer() sẽ điền paid: false khi load. Không được để guard này bác dữ liệu cũ.
+  (typeof v.paid === 'boolean' || v.paid === undefined)
+
+/** Di trú mềm: dữ liệu cũ không có `paid` → mặc định false. Không làm mất trường khác. */
+function normalizePlayer(p: Player): Player {
+  return { ...p, paid: p.paid ?? false }
+}
+
+function normalizeSession(s: SessionInput): SessionInput {
+  return { ...s, players: s.players.map(normalizePlayer) }
+}
 
 const isSession = (v: unknown): boolean =>
   isObject(v) &&
@@ -130,8 +142,10 @@ export function addToRoster(roster: RosterEntry[], name: string, gender: Gender)
 export const loadSettings = (): Settings => load('settings', isSettings, DEFAULT_SETTINGS)
 export const saveSettings = (s: Settings): boolean => save('settings', s)
 
-export const loadCurrentSession = (): SessionInput | null =>
-  load<SessionInput | null>('currentSession', isSession, null)
+export function loadCurrentSession(): SessionInput | null {
+  const s = load<SessionInput | null>('currentSession', isSession, null)
+  return s ? normalizeSession(s) : null
+}
 export const saveCurrentSession = (s: SessionInput): boolean => save('currentSession', s)
 
 export const HISTORY_LIMIT = 500
@@ -142,7 +156,7 @@ export function loadHistory(): SavedSession[] {
     if (!raw) return []
     const parsed: unknown = JSON.parse(raw)
     const valid = Array.isArray(parsed) ? (parsed.filter(isSavedSession) as SavedSession[]) : []
-    return valid.slice(0, HISTORY_LIMIT)
+    return valid.slice(0, HISTORY_LIMIT).map((s) => ({ ...s, input: normalizeSession(s.input) }))
   } catch {
     return []
   }

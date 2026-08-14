@@ -15,6 +15,7 @@ function Harness({ initial, roster = [] }: { initial: SessionInput; roster?: Ros
       halfSession: false,
       startTime: null,
       endTime: null,
+      paid: false,
     }
     setInput((s) => ({ ...s, players: [...s.players, player] }))
   }
@@ -55,7 +56,7 @@ const base: SessionInput = {
   femaleRatio: 1,
   rounding: 'up1000',
   players: [
-    { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null },
+    { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null, paid: false },
   ],
 }
 
@@ -230,7 +231,7 @@ test('rename via edit drawer commits on blur; duplicate name is blocked', () => 
     ...base,
     players: [
       ...base.players,
-      { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null },
+      { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null, paid: false },
     ],
   }
   render(<Harness initial={initial} />)

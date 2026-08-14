@@ -81,11 +81,46 @@ test('currentSession valid roundtrip', () => {
     maleRatio: 1.5,
     femaleRatio: 1.0,
     rounding: 'up1000' as const,
-    players: [{ id: '1', name: 'Tuấn', gender: 'male' as const, halfSession: false, startTime: null, endTime: null }],
+    players: [
+      {
+        id: '1',
+        name: 'Tuấn',
+        gender: 'male' as const,
+        halfSession: false,
+        startTime: null,
+        endTime: null,
+        paid: false,
+      },
+    ],
   }
   localStorage.setItem('currentSession', JSON.stringify(valid))
   const loaded = loadCurrentSession()
   expect(loaded).toEqual(valid)
+})
+
+test('migration: old currentSession without `paid` on players loads intact with paid defaulted to false', () => {
+  // simulates data saved before paid tracking existed — no `paid` field at all
+  const legacy = {
+    mode: 'ratio' as const,
+    shuttleCount: 10,
+    shuttlePrice: 25000,
+    courtFee: 500000,
+    courtStart: '09:00',
+    courtEnd: '11:00',
+    maleRatio: 1.5,
+    femaleRatio: 1.0,
+    rounding: 'up1000' as const,
+    players: [
+      { id: '1', name: 'Tuấn', gender: 'male' as const, halfSession: false, startTime: null, endTime: null },
+      { id: '2', name: 'Lan', gender: 'female' as const, halfSession: true, startTime: null, endTime: null },
+    ],
+  }
+  localStorage.setItem('currentSession', JSON.stringify(legacy))
+  const loaded = loadCurrentSession()
+  expect(loaded).not.toBeNull()
+  expect(loaded!.players).toHaveLength(2)
+  expect(loaded!.players[0]).toEqual({ ...legacy.players[0], paid: false })
+  expect(loaded!.players[1]).toEqual({ ...legacy.players[1], paid: false })
 })
 
 test('history rejects invalid result', () => {
@@ -129,7 +164,17 @@ test('history valid roundtrip', () => {
         maleRatio: 1.5,
         femaleRatio: 1.0,
         rounding: 'up1000' as const,
-        players: [{ id: '1', name: 'Tuấn', gender: 'male' as const, halfSession: false, startTime: null, endTime: null }],
+        players: [
+          {
+            id: '1',
+            name: 'Tuấn',
+            gender: 'male' as const,
+            halfSession: false,
+            startTime: null,
+            endTime: null,
+            paid: false,
+          },
+        ],
       },
       result: {
         totalCost: 525000,
@@ -159,6 +204,53 @@ test('history valid roundtrip', () => {
   expect(loaded).toEqual(valid)
 })
 
+test('migration: old history entry without `paid` on players loads intact, not filtered out, paid defaulted to false', () => {
+  const legacy = [
+    {
+      id: 'session1',
+      savedAt: '2024-01-01T10:00:00Z',
+      input: {
+        mode: 'ratio' as const,
+        shuttleCount: 10,
+        shuttlePrice: 25000,
+        courtFee: 500000,
+        courtStart: '09:00',
+        courtEnd: '11:00',
+        maleRatio: 1.5,
+        femaleRatio: 1.0,
+        rounding: 'up1000' as const,
+        // no `paid` field at all — this is what pre-feature data looks like
+        players: [
+          { id: '1', name: 'Tuấn', gender: 'male' as const, halfSession: false, startTime: null, endTime: null },
+        ],
+      },
+      result: {
+        totalCost: 525000,
+        totalCollected: 525000,
+        surplus: 0,
+        emptyHours: 0,
+        players: [
+          {
+            playerId: '1',
+            name: 'Tuấn',
+            gender: 'male' as const,
+            halfSession: false,
+            hours: null,
+            courtShare: 250000,
+            shuttleShare: 250000,
+            raw: 500000,
+            amount: 500000,
+          },
+        ],
+      },
+    },
+  ]
+  localStorage.setItem('history', JSON.stringify(legacy))
+  const loaded = loadHistory()
+  expect(loaded).toHaveLength(1)
+  expect(loaded[0].input.players[0]).toEqual({ ...legacy[0].input.players[0], paid: false })
+})
+
 function makeSession(id: string, savedAt: string): SavedSession {
   return {
     id,
@@ -173,7 +265,9 @@ function makeSession(id: string, savedAt: string): SavedSession {
       maleRatio: 1.5,
       femaleRatio: 1.0,
       rounding: 'up1000',
-      players: [{ id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null }],
+      players: [
+        { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null, paid: false },
+      ],
     },
     result: {
       totalCost: 525000,
@@ -221,7 +315,17 @@ test('history salvages valid entries instead of wiping everything when one entry
       maleRatio: 1.5,
       femaleRatio: 1.0,
       rounding: 'up1000' as const,
-      players: [{ id: '1', name: 'Tuấn', gender: 'male' as const, halfSession: false, startTime: null, endTime: null }],
+      players: [
+        {
+          id: '1',
+          name: 'Tuấn',
+          gender: 'male' as const,
+          halfSession: false,
+          startTime: null,
+          endTime: null,
+          paid: false,
+        },
+      ],
     },
     result: {
       totalCost: 525000,

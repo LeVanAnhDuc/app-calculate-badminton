@@ -9,6 +9,7 @@ export interface Player {
   halfSession: boolean          // mode 'ratio' only
   startTime: string | null      // mode 'hourly'; null = cả buổi (follows court times)
   endTime: string | null
+  paid: boolean                 // đã trả tiền hay chưa, mặc định false
 }
 
 export interface SessionInput {

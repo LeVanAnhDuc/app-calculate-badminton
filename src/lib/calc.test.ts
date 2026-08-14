@@ -2,7 +2,7 @@ import { calcHourlyMode, calcRatioMode, calcSession, roundAmount, validateSessio
 import type { Player, SessionInput } from './types'
 
 function player(p: Partial<Player> & Pick<Player, 'name' | 'gender'>): Player {
-  return { id: p.name, halfSession: false, startTime: null, endTime: null, ...p }
+  return { id: p.name, halfSession: false, startTime: null, endTime: null, paid: false, ...p }
 }
 
 function ratioInput(over: Partial<SessionInput> = {}): SessionInput {
