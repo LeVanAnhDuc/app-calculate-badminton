@@ -1,13 +1,16 @@
-import { useState, type TouchEvent } from 'react'
+import { useState, type Dispatch, type SetStateAction, type TouchEvent } from 'react'
 import { motion } from 'motion/react'
 import { Drawer } from 'vaul'
 import type { RosterEntry } from '../lib/storage'
 import type { Gender } from '../lib/types'
+import { insertAt, toastUndo } from '../lib/undo'
 
 interface Props {
   roster: RosterEntry[]
   onBack: () => void
-  onChange: (roster: RosterEntry[]) => void
+  // takes an updater too, so undoing a delete re-inserts into the roster as
+  // it is at that moment rather than a snapshot from before the toast
+  onChange: Dispatch<SetStateAction<RosterEntry[]>>
 }
 
 const SWIPE_OPEN_PX = 80
@@ -72,9 +75,14 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
   }
 
   const requestDelete = (name: string) => {
-    if (!window.confirm(`Xóa "${name}" khỏi danh bạ?`)) return
+    const index = roster.findIndex((r) => r.name === name)
+    if (index === -1) return
+    const removed = roster[index]
     setOpenSwipeName(null)
-    onChange(roster.filter((r) => r.name !== name))
+    onChange((r) => r.filter((entry) => entry.name !== name))
+    toastUndo(`Đã xóa "${name}" khỏi danh bạ`, () =>
+      onChange((r) => insertAt(r, index, removed)),
+    )
   }
 
   const editingEntry = roster.find((r) => r.name === editingName) ?? null

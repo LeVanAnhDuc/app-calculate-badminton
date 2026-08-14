@@ -77,16 +77,17 @@ test('cards start collapsed; tapping one expands it, tapping again collapses it'
   expect(screen.queryByText('Tổng thu')).not.toBeInTheDocument()
 })
 
-test('delete asks for confirmation', () => {
+test('delete calls onDelete straight away, without a confirm dialog', () => {
   const onDelete = vi.fn()
-  vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+  const confirmSpy = vi.spyOn(window, 'confirm')
   render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={onDelete} onTogglePaid={() => {}} onReuse={() => {}} />)
   fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
   fireEvent.click(screen.getByRole('button', { name: 'Xóa buổi này' }))
-  expect(onDelete).not.toHaveBeenCalled()
-  vi.spyOn(window, 'confirm').mockReturnValueOnce(true)
-  fireEvent.click(screen.getByRole('button', { name: 'Xóa buổi này' }))
+  // deleting is undoable via the "Hoàn tác" toast App raises, so nothing is
+  // asked up front
+  expect(confirmSpy).not.toHaveBeenCalled()
   expect(onDelete).toHaveBeenCalledWith('s1')
+  confirmSpy.mockRestore()
 })
 
 test('reuse passes the session', () => {
@@ -171,7 +172,6 @@ test('hourly-mode detail shows hours and never shows leftover ½ buổi note', (
 })
 
 test('deleting an expanded session collapses the view instead of auto-expanding another card', () => {
-  vi.spyOn(window, 'confirm').mockReturnValue(true)
   render(<Harness initial={[saved, savedB]} />)
   // expand saved (id s1, the first/newest card)
   fireEvent.click(screen.getAllByText(/2 người · 1 nam, 1 nữ/)[0])

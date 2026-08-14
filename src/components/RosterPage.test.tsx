@@ -64,27 +64,29 @@ test('changing gender in the edit drawer updates the entry immediately', () => {
   expect(screen.getByText('Tuấn')).toBeInTheDocument()
 })
 
-test('deleting via the desktop × button asks for confirmation', () => {
-  vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+test('deleting via the desktop × button removes the entry immediately, without a confirm dialog', () => {
+  const confirmSpy = vi.spyOn(window, 'confirm')
   render(<Harness initial={base} />)
   fireEvent.click(screen.getByRole('button', { name: 'Xóa Tuấn' }))
-  expect(screen.getByText('Tuấn')).toBeInTheDocument()
-
-  vi.spyOn(window, 'confirm').mockReturnValueOnce(true)
-  fireEvent.click(screen.getByRole('button', { name: 'Xóa Tuấn' }))
+  expect(confirmSpy).not.toHaveBeenCalled()
   expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
   expect(screen.getByText('1 người đã lưu')).toBeInTheDocument()
+  confirmSpy.mockRestore()
 })
 
-test('confirm dialog includes the entry name', () => {
-  const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
-  render(<Harness initial={base} />)
+test('deleting uses the updater form of onChange so a concurrent change is not lost', () => {
+  const onChange = vi.fn()
+  render(<RosterPage roster={base} onBack={() => {}} onChange={onChange} />)
   fireEvent.click(screen.getByRole('button', { name: 'Xóa Tuấn' }))
-  expect(confirmSpy).toHaveBeenCalledWith('Xóa "Tuấn" khỏi danh bạ?')
+  expect(onChange).toHaveBeenCalledTimes(1)
+  const updater = onChange.mock.calls[0][0] as (r: RosterEntry[]) => RosterEntry[]
+  expect(typeof updater).toBe('function')
+  // an entry added after the delete must survive the filter
+  const added: RosterEntry = { name: 'Minh', gender: 'male' }
+  expect(updater([...base, added])).toEqual([{ name: 'Lan', gender: 'female' }, added])
 })
 
-test('swipe-left reveals the red Xóa button; tapping it deletes with confirmation', () => {
-  vi.spyOn(window, 'confirm').mockReturnValue(true)
+test('swipe-left reveals the red Xóa button; tapping it deletes the entry', () => {
   render(<Harness initial={base} />)
   const row = screen.getByTestId('roster-swipe-row-Tuấn')
   fireEvent.touchStart(row, { touches: [{ clientX: 200 }] })
