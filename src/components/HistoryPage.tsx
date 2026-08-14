@@ -5,7 +5,37 @@ import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
 import { durationHours } from '../lib/time'
 import { PaidToggle } from './PaidToggle'
+import { QRSheet } from './QRSheet'
 import { PaidSummaryLine, SurplusRow, TotalCollectedRow } from './ResultPanel'
+
+function QRIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="5" height="5" x="3" y="3" rx="1" />
+      <rect width="5" height="5" x="16" y="3" rx="1" />
+      <rect width="5" height="5" x="3" y="16" rx="1" />
+      <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+      <path d="M21 21v.01" />
+      <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+      <path d="M3 12h.01" />
+      <path d="M12 3h.01" />
+      <path d="M12 16v.01" />
+      <path d="M16 12h1" />
+      <path d="M21 12v.01" />
+      <path d="M12 21v-1" />
+    </svg>
+  )
+}
 
 interface Props {
   history: SavedSession[]
@@ -38,6 +68,7 @@ function monthLabel(iso: string): string {
 
 export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [qrTarget, setQrTarget] = useState<{ sessionId: string; playerId: string } | null>(null)
 
   // cards never auto-expand; this only guards against a deleted card
   // staying "expanded" once it no longer exists in history
@@ -204,7 +235,18 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                                     </span>
                                   </span>
                                 </span>
-                                <span className="font-bold">{formatVND(p.amount)}</span>
+                                <span className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    aria-label={`Mã QR cho ${p.name}`}
+                                    title={`Mã QR cho ${p.name}`}
+                                    onClick={() => setQrTarget({ sessionId: s.id, playerId: p.playerId })}
+                                    className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+                                  >
+                                    <QRIcon />
+                                  </button>
+                                  <span className="font-bold">{formatVND(p.amount)}</span>
+                                </span>
                               </li>
                             )
                           })}
@@ -233,6 +275,24 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
               </Fragment>
             )
           })}
+          {(() => {
+            if (qrTarget === null) return null
+            const s = history.find((x) => x.id === qrTarget.sessionId)
+            const pr = s?.result.players.find((p) => p.playerId === qrTarget.playerId)
+            if (!s || !pr) return null
+            const paid = s.input.players.find((pl) => pl.id === pr.playerId)?.paid ?? false
+            return (
+              <QRSheet
+                open
+                onClose={() => setQrTarget(null)}
+                playerName={pr.name}
+                amount={pr.amount}
+                memoDate={new Date(s.savedAt)}
+                paid={paid}
+                onTogglePaid={() => onTogglePaid(s.id, pr.playerId)}
+              />
+            )
+          })()}
           <p className="text-center text-xs text-gray-400 pt-3 md:col-span-2">
             Dữ liệu lưu trên máy của bạn (localStorage)
             <br />

@@ -2,8 +2,14 @@ import { useState } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { HistoryPage } from './HistoryPage'
 import { calcHourlyMode, calcRatioMode } from '../lib/calc'
-import type { SavedSession } from '../lib/storage'
+import { saveCollectorAccount, type SavedSession } from '../lib/storage'
 import type { SessionInput } from '../lib/types'
+
+vi.mock('qrcode', () => ({
+  default: { toDataURL: vi.fn().mockResolvedValue('data:image/png;base64,TEST') },
+}))
+
+beforeEach(() => localStorage.clear())
 
 const input: SessionInput = {
   mode: 'ratio',
@@ -231,4 +237,17 @@ describe('paid tracking', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Đánh dấu Tuấn đã trả' }))
     expect(onTogglePaid).toHaveBeenCalledWith('s1', '1')
   })
+})
+
+test('QR button in expanded session opens the sheet with the session-date memo', async () => {
+  // store an account first so the sheet shows the QR view directly
+  saveCollectorAccount({ bankBin: '970422', accountNo: '0011002233', accountName: '' })
+  render(
+    <HistoryPage history={[saved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />,
+  )
+  fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+  fireEvent.click(screen.getByRole('button', { name: 'Mã QR cho Tuấn' }))
+  // memo uses the session's savedAt (August), not today. Match the month only —
+  // the exact day of '2026-08-13T20:15:00.000Z' depends on the machine timezone.
+  expect(await screen.findByText(/^Cau long \d{2}\/08 Tuan$/)).toBeInTheDocument()
 })
