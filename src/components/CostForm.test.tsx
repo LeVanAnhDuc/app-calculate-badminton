@@ -1,17 +1,29 @@
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { useState } from 'react'
 import { CostForm } from './CostForm'
+import type { ShuttleType } from '../lib/shuttleTypes'
 import type { SessionInput } from '../lib/types'
 
-function Harness({ initial }: { initial: SessionInput }) {
+function Harness({
+  initial,
+  shuttleTypes = [],
+}: {
+  initial: SessionInput
+  shuttleTypes?: ShuttleType[]
+}) {
   const [input, setInput] = useState(initial)
-  return <CostForm input={input} onPatch={(p) => setInput((s) => ({ ...s, ...p }))} />
+  return (
+    <CostForm
+      input={input}
+      shuttleTypes={shuttleTypes}
+      onPatch={(p) => setInput((s) => ({ ...s, ...p }))}
+    />
+  )
 }
 
 const base: SessionInput = {
   mode: 'ratio',
-  shuttleCount: 6,
-  shuttlePrice: 25000,
+  shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }],
   courtFee: 150000,
   courtStart: '19:00',
   courtEnd: '21:00',
@@ -116,6 +128,7 @@ describe('chi phí phát sinh khác', () => {
           ...withPlayers,
           extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerIds: ['p1'] }],
         }}
+        shuttleTypes={[]}
         onPatch={onPatch}
       />,
     )
@@ -135,6 +148,70 @@ describe('chi phí phát sinh khác', () => {
     render(<Harness initial={base} />)
     expect(screen.getByRole('button', { name: '+ Thêm khoản' })).toBeDisabled()
     expect(screen.getByText('Thêm người chơi trước để gán khoản phát sinh')).toBeInTheDocument()
+  })
+})
+
+describe('nhiều loại cầu', () => {
+  test('thêm dòng, nhập số lượng và giá, tổng cộng đúng', () => {
+    render(<Harness initial={base} />)
+    expect(screen.getByText('150.000đ')).toBeInTheDocument() // tiền cầu 1 dòng
+
+    fireEvent.click(screen.getByRole('button', { name: '+ Thêm loại cầu' }))
+    const counts = screen.getAllByLabelText(/^Số quả của/)
+    const prices = screen.getAllByLabelText(/^Giá \/ quả của/)
+    expect(counts).toHaveLength(2)
+
+    fireEvent.change(counts[1], { target: { value: '2' } })
+    fireEvent.change(prices[1], { target: { value: '20000' } })
+
+    expect(screen.getByText('190.000đ')).toBeInTheDocument() // tiền cầu
+    expect(screen.getByText('340.000đ')).toBeInTheDocument() // TỔNG CHI
+  })
+
+  test('đặt tên loại cầu qua sheet rồi xóa dòng', () => {
+    render(<Harness initial={base} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Loại cầu 1' }))
+    fireEvent.change(screen.getByLabelText('Tên loại cầu'), { target: { value: 'Hải Yến' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Xong' }))
+
+    expect(screen.getByLabelText('Số quả của Hải Yến')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa Hải Yến' }))
+    expect(screen.getByText('150.000đ')).toBeInTheDocument()
+  })
+
+  test('chọn gợi ý điền cả tên và giá', () => {
+    render(
+      <Harness
+        initial={{ ...base, shuttles: [{ id: 's1', name: '', count: 2, price: 0 }] }}
+        shuttleTypes={[{ name: 'Ba Sao', price: 20000 }]}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Loại cầu 1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Chọn Ba Sao · 20.000đ' }))
+
+    expect(screen.getByLabelText('Số quả của Ba Sao')).toBeInTheDocument()
+    expect(screen.getByText('190.000đ')).toBeInTheDocument() // 40.000 cầu + 150.000 sân
+  })
+
+  test('gợi ý bỏ loại cầu đã có ở dòng khác', () => {
+    render(
+      <Harness
+        initial={{
+          ...base,
+          shuttles: [
+            { id: 's1', name: 'Ba Sao', count: 2, price: 20000 },
+            { id: 's2', name: '', count: 0, price: 0 },
+          ],
+        }}
+        shuttleTypes={[
+          { name: 'Ba Sao', price: 20000 },
+          { name: 'Hải Yến', price: 25000 },
+        ]}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Loại cầu 2' }))
+    expect(screen.queryByRole('button', { name: 'Chọn Ba Sao · 20.000đ' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Chọn Hải Yến · 25.000đ' })).toBeInTheDocument()
   })
 })
 

@@ -8,6 +8,11 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - **Chia theo tỉ lệ**: Cộng tiền cầu & sân, chia theo hệ số giới tính (Nam/Nữ), hỗ trợ nhập ½ buổi
   - **Sân theo giờ**: Tiền sân chia theo giờ chơi thực tế từng người, tiền cầu vẫn chia theo hệ số (phù hợp khi nhóm có người đến muộn/về sớm)
 
+- **Nhiều loại cầu trong một buổi**
+  - Mỗi loại có tên, số lượng và giá riêng — tổng tiền cầu vẫn chia theo hệ số như cũ
+  - Chọn loại cầu bằng bottom sheet: chip loại hay dùng, gõ để lọc, chọn xong tự điền giá lần trước
+  - Lịch sử liệt kê rõ từng loại cầu đã dùng trong buổi
+
 - **Làm tròn và quản lý số dư**
   - Làm tròn lên 1.000đ (mặc định) hoặc giữ chính xác
   - Hiển thị số dư tổng thu vs tổng chi (ẩn sau nút 👁 mỗi lần mở ứng dụng)
@@ -55,7 +60,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (251 test cases)
+- **Testing**: Vitest + React Testing Library (274 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

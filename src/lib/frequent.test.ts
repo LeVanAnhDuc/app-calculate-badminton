@@ -25,8 +25,7 @@ const emptyResult: CalcResult = {
 function session(savedAt: string, players: Player[]): SavedSession {
   const input: SessionInput = {
     mode: 'ratio',
-    shuttleCount: 0,
-    shuttlePrice: 25000,
+    shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }],
     courtFee: 0,
     courtStart: '19:00',
     courtEnd: '21:00',

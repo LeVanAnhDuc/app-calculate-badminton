@@ -7,8 +7,7 @@ import type { SessionInput } from '../lib/types'
 
 const input: SessionInput = {
   mode: 'ratio',
-  shuttleCount: 6,
-  shuttlePrice: 25000,
+  shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }],
   courtFee: 150000,
   courtStart: '19:00',
   courtEnd: '21:00',

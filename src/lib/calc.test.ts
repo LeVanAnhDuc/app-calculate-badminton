@@ -17,8 +17,7 @@ function player(p: Partial<Player> & Pick<Player, 'name' | 'gender'>): Player {
 function ratioInput(over: Partial<SessionInput> = {}): SessionInput {
   return {
     mode: 'ratio',
-    shuttleCount: 6,
-    shuttlePrice: 25000,
+    shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }],
     courtFee: 150000,
     courtStart: '19:00',
     courtEnd: '21:00',
@@ -71,8 +70,7 @@ test('mode 1: all-male group splits evenly', () => {
 function hourlyInput(over: Partial<SessionInput> = {}): SessionInput {
   return {
     mode: 'hourly',
-    shuttleCount: 6,
-    shuttlePrice: 25000,
+    shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }],
     courtFee: 300000,
     courtStart: '19:00',
     courtEnd: '21:00',
@@ -109,7 +107,7 @@ test('mode 2: idle court time is split equally per head', () => {
   const r = calcHourlyMode(
     hourlyInput({
       courtFee: 200000,
-      shuttleCount: 0,
+      shuttles: [],
       players: [
         player({ name: 'A', gender: 'male', startTime: '19:00', endTime: '20:00' }),
         player({ name: 'B', gender: 'male', startTime: '19:00', endTime: '20:00' }),
@@ -157,7 +155,7 @@ test('validateSession catches invalid input', () => {
   expect(validateSession(ratioInput())).toEqual([])
   expect(validateSession(ratioInput({ players: [] }))).toContain('Cần ít nhất 1 người chơi')
   expect(
-    validateSession(ratioInput({ shuttleCount: 0, shuttlePrice: 0, courtFee: 0 })),
+    validateSession(ratioInput({ shuttles: [], courtFee: 0 })),
   ).toContain('Tổng chi phải lớn hơn 0')
   expect(validateSession(ratioInput({ maleRatio: 0 }))).toContain('Hệ số phải lớn hơn 0')
   expect(validateSession(hourlyInput({ courtEnd: '19:00' }))).toContain(
@@ -215,7 +213,7 @@ describe('chi phí phát sinh khác', () => {
     const r = calcRatioMode(
       ratioInput({
         courtFee: 100000,
-        shuttleCount: 0,
+        shuttles: [],
         rounding: 'exact',
         players: twoMales,
         extras: [extra({ id: 'e1', label: 'Thuê vợt', amount: 20000, playerIds: ['Hùng'] })],
@@ -234,7 +232,7 @@ describe('chi phí phát sinh khác', () => {
     const r = calcRatioMode(
       ratioInput({
         courtFee: 100400,
-        shuttleCount: 0,
+        shuttles: [],
         rounding: 'up1000',
         players: twoMales,
         extras: [extra({ id: 'e1', label: 'Nước', amount: 500, playerIds: ['Hùng'] })],
@@ -251,7 +249,7 @@ describe('chi phí phát sinh khác', () => {
     const r = calcRatioMode(
       ratioInput({
         courtFee: 100000,
-        shuttleCount: 0,
+        shuttles: [],
         rounding: 'exact',
         players: twoMales,
         extras: [
@@ -356,7 +354,7 @@ describe('chi phí phát sinh khác', () => {
     const errors = validateSession(
       ratioInput({
         courtFee: 0,
-        shuttleCount: 0,
+        shuttles: [],
         players: twoMales,
         extras: [extra({ id: 'e1', label: 'Nước', amount: 20000, playerIds: ['Hùng'] })],
       }),
@@ -371,7 +369,7 @@ describe('chi phí phát sinh khác', () => {
       const r = calcRatioMode(
         ratioInput({
           courtFee: 0,
-          shuttleCount: 0,
+          shuttles: [],
           rounding: 'exact',
           players: threeMales,
           extras: [extra({ id: 'e1', label: 'Nước', amount: 90000, playerIds: allThree })],
@@ -387,7 +385,7 @@ describe('chi phí phát sinh khác', () => {
     test('the awkward 100.000 / 3 case: the remainder dissolves into the existing rounding step', () => {
       const input = ratioInput({
         courtFee: 300000,
-        shuttleCount: 0,
+        shuttles: [],
         rounding: 'up1000',
         players: threeMales,
         extras: [extra({ id: 'e1', label: 'Nước', amount: 100000, playerIds: allThree })],
@@ -415,7 +413,7 @@ describe('chi phí phát sinh khác', () => {
       const r = calcRatioMode(
         ratioInput({
           courtFee: 0,
-          shuttleCount: 0,
+          shuttles: [],
           rounding: 'exact',
           players: four,
           extras: [extra({ id: 'e1', label: 'Nước', amount: 60000, playerIds: allThree })],
@@ -473,7 +471,7 @@ describe('chi phí phát sinh khác', () => {
     test('an extra that only partly matches real players is borne in full by the ones that do', () => {
       const input = ratioInput({
         courtFee: 0,
-        shuttleCount: 0,
+        shuttles: [],
         rounding: 'exact',
         players: twoMales,
         extras: [extra({ id: 'e1', label: 'Nước', amount: 60000, playerIds: ['Hùng', 'id-rac'] })],
@@ -492,7 +490,7 @@ describe('chi phí phát sinh khác', () => {
       const r = calcRatioMode(
         ratioInput({
           courtFee: 100000,
-          shuttleCount: 0,
+          shuttles: [],
           rounding: 'exact',
           players: twoMales,
           extras: [
@@ -528,5 +526,55 @@ describe('chi phí phát sinh khác', () => {
         ),
       ).toEqual([])
     })
+  })
+})
+
+describe('nhiều loại cầu', () => {
+  test('tiền cầu cộng mọi dòng', () => {
+    const r = calcRatioMode(
+      ratioInput({
+        shuttles: [
+          { id: 's1', name: 'Hải Yến', count: 4, price: 25000 },
+          { id: 's2', name: 'Ba Sao', count: 2, price: 20000 },
+        ],
+      }),
+    )
+    // 100.000 + 40.000 cầu + 150.000 sân
+    expect(r.totalCost).toBe(290000)
+  })
+
+  test('danh sách rỗng thì tiền cầu bằng 0', () => {
+    const r = calcRatioMode(ratioInput({ shuttles: [] }))
+    expect(r.totalCost).toBe(150000)
+    expect(r.players.every((p) => p.shuttleShare === 0)).toBe(true)
+  })
+
+  test('gộp 2 dòng thành 1 dòng cùng tổng tiền cho ra phần chia y hệt', () => {
+    const split = calcRatioMode(
+      ratioInput({
+        shuttles: [
+          { id: 's1', name: 'Hải Yến', count: 4, price: 25000 },
+          { id: 's2', name: 'Ba Sao', count: 2, price: 25000 },
+        ],
+      }),
+    )
+    const merged = calcRatioMode(
+      ratioInput({ shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }] }),
+    )
+    expect(split.players.map((p) => p.shuttleShare)).toEqual(
+      merged.players.map((p) => p.shuttleShare),
+    )
+  })
+
+  test('validate: số lượng hoặc giá âm/NaN là lỗi, tên rỗng thì không', () => {
+    expect(
+      validateSession(ratioInput({ shuttles: [{ id: 's1', name: 'Ba Sao', count: -1, price: 20000 }] })),
+    ).toContain('Số lượng/giá của "Ba Sao" chưa hợp lệ')
+    expect(
+      validateSession(ratioInput({ shuttles: [{ id: 's1', name: '', count: 1, price: Number.NaN }] })),
+    ).toContain('Số lượng/giá của "loại cầu" chưa hợp lệ')
+    expect(
+      validateSession(ratioInput({ shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }] })),
+    ).toEqual([])
   })
 })
