@@ -1,5 +1,5 @@
 import { useState, type TouchEvent } from 'react'
-import { motion } from 'motion/react'
+import { motion, Reorder, useDragControls } from 'motion/react'
 import type { Gender, Mode, Player } from '../lib/types'
 import { GenderBadge } from './GenderBadge'
 
@@ -16,6 +16,7 @@ interface PlayerRowProps {
   onChangeGender: (id: string, gender: Gender) => void
   onEdit: (player: Player) => void
   onToggleHalf: (player: Player) => void
+  onDraggingChange: (dragging: boolean) => void
 }
 
 function PencilIcon() {
@@ -37,6 +38,19 @@ function PencilIcon() {
   )
 }
 
+function DragHandleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <circle cx="9" cy="6" r="1.6" />
+      <circle cx="15" cy="6" r="1.6" />
+      <circle cx="9" cy="12" r="1.6" />
+      <circle cx="15" cy="12" r="1.6" />
+      <circle cx="9" cy="18" r="1.6" />
+      <circle cx="15" cy="18" r="1.6" />
+    </svg>
+  )
+}
+
 export function PlayerRow({
   player,
   mode,
@@ -47,12 +61,16 @@ export function PlayerRow({
   onChangeGender,
   onEdit,
   onToggleHalf,
+  onDraggingChange,
 }: PlayerRowProps) {
   const [swipe, setSwipe] = useState<{ startX: number; deltaX: number } | null>(null)
+  const dragControls = useDragControls()
+  const [dragging, setDragging] = useState(false)
 
   const translate = swipe ? swipe.deltaX : isSwipeOpen ? -SWIPE_OPEN_PX : 0
 
   const handleTouchStart = (e: TouchEvent) => {
+    if (dragging) return
     setSwipe({ startX: e.touches[0].clientX, deltaX: 0 })
   }
 
@@ -72,11 +90,26 @@ export function PlayerRow({
   }
 
   return (
-    <motion.li
+    <Reorder.Item
+      value={player}
+      dragListener={false}
+      dragControls={dragControls}
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.2 }}
+      whileDrag={{ scale: 1.02, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      onDragStart={() => {
+        setDragging(true)
+        setSwipe(null)
+        onSwipeOpenChange(null)
+        onDraggingChange(true)
+      }}
+      onDragEnd={() => {
+        setDragging(false)
+        onDraggingChange(false)
+      }}
+      className={`relative ${dragging ? 'z-10' : ''}`}
     >
       <div className="relative overflow-hidden">
         <button
@@ -103,6 +136,19 @@ export function PlayerRow({
         >
           <div className="flex items-center justify-between gap-1">
             <div className="flex items-center gap-2 min-w-0">
+              <button
+                type="button"
+                aria-label={`Sắp xếp ${player.name}`}
+                title="Kéo để sắp xếp"
+                onPointerDown={(e) => {
+                  e.preventDefault()
+                  dragControls.start(e)
+                }}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="w-11 h-11 -my-2 -ml-2 flex items-center justify-center text-gray-300 touch-none cursor-grab active:cursor-grabbing shrink-0"
+              >
+                <DragHandleIcon />
+              </button>
               <button
                 type="button"
                 aria-label={`Đổi giới tính ${player.name}`}
@@ -162,6 +208,6 @@ export function PlayerRow({
           </div>
         </div>
       </div>
-    </motion.li>
+    </Reorder.Item>
   )
 }

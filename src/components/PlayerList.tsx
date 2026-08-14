@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, Reorder } from 'motion/react'
 import { Drawer } from 'vaul'
 import type { RosterEntry } from '../lib/storage'
 import { durationHours, formatHours } from '../lib/time'
@@ -32,6 +32,7 @@ export function PlayerList({
   const [editName, setEditName] = useState('')
   const [editError, setEditError] = useState('')
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
 
   const males = input.players.filter((p) => p.gender === 'male').length
   const females = input.players.length - males
@@ -129,6 +130,7 @@ export function PlayerList({
       >
         <p>💡 Bấm avatar để đổi giới tính</p>
         <p>💡 Bấm tên để sửa thông tin người chơi</p>
+        <p>💡 Kéo ⠿ để sắp xếp thứ tự</p>
         <p>
           <span className="md:hidden">💡 Vuốt trái để xóa</span>
           <span className="hidden md:inline">💡 Bấm nút × để xóa</span>
@@ -232,7 +234,12 @@ export function PlayerList({
           Chưa có người chơi nào
         </motion.p>
       ) : (
-        <ul className="mt-3 divide-y divide-gray-100">
+        <Reorder.Group
+          axis="y"
+          values={input.players}
+          onReorder={(players: Player[]) => onPatch({ players })}
+          className="mt-3 divide-y divide-gray-100"
+        >
           <AnimatePresence initial={false}>
             {input.players.map((p) => (
               <PlayerRow
@@ -246,10 +253,11 @@ export function PlayerList({
                 onChangeGender={onChangeGender}
                 onEdit={openEdit}
                 onToggleHalf={(pl) => updatePlayer(pl.id, { halfSession: !pl.halfSession })}
+                onDraggingChange={setIsDragging}
               />
             ))}
           </AnimatePresence>
-        </ul>
+        </Reorder.Group>
       )}
       {input.players.length > 0 && (
         <p className="text-xs text-gray-400 mt-2">
