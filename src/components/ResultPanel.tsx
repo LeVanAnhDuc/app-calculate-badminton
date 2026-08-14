@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
-import { toast } from 'sonner'
-import { downloadResultImage } from '../lib/exportImage'
 import { formatNumber, formatVND } from '../lib/format'
 import { paidCount, unpaidAmount } from '../lib/settlement'
 import { formatHours } from '../lib/time'
 import type { CalcResult, Mode, Player, PlayerResult, SessionInput } from '../lib/types'
 import { EyeButton } from './EyeButton'
 import { PaidToggle } from './PaidToggle'
+import { CopyTextButton, ShareImageButton } from './ShareButtons'
 
 interface HiddenAmountRowProps {
   label: string
@@ -152,52 +151,6 @@ function MaximizeIcon() {
   )
 }
 
-function DownloadIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <path d="M7 10l5 5 5-5" />
-      <path d="M12 15V3" />
-    </svg>
-  )
-}
-
-function DownloadImageButton({
-  result,
-  mode,
-  players,
-}: {
-  result: CalcResult
-  mode: Mode
-  players: Player[]
-}) {
-  const handleDownload = () => {
-    downloadResultImage(result, mode, players)
-    toast.success('Đã tải ảnh kết quả')
-  }
-  return (
-    <button
-      type="button"
-      aria-label="Tải ảnh kết quả"
-      title="Tải ảnh kết quả"
-      onClick={handleDownload}
-      className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
-    >
-      <DownloadIcon />
-    </button>
-  )
-}
-
 function FullscreenResult({
   result,
   mode,
@@ -239,7 +192,8 @@ function FullscreenResult({
         <div className="sticky top-0 bg-gray-50 border-b border-gray-100 flex items-center justify-between px-4 py-4">
           <h2 className="text-lg font-bold text-gray-900">Kết quả</h2>
           <div className="flex items-center gap-1">
-            <DownloadImageButton result={result} mode={mode} players={players} />
+            <ShareImageButton result={result} mode={mode} players={players} />
+            <CopyTextButton result={result} mode={mode} players={players} />
             <button
               type="button"
               aria-label="Đóng"
@@ -318,7 +272,8 @@ export function ResultPanel({
         <h2 className="text-base font-bold text-gray-900">Kết quả</h2>
         {result !== null && (
           <div className="flex items-center gap-1">
-            <DownloadImageButton result={result} mode={mode} players={players} />
+            <ShareImageButton result={result} mode={mode} players={players} />
+            <CopyTextButton result={result} mode={mode} players={players} />
             <button
               type="button"
               aria-label="Xem toàn màn hình"

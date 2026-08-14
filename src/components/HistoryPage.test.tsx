@@ -1,9 +1,14 @@
 import { useState } from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { HistoryPage } from './HistoryPage'
 import { calcHourlyMode, calcRatioMode } from '../lib/calc'
 import type { SavedSession } from '../lib/storage'
 import type { SessionInput } from '../lib/types'
+
+vi.mock('../lib/shareResult', () => ({
+  shareResultImage: vi.fn().mockResolvedValue('shared'),
+  copyResultText: vi.fn().mockResolvedValue(true),
+}))
 
 const input: SessionInput = {
   mode: 'ratio',
@@ -272,4 +277,25 @@ describe('paid tracking', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Đánh dấu Tuấn đã trả' }))
     expect(onTogglePaid).toHaveBeenCalledWith('s1', '1')
   })
+})
+
+test('expanded card offers share and copy using the saved date', async () => {
+  const { shareResultImage } = await import('../lib/shareResult')
+  render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+  fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+  fireEvent.click(screen.getByRole('button', { name: /Chia sẻ ảnh/ }))
+  await waitFor(() =>
+    expect(vi.mocked(shareResultImage)).toHaveBeenCalledWith(
+      saved.result,
+      saved.input.mode,
+      saved.input.players,
+      new Date(saved.savedAt),
+    ),
+  )
+  expect(screen.getByRole('button', { name: /Copy kết quả/ })).toBeInTheDocument()
+})
+
+test('collapsed card has no share/copy buttons', () => {
+  render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+  expect(screen.queryByRole('button', { name: /Chia sẻ ảnh/ })).not.toBeInTheDocument()
 })
