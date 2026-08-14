@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Rail cuộn ngang (chip "Hay chơi cùng"): iOS/Android vốn không vẽ thanh cuộn,
+   ẩn nốt trên desktop để dải chip không bị lệch chiều cao khi có/không cuộn. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }

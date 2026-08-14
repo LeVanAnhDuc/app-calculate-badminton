@@ -31,6 +31,13 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - Chip "Hay chơi cùng" khi ô tên còn trống: bấm một phát là thêm người hay gặp nhất (xếp hạng theo số buổi đã lưu, tự bỏ ai đã có trong buổi)
   - Danh sách buổi hiện tại được giữ nguyên giữa các lần dùng — lần sau chỉ cần sửa đổi
 
+- **Thêm người chơi kiểu iOS trên điện thoại** (màn hình lớn giữ nguyên giao diện cũ)
+  - Ô nhập thành thanh tìm kiếm bo tròn có kính lúp, nút xóa chữ và nút "Hủy" như thanh tìm kiếm của iOS
+  - "Hay chơi cùng" thành dải avatar tròn cuộn ngang một hàng (chữ cái đầu của tên, màu theo giới tính) thay vì 3–4 hàng chip — gọn hơn khoảng 2/3 chiều cao
+  - Gợi ý từ danh bạ gom thành một khối bo góc, các dòng ngăn nhau bằng kẻ mảnh
+  - Gõ tên chưa có thì hiện luôn hai dòng "Thêm ... là người mới · Nam / Nữ" — một chạm là xong, không cần chọn giới tính trước rồi mới bấm thêm
+  - Gõ tên đã có trong buổi thì báo ngay thay vì để danh sách gợi ý trống trơn
+
 - **Lịch sử chi tiết & tái sử dụng**
   - Xem lại chi tiết từng buổi (chi phí, hệ số, kết quả tính)
   - "Dùng lại danh sách này" để nạp người chơi của buổi cũ vào buổi mới
@@ -79,7 +86,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (380 test cases)
+- **Testing**: Vitest + React Testing Library (390 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

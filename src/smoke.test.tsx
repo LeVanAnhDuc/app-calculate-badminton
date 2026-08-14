@@ -17,7 +17,7 @@ function playerNames(): string[] {
 }
 
 function addPlayer(name: string) {
-  fireEvent.change(screen.getByPlaceholderText('Tên người chơi'), { target: { value: name } })
+  fireEvent.change(screen.getByPlaceholderText('Tìm hoặc thêm tên'), { target: { value: name } })
   fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
 }
 
@@ -28,7 +28,7 @@ test('full flow: add players, see results, save session persists to history', { 
   fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
   // players
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
   fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
   fireEvent.click(screen.getByRole('button', { name: 'Nữ' }))
@@ -53,7 +53,7 @@ test('hourly mode: save persists finite amounts, verified through the real loade
   // default court times 19:00–21:00 are left untouched
   fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
   fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
   fireEvent.click(screen.getByRole('button', { name: 'Nữ' }))
@@ -78,7 +78,7 @@ test('saving shows a toast and disables the save button briefly to prevent dupli
   render(<App />)
   fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
   fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
 
@@ -368,7 +368,7 @@ test('a failed history save surfaces an error toast instead of failing silently'
   render(<App />)
   fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
   fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
   fireEvent.click(screen.getByRole('button', { name: 'Lưu buổi này' }))
@@ -382,7 +382,7 @@ test('paid toggle in history detail persists through the real loader', () => {
   render(<App />)
   fireEvent.change(screen.getByLabelText('Số quả của loại cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
   fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
   fireEvent.click(screen.getByRole('button', { name: 'Nữ' }))

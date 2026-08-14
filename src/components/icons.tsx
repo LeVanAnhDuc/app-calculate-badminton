@@ -57,6 +57,15 @@ export function CloseIcon({ size }: IconProps) {
   )
 }
 
+export function SearchIcon({ size = 18 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.6-3.6" />
+    </Icon>
+  )
+}
+
 export function CheckIcon({ size = 16 }: IconProps) {
   return (
     <Icon size={size}>

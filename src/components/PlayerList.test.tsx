@@ -83,7 +83,7 @@ const base: SessionInput = {
 
 test('adds a player and blocks duplicates', () => {
   render(<Harness initial={base} />)
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   fireEvent.change(nameInput, { target: { value: 'Lan' } })
   fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
   expect(screen.getByText('Lan')).toBeInTheDocument()
@@ -125,7 +125,7 @@ test('half-session pill toggles in ratio mode', () => {
 
 test('typing a brand-new name shows the "Người mới" hint', () => {
   render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   fireEvent.change(nameInput, { target: { value: 'Minh' } })
   expect(screen.getByText('✨ Người mới — sẽ được thêm vào danh bạ')).toBeInTheDocument()
   expect(screen.queryByText(/Có trong danh bạ/)).not.toBeInTheDocument()
@@ -133,7 +133,7 @@ test('typing a brand-new name shows the "Người mới" hint', () => {
 
 test('typing an existing roster name (case-insensitive) shows the "Có trong danh bạ" hint', () => {
   render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   fireEvent.change(nameInput, { target: { value: 'hoa' } })
   expect(
     screen.getByText('📇 Có trong danh bạ — bấm thẻ gợi ý để thêm đúng giới tính'),
@@ -143,7 +143,7 @@ test('typing an existing roster name (case-insensitive) shows the "Có trong dan
 
 test('suggestion dropdown shows a "Từ danh bạ" header above the cards', () => {
   render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   fireEvent.change(nameInput, { target: { value: 'h' } })
   expect(screen.getByText('Từ danh bạ')).toBeInTheDocument()
 })
@@ -156,7 +156,7 @@ test('no roster hint at all when the input is empty', () => {
 
 test('roster suggestion fills name and gender', async () => {
   render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   fireEvent.change(nameInput, { target: { value: 'h' } })
   fireEvent.click(screen.getByRole('button', { name: /Hoa · Nữ/ }))
   // the suggestion dropdown exits with a motion fade/slide animation, which
@@ -178,7 +178,7 @@ test('hourly mode shows default time; tapping the name opens the edit drawer', (
 
 test('blocks empty names', () => {
   render(<Harness initial={base} />)
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
   const addButton = screen.getByRole('button', { name: '+ Thêm người chơi' })
 
   // Try to add with empty input
@@ -448,7 +448,7 @@ test('no frequent chips when there is nobody to suggest', () => {
 
 test('frequent chips disappear once the user types — roster suggestions take over', async () => {
   render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} frequent={frequent} />)
-  fireEvent.change(screen.getByPlaceholderText('Tên người chơi'), { target: { value: 'h' } })
+  fireEvent.change(screen.getByPlaceholderText('Tìm hoặc thêm tên'), { target: { value: 'h' } })
   // the chip row exits with a motion fade, so it stays mounted for a tick
   await waitFor(() => expect(screen.queryByText('Hay chơi cùng')).not.toBeInTheDocument())
   expect(screen.getByText('Từ danh bạ')).toBeInTheDocument()
@@ -461,4 +461,53 @@ test('tapping a frequent chip adds that person with the chip gender', async () =
   fireEvent.click(screen.getByRole('button', { name: 'Thêm Hoa · Nữ' }))
   expect(onAdd).toHaveBeenCalledWith('Hoa', 'female')
   await waitFor(() => expect(screen.getByText(/^1 nam · 1 nữ$/)).toBeInTheDocument())
+})
+
+/**
+ * Trên mobile cặp [Nam][Nữ] và nút "+ Thêm người chơi" bị ẩn, nên một cái tên
+ * mới phải thêm được ngay từ danh sách gợi ý — mỗi giới tính một hàng.
+ */
+test('typing a brand-new name offers a one-tap add row per gender', () => {
+  const onAdd = vi.fn()
+  render(<Harness initial={base} onAdd={onAdd} />)
+  fireEvent.change(screen.getByPlaceholderText('Tìm hoặc thêm tên'), { target: { value: 'Minh' } })
+
+  expect(screen.getByRole('button', { name: 'Thêm "Minh" là người mới · Nam' })).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Thêm "Minh" là người mới · Nữ' }))
+  expect(onAdd).toHaveBeenCalledWith('Minh', 'female')
+})
+
+test('no add rows for a name already in the roster — the roster card carries the right gender', () => {
+  render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} />)
+  fireEvent.change(screen.getByPlaceholderText('Tìm hoặc thêm tên'), { target: { value: 'hoa' } })
+  expect(screen.queryByRole('button', { name: /là người mới/ })).not.toBeInTheDocument()
+})
+
+test('a name already in the session says so instead of leaving an empty result list', () => {
+  render(<Harness initial={base} />)
+  fireEvent.change(screen.getByPlaceholderText('Tìm hoặc thêm tên'), { target: { value: 'tuấn' } })
+  expect(screen.getByText(/đang có trong buổi rồi/)).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /là người mới/ })).not.toBeInTheDocument()
+})
+
+test('the clear button empties the search field', () => {
+  render(<Harness initial={base} />)
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
+  fireEvent.change(nameInput, { target: { value: 'Minh' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa chữ đã gõ' }))
+  expect(nameInput).toHaveValue('')
+})
+
+test('"Hủy" only shows once the field is in use, and resets it', async () => {
+  render(<Harness initial={base} />)
+  const nameInput = screen.getByPlaceholderText('Tìm hoặc thêm tên')
+  expect(screen.queryByRole('button', { name: 'Hủy' })).not.toBeInTheDocument()
+
+  fireEvent.focus(nameInput)
+  fireEvent.change(nameInput, { target: { value: 'Minh' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Hủy' }))
+
+  expect(nameInput).toHaveValue('')
+  // nút thoát cùng hiệu ứng mờ dần nên còn nằm lại trong DOM một nhịp
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Hủy' })).not.toBeInTheDocument())
 })
