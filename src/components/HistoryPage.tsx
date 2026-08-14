@@ -6,6 +6,7 @@ import { formatHours } from '../lib/time'
 import { durationHours } from '../lib/time'
 import { PaidToggle } from './PaidToggle'
 import { PaidSummaryLine, SurplusRow, TotalCollectedRow } from './ResultPanel'
+import { CopyTextButton, ShareImageButton } from './ShareButtons'
 
 interface Props {
   history: SavedSession[]
@@ -211,21 +212,39 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                         </ul>
                       </div>
                     </div>
-                    <div className="border-t border-gray-100 p-4 space-y-2 md:space-y-0 md:flex md:gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onReuse(s)}
-                        className="w-full md:flex-1 h-12 rounded-xl bg-emerald-600 text-white text-sm font-semibold"
-                      >
-                        Dùng lại danh sách này cho buổi mới
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => window.confirm('Xóa buổi này?') && onDelete(s.id)}
-                        className="w-full md:w-auto md:px-4 h-12 rounded-xl border border-red-200 text-red-500 text-sm font-semibold"
-                      >
-                        Xóa buổi này
-                      </button>
+                    <div className="border-t border-gray-100 p-4 space-y-2">
+                      <div className="flex gap-2">
+                        <ShareImageButton
+                          result={s.result}
+                          mode={s.input.mode}
+                          players={s.input.players}
+                          date={new Date(s.savedAt)}
+                          variant="wide"
+                        />
+                        <CopyTextButton
+                          result={s.result}
+                          mode={s.input.mode}
+                          players={s.input.players}
+                          date={new Date(s.savedAt)}
+                          variant="wide"
+                        />
+                      </div>
+                      <div className="space-y-2 md:space-y-0 md:flex md:gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onReuse(s)}
+                          className="w-full md:flex-1 h-12 rounded-xl bg-emerald-600 text-white text-sm font-semibold"
+                        >
+                          Dùng lại danh sách này cho buổi mới
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => window.confirm('Xóa buổi này?') && onDelete(s.id)}
+                          className="w-full md:w-auto md:px-4 h-12 rounded-xl border border-red-200 text-red-500 text-sm font-semibold"
+                        >
+                          Xóa buổi này
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
