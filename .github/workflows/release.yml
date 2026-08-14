@@ -1,0 +1,61 @@
+name: Release on push to main
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # full history + tags so we can find the latest version tag
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: version
+        run: |
+          msg=$(git log -1 --pretty=%B)
+          if echo "$msg" | grep -qiF '[skip release]'; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -n "$(git tag --points-at HEAD -l 'v*')" ]; then
+            # HEAD is already released (e.g. workflow re-run)
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          latest=$(git tag -l 'v*' --sort=-v:refname | head -1)
+          if [ -z "$latest" ]; then
+            next="v1.0.0"
+          else
+            IFS=. read -r major minor patch <<< "${latest#v}"
+            if echo "$msg" | grep -qiF '[release major]'; then
+              next="v$((major+1)).0.0"
+            elif echo "$msg" | grep -qiF '[release minor]'; then
+              next="v$major.$((minor+1)).0"
+            else
+              next="v$major.$minor.$((patch+1))"
+            fi
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        if: steps.version.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.next }}" \
+            --target "$GITHUB_SHA" \
+            --title "${{ steps.version.outputs.next }}" \
+            --generate-notes
