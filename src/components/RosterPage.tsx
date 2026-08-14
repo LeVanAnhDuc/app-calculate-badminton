@@ -1,9 +1,11 @@
-import { useState, type Dispatch, type SetStateAction, type TouchEvent } from 'react'
+import { useState, type Dispatch, type SetStateAction } from 'react'
 import { motion } from 'motion/react'
 import { Drawer } from 'vaul'
 import type { RosterEntry } from '../lib/storage'
 import type { Gender } from '../lib/types'
 import { insertAt, toastUndo } from '../lib/undo'
+import { DeleteButton } from './DeleteButton'
+import { SwipeToDelete } from './SwipeToDelete'
 
 interface Props {
   roster: RosterEntry[]
@@ -12,9 +14,6 @@ interface Props {
   // it is at that moment rather than a snapshot from before the toast
   onChange: Dispatch<SetStateAction<RosterEntry[]>>
 }
-
-const SWIPE_OPEN_PX = 80
-const SWIPE_THRESHOLD_PX = 40
 
 function GenderBadge({ gender }: { gender: Gender }) {
   return (
@@ -57,9 +56,6 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
   const [editError, setEditError] = useState('')
 
   const [openSwipeName, setOpenSwipeName] = useState<string | null>(null)
-  const [swipe, setSwipe] = useState<{ name: string; startX: number; deltaX: number } | null>(
-    null,
-  )
 
   const addEntry = () => {
     const trimmed = addName.trim()
@@ -124,31 +120,6 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
   const closeEdit = () => {
     commitRename()
     setEditingName(null)
-  }
-
-  const rowTranslate = (name: string) => {
-    if (swipe && swipe.name === name) return swipe.deltaX
-    return openSwipeName === name ? -SWIPE_OPEN_PX : 0
-  }
-
-  const handleTouchStart = (name: string) => (e: TouchEvent) => {
-    setSwipe({ name, startX: e.touches[0].clientX, deltaX: 0 })
-  }
-
-  const handleTouchMove = (name: string) => (e: TouchEvent) => {
-    setSwipe((s) => {
-      if (!s || s.name !== name) return s
-      const dx = e.touches[0].clientX - s.startX
-      return { ...s, deltaX: Math.min(0, Math.max(dx, -SWIPE_OPEN_PX)) }
-    })
-  }
-
-  const handleTouchEnd = (name: string) => () => {
-    setSwipe((s) => {
-      if (!s || s.name !== name) return s
-      setOpenSwipeName(s.deltaX <= -SWIPE_THRESHOLD_PX ? name : null)
-      return null
-    })
   }
 
   return (
@@ -222,6 +193,13 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
             </button>
           </section>
 
+          {roster.length > 0 && (
+            <p className="text-center text-xs text-gray-400">
+              <span className="md:hidden">💡 Vuốt trái để xóa</span>
+              <span className="hidden md:inline">💡 Bấm nút thùng rác đỏ để xóa</span>
+            </p>
+          )}
+
           {roster.length === 0 ? (
             <p className="text-center text-sm text-gray-400 py-8">
               Danh bạ chưa có ai — thêm người chơi ở trên hoặc trong buổi chơi.
@@ -236,58 +214,39 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
                 const isOpen = openSwipeName === entry.name
                 return (
                   <li key={entry.name}>
-                    <div className="relative overflow-hidden rounded-xl">
+                    <SwipeToDelete
+                      testId={`roster-swipe-row-${entry.name}`}
+                      label={`Xóa nhanh ${entry.name}`}
+                      isOpen={isOpen}
+                      onOpenChange={(open) => setOpenSwipeName(open ? entry.name : null)}
+                      onDelete={() => requestDelete(entry.name)}
+                      className="rounded-xl"
+                      surfaceClassName="bg-white rounded-xl shadow-sm p-3 flex items-center justify-between gap-2"
+                    >
                       <button
                         type="button"
-                        aria-label={`Xóa nhanh ${entry.name}`}
-                        onClick={() => requestDelete(entry.name)}
-                        className="absolute inset-y-0 right-0 w-20 bg-red-500 text-white text-sm font-semibold flex items-center justify-center"
+                        className="flex items-center gap-2 min-w-0 text-left"
+                        onClick={() => openEdit(entry)}
                       >
-                        Xóa
+                        <GenderBadge gender={entry.gender} />
+                        <span className="font-medium text-gray-900 truncate">{entry.name}</span>
                       </button>
-                      <div
-                        data-testid={`roster-swipe-row-${entry.name}`}
-                        className="relative bg-white rounded-xl shadow-sm p-3 flex items-center justify-between gap-2 transition-transform duration-150 ease-out"
-                        style={{ transform: `translateX(${rowTranslate(entry.name)}px)` }}
-                        onTouchStart={handleTouchStart(entry.name)}
-                        onTouchMove={handleTouchMove(entry.name)}
-                        onTouchEnd={handleTouchEnd(entry.name)}
-                        onClickCapture={(e) => {
-                          if (isOpen) {
-                            setOpenSwipeName(null)
-                            e.stopPropagation()
-                          }
-                        }}
-                      >
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
                           type="button"
-                          className="flex items-center gap-2 min-w-0 text-left"
+                          aria-label={`Sửa ${entry.name}`}
+                          title="Sửa"
                           onClick={() => openEdit(entry)}
+                          className="hidden md:flex md:w-10 md:h-10 items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg"
                         >
-                          <GenderBadge gender={entry.gender} />
-                          <span className="font-medium text-gray-900 truncate">{entry.name}</span>
+                          <PencilIcon />
                         </button>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            type="button"
-                            aria-label={`Sửa ${entry.name}`}
-                            title="Sửa"
-                            onClick={() => openEdit(entry)}
-                            className="hidden md:flex md:w-10 md:h-10 items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg"
-                          >
-                            <PencilIcon />
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`Xóa ${entry.name}`}
-                            onClick={() => requestDelete(entry.name)}
-                            className="hidden md:flex md:w-10 md:h-10 items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg text-2xl leading-none"
-                          >
-                            ×
-                          </button>
-                        </div>
+                        <DeleteButton
+                          label={`Xóa ${entry.name}`}
+                          onClick={() => requestDelete(entry.name)}
+                        />
                       </div>
-                    </div>
+                    </SwipeToDelete>
                   </li>
                 )
               })}

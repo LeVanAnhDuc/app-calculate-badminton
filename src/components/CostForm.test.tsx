@@ -226,3 +226,37 @@ test('picking a new court start time via the (non-nested) wheel sheet updates th
   expect(screen.getByLabelText('Giờ bắt đầu')).toHaveTextContent('20:00')
   expect(screen.getByText(/= 1 giờ/)).toBeInTheDocument()
 })
+
+test('vuốt trái dòng loại cầu để xóa', () => {
+  render(<Harness initial={{ ...base, shuttles: [{ id: 's1', name: 'Hải Yến', count: 6, price: 25000 }] }} />)
+  const row = screen.getByTestId('shuttle-swipe-row-s1')
+  fireEvent.touchStart(row, { touches: [{ clientX: 200, clientY: 100 }] })
+  fireEvent.touchMove(row, { touches: [{ clientX: 100, clientY: 100 }] })
+  fireEvent.touchEnd(row)
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa nhanh Hải Yến' }))
+  expect(screen.queryByLabelText('Số quả của Hải Yến')).not.toBeInTheDocument()
+})
+
+test('vuốt trái khoản phát sinh để xóa', () => {
+  render(
+    <Harness
+      initial={{
+        ...base,
+        players: [{ id: 'p1', name: 'An', gender: 'male', paid: false, halfSession: false, startTime: null, endTime: null }],
+        extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerIds: ['p1'] }],
+      }}
+    />,
+  )
+  const row = screen.getByTestId('extra-swipe-row-e1')
+  fireEvent.touchStart(row, { touches: [{ clientX: 200, clientY: 100 }] })
+  fireEvent.touchMove(row, { touches: [{ clientX: 100, clientY: 100 }] })
+  fireEvent.touchEnd(row)
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa nhanh khoản Nước' }))
+  expect(screen.queryByLabelText('Tên khoản phát sinh')).not.toBeInTheDocument()
+})
+
+test('gợi ý cách xóa cho cả hai loại thiết bị', () => {
+  render(<Harness initial={base} />)
+  expect(screen.getByText('💡 Vuốt trái một dòng để xóa')).toBeInTheDocument()
+  expect(screen.getByText('💡 Bấm nút thùng rác đỏ để xóa một dòng')).toBeInTheDocument()
+})

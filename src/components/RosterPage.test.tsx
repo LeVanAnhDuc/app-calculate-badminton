@@ -114,3 +114,9 @@ test('back button calls onBack', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Quay lại' }))
   expect(onBack).toHaveBeenCalledTimes(1)
 })
+
+test('gợi ý cách xóa cho cả hai loại thiết bị', () => {
+  render(<Harness initial={base} />)
+  expect(screen.getByText('💡 Vuốt trái để xóa')).toBeInTheDocument()
+  expect(screen.getByText('💡 Bấm nút thùng rác đỏ để xóa')).toBeInTheDocument()
+})

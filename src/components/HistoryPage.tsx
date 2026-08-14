@@ -4,11 +4,13 @@ import { paidCount } from '../lib/settlement'
 import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
 import { durationHours } from '../lib/time'
+import { TrashIcon } from './DeleteButton'
 import { PaidToggle } from './PaidToggle'
 import { payerSummary } from './PayerSelect'
 import { QRSheet } from './QRSheet'
 import { PaidSummaryLine, SurplusRow, TotalCollectedRow } from './ResultPanel'
 import { CopyTextButton, ShareImageButton } from './ShareButtons'
+import { SwipeToDelete } from './SwipeToDelete'
 
 function QRIcon() {
   return (
@@ -70,6 +72,7 @@ function monthLabel(iso: string): string {
 
 export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
   const [qrTarget, setQrTarget] = useState<{ sessionId: string; playerId: string } | null>(null)
 
   // cards never auto-expand; this only guards against a deleted card
@@ -114,6 +117,14 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
               Chưa có buổi nào được lưu — quay lại màn hình chính và bấm "Lưu buổi này".
             </p>
           )}
+          {history.length > 0 && (
+            <p className="text-center text-xs text-gray-400 md:col-span-2">
+              <span className="md:hidden">💡 Vuốt trái một buổi để xóa</span>
+              <span className="hidden md:inline">
+                💡 Mở chi tiết rồi bấm nút Xóa buổi này
+              </span>
+            </p>
+          )}
           {history.map((s, i) => {
             const males = s.input.players.filter((p) => p.gender === 'male').length
             const females = s.input.players.length - males
@@ -127,9 +138,16 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                     {monthLabel(s.savedAt)}
                   </h2>
                 )}
-                <section
-                  className={`bg-white rounded-2xl shadow-sm ${
-                    expanded ? 'border-2 border-emerald-200 md:col-span-2' : ''
+                <section className={expanded ? 'md:col-span-2' : ''}>
+                <SwipeToDelete
+                  testId={`history-swipe-row-${s.id}`}
+                  label={`Xóa nhanh buổi ${sessionDate(s.savedAt)}`}
+                  isOpen={openSwipeId === s.id}
+                  onOpenChange={(open) => setOpenSwipeId(open ? s.id : null)}
+                  onDelete={() => onDelete(s.id)}
+                  className="rounded-2xl"
+                  surfaceClassName={`bg-white rounded-2xl shadow-sm ${
+                    expanded ? 'border-2 border-emerald-200' : ''
                   }`}
                 >
                 <button
@@ -311,17 +329,21 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                         >
                           Dùng lại danh sách này cho buổi mới
                         </button>
+                        {/* trên mobile thao tác xóa là vuốt trái cả thẻ, nên
+                            hàng nút không còn nút xóa nào */}
                         <button
                           type="button"
                           onClick={() => onDelete(s.id)}
-                          className="w-full md:w-auto md:px-4 h-12 rounded-xl border border-red-200 text-red-500 text-sm font-semibold"
+                          className="hidden md:flex md:w-auto md:px-4 h-12 rounded-xl border border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors text-sm font-semibold items-center justify-center gap-2"
                         >
+                          <TrashIcon />
                           Xóa buổi này
                         </button>
                       </div>
                     </div>
                   </>
                 )}
+                </SwipeToDelete>
               </section>
               </Fragment>
             )

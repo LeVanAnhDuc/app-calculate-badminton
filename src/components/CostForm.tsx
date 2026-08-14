@@ -5,7 +5,9 @@ import type { ShuttleType } from '../lib/shuttleTypes'
 import { durationHours, formatHours } from '../lib/time'
 import type { ExtraCost, SessionInput, ShuttleLine } from '../lib/types'
 import { uid } from '../lib/uid'
+import { DeleteButton } from './DeleteButton'
 import { MoneyInput } from './MoneyInput'
+import { SwipeToDelete } from './SwipeToDelete'
 import { PayerSelect } from './PayerSelect'
 import { ShuttleTypeSelect } from './ShuttleTypeSelect'
 import { TimeSelect } from './TimeSelect'
@@ -21,6 +23,9 @@ export function CostForm({ input, shuttleTypes, onPatch }: Props) {
   const courtHours = durationHours(input.courtStart, input.courtEnd)
   const extras = input.extras
   const noPlayers = input.players.length === 0
+
+  // chỉ một hàng được mở khay xóa tại một thời điểm, chung cho cả hai danh sách
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
 
   // focus the label field of the row that was just appended
   const [focusId, setFocusId] = useState<string | null>(null)
@@ -62,12 +67,25 @@ export function CostForm({ input, shuttleTypes, onPatch }: Props) {
 
   return (
     <section className="bg-white rounded-2xl shadow-sm p-4">
-      <h2 className="text-base font-bold text-gray-900 mb-3">Chi phí</h2>
+      <h2 className="text-base font-bold text-gray-900 mb-1">Chi phí</h2>
+      <p className="text-xs text-gray-400 mb-2">
+        <span className="md:hidden">💡 Vuốt trái một dòng để xóa</span>
+        <span className="hidden md:inline">💡 Bấm nút thùng rác đỏ để xóa một dòng</span>
+      </p>
       <ul className="space-y-2">
         {shuttles.map((l, i) => {
           const label = l.name.trim() || 'loại cầu'
           return (
-            <li key={l.id} className="flex gap-2 items-center">
+            <li key={l.id}>
+              <SwipeToDelete
+                testId={`shuttle-swipe-row-${l.id}`}
+                label={`Xóa nhanh ${label}`}
+                isOpen={openSwipeId === l.id}
+                onOpenChange={(open) => setOpenSwipeId(open ? l.id : null)}
+                onDelete={() => removeShuttle(l.id)}
+                className="rounded-xl"
+                surfaceClassName="bg-white flex gap-2 items-center"
+              >
               <ShuttleTypeSelect
                 aria-label={`Loại cầu ${i + 1}`}
                 value={l.name}
@@ -98,14 +116,8 @@ export function CostForm({ input, shuttleTypes, onPatch }: Props) {
                 onChange={(v) => patchShuttle(l.id, { price: v })}
                 className="w-24 h-11! text-base!"
               />
-              <button
-                type="button"
-                aria-label={`Xóa ${label}`}
-                onClick={() => removeShuttle(l.id)}
-                className="w-9 h-9 shrink-0 self-center text-gray-400 text-xl leading-none"
-              >
-                ×
-              </button>
+              <DeleteButton label={`Xóa ${label}`} onClick={() => removeShuttle(l.id)} />
+              </SwipeToDelete>
             </li>
           )
         })}
@@ -162,7 +174,16 @@ export function CostForm({ input, shuttleTypes, onPatch }: Props) {
             {/* two lines per row: on a 390px viewport a single line left the
                 label field under 100px wide, so "Quấn cán" already overflowed */}
             {extras.map((e) => (
-              <li key={e.id} className="rounded-xl bg-gray-50 p-2 space-y-2">
+              <li key={e.id}>
+                <SwipeToDelete
+                  testId={`extra-swipe-row-${e.id}`}
+                  label={`Xóa nhanh khoản ${e.label || 'khác'}`}
+                  isOpen={openSwipeId === e.id}
+                  onOpenChange={(open) => setOpenSwipeId(open ? e.id : null)}
+                  onDelete={() => removeExtra(e.id)}
+                  className="rounded-xl"
+                  surfaceClassName="rounded-xl bg-gray-50 p-2 space-y-2"
+                >
                 <input
                   ref={(el) => {
                     labelRefs.current[e.id] = el
@@ -187,15 +208,12 @@ export function CostForm({ input, shuttleTypes, onPatch }: Props) {
                     aria-label={`Người trả khoản ${e.label || 'khác'}`}
                     className="flex-1 min-w-0"
                   />
-                  <button
-                    type="button"
-                    aria-label={`Xóa khoản ${e.label || 'khác'}`}
+                  <DeleteButton
+                    label={`Xóa khoản ${e.label || 'khác'}`}
                     onClick={() => removeExtra(e.id)}
-                    className="w-9 h-9 shrink-0 self-center text-gray-400 text-xl leading-none"
-                  >
-                    ×
-                  </button>
+                  />
                 </div>
+                </SwipeToDelete>
               </li>
             ))}
           </ul>

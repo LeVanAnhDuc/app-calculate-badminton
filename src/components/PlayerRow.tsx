@@ -1,10 +1,9 @@
-import { useRef, useState, type TouchEvent } from 'react'
+import { useState } from 'react'
 import { motion, Reorder, useDragControls } from 'motion/react'
 import type { Gender, Mode, Player } from '../lib/types'
+import { DeleteButton } from './DeleteButton'
 import { GenderBadge } from './GenderBadge'
-
-const SWIPE_OPEN_PX = 80
-const SWIPE_THRESHOLD_PX = 40
+import { SwipeToDelete } from './SwipeToDelete'
 
 interface PlayerRowProps {
   player: Player
@@ -63,36 +62,8 @@ export function PlayerRow({
   onToggleHalf,
   onDraggingChange,
 }: PlayerRowProps) {
-  const [swipe, setSwipe] = useState<{ startX: number; deltaX: number } | null>(null)
-  const swipeDeltaRef = useRef<number | null>(null)
   const dragControls = useDragControls()
   const [dragging, setDragging] = useState(false)
-
-  const translate = swipe ? swipe.deltaX : isSwipeOpen ? -SWIPE_OPEN_PX : 0
-
-  const handleTouchStart = (e: TouchEvent) => {
-    if (dragging) return
-    swipeDeltaRef.current = 0
-    setSwipe({ startX: e.touches[0].clientX, deltaX: 0 })
-  }
-
-  const handleTouchMove = (e: TouchEvent) => {
-    const x = e.touches[0].clientX
-    setSwipe((s) => {
-      if (!s) return s
-      const deltaX = Math.min(0, Math.max(x - s.startX, -SWIPE_OPEN_PX))
-      swipeDeltaRef.current = deltaX
-      return { ...s, deltaX }
-    })
-  }
-
-  const handleTouchEnd = () => {
-    const delta = swipeDeltaRef.current
-    swipeDeltaRef.current = null
-    if (delta === null) return
-    onSwipeOpenChange(delta <= -SWIPE_THRESHOLD_PX ? player.id : null)
-    setSwipe(null)
-  }
 
   return (
     <Reorder.Item
@@ -106,8 +77,6 @@ export function PlayerRow({
       whileDrag={{ scale: 1.02, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
       onDragStart={() => {
         setDragging(true)
-        setSwipe(null)
-        swipeDeltaRef.current = null
         onSwipeOpenChange(null)
         onDraggingChange(true)
       }}
@@ -117,29 +86,15 @@ export function PlayerRow({
       }}
       className={`relative ${dragging ? 'z-10' : ''}`}
     >
-      <div className="relative overflow-hidden">
-        <button
-          type="button"
-          aria-label={`Xóa nhanh ${player.name}`}
-          onClick={() => onRemove(player.id)}
-          className="absolute inset-y-0 right-0 w-20 bg-red-500 text-white text-sm font-semibold flex items-center justify-center"
-        >
-          Xóa
-        </button>
-        <div
-          data-testid={`swipe-row-${player.id}`}
-          className="relative bg-white py-2.5 transition-transform duration-150 ease-out"
-          style={{ transform: `translateX(${translate}px)` }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onClickCapture={(e) => {
-            if (isSwipeOpen) {
-              onSwipeOpenChange(null)
-              e.stopPropagation()
-            }
-          }}
-        >
+      <SwipeToDelete
+        testId={`swipe-row-${player.id}`}
+        label={`Xóa nhanh ${player.name}`}
+        isOpen={isSwipeOpen}
+        onOpenChange={(open) => onSwipeOpenChange(open ? player.id : null)}
+        onDelete={() => onRemove(player.id)}
+        disabled={dragging}
+        surfaceClassName="bg-white py-2.5"
+      >
           <div className="flex items-center justify-between gap-1">
             <div className="flex items-center gap-2 min-w-0">
               <button
@@ -202,18 +157,10 @@ export function PlayerRow({
               >
                 <PencilIcon />
               </button>
-              <button
-                type="button"
-                aria-label={`Xóa ${player.name}`}
-                onClick={() => onRemove(player.id)}
-                className="hidden md:flex md:w-10 md:h-10 items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg text-2xl leading-none"
-              >
-                ×
-              </button>
+              <DeleteButton label={`Xóa ${player.name}`} onClick={() => onRemove(player.id)} />
             </div>
           </div>
-        </div>
-      </div>
+      </SwipeToDelete>
     </Reorder.Item>
   )
 }
