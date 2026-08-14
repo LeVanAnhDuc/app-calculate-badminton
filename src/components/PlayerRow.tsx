@@ -1,4 +1,4 @@
-import { useState, type TouchEvent } from 'react'
+import { useRef, useState, type TouchEvent } from 'react'
 import { motion, Reorder, useDragControls } from 'motion/react'
 import type { Gender, Mode, Player } from '../lib/types'
 import { GenderBadge } from './GenderBadge'
@@ -64,6 +64,7 @@ export function PlayerRow({
   onDraggingChange,
 }: PlayerRowProps) {
   const [swipe, setSwipe] = useState<{ startX: number; deltaX: number } | null>(null)
+  const swipeDeltaRef = useRef<number | null>(null)
   const dragControls = useDragControls()
   const [dragging, setDragging] = useState(false)
 
@@ -71,22 +72,26 @@ export function PlayerRow({
 
   const handleTouchStart = (e: TouchEvent) => {
     if (dragging) return
+    swipeDeltaRef.current = 0
     setSwipe({ startX: e.touches[0].clientX, deltaX: 0 })
   }
 
   const handleTouchMove = (e: TouchEvent) => {
     const x = e.touches[0].clientX
-    setSwipe((s) =>
-      s ? { ...s, deltaX: Math.min(0, Math.max(x - s.startX, -SWIPE_OPEN_PX)) } : s,
-    )
+    setSwipe((s) => {
+      if (!s) return s
+      const deltaX = Math.min(0, Math.max(x - s.startX, -SWIPE_OPEN_PX))
+      swipeDeltaRef.current = deltaX
+      return { ...s, deltaX }
+    })
   }
 
   const handleTouchEnd = () => {
-    setSwipe((s) => {
-      if (!s) return null
-      onSwipeOpenChange(s.deltaX <= -SWIPE_THRESHOLD_PX ? player.id : null)
-      return null
-    })
+    const delta = swipeDeltaRef.current
+    swipeDeltaRef.current = null
+    if (delta === null) return
+    onSwipeOpenChange(delta <= -SWIPE_THRESHOLD_PX ? player.id : null)
+    setSwipe(null)
   }
 
   return (
@@ -102,6 +107,7 @@ export function PlayerRow({
       onDragStart={() => {
         setDragging(true)
         setSwipe(null)
+        swipeDeltaRef.current = null
         onSwipeOpenChange(null)
         onDraggingChange(true)
       }}

@@ -225,6 +225,23 @@ test('swipe-left on a row reveals the red Xóa button; tapping it removes the pl
   expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
 })
 
+test('swipe gesture does not trigger a setState-in-render React error', () => {
+  const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  try {
+    render(<Harness initial={base} />)
+    const row = screen.getByTestId('swipe-row-1')
+    fireEvent.touchStart(row, { touches: [{ clientX: 200 }] })
+    fireEvent.touchMove(row, { touches: [{ clientX: 100 }] })
+    fireEvent.touchEnd(row)
+    const renderPhaseErrors = errorSpy.mock.calls.filter((args) =>
+      args.some((a) => typeof a === 'string' && a.includes('while rendering a different component')),
+    )
+    expect(renderPhaseErrors).toEqual([])
+  } finally {
+    errorSpy.mockRestore()
+  }
+})
+
 test('rename via edit drawer commits on blur; duplicate name is blocked', () => {
   const initial: SessionInput = {
     ...base,
