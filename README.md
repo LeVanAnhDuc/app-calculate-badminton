@@ -55,10 +55,15 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - Mỗi người quét QR riêng (kèm sẵn số tiền + nội dung chuyển khoản) để trả
   - Mã VietQR hiển thị trong ảnh kết quả PNG chia sẻ
 
+- **Thao tác xóa đồng nhất ở mọi danh sách**
+  - Mobile: vuốt trái để xóa — người chơi, danh bạ, dòng loại cầu, khoản phát sinh và cả buổi trong lịch sử, không còn nút xóa chiếm chỗ trên hàng
+  - Desktop: một nút thùng rác đỏ duy nhất, cùng kích thước và canh giữa như nút sửa ở mọi màn hình
+  - Mỗi danh sách đều có dòng gợi ý cách xóa, tự đổi theo thiết bị đang dùng
+  - Vuốt có khóa trục: cuộn dọc hơi chéo tay không còn kéo hàng sang ngang
+
 - **Giao diện linh hoạt**
   - Sửa giờ chơi qua bottom sheet (vaul), chọn giờ với wheel picker 24h kiểu iOS
   - Kéo tay nắm ⠿ để sắp xếp thứ tự người chơi (mobile & desktop)
-  - Vuốt trái để xóa người chơi (mobile)
   - Responsive: mobile 1 cột, desktop 2 cột sticky với animation mượt (Motion)
 
 - **Không cần đăng nhập hay server**
@@ -70,7 +75,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (317 test cases)
+- **Testing**: Vitest + React Testing Library (337 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

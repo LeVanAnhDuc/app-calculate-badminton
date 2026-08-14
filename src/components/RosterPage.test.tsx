@@ -75,7 +75,7 @@ test('changing gender in the edit drawer updates the entry immediately', () => {
   expect(screen.getByText('Tuấn')).toBeInTheDocument()
 })
 
-test('deleting via the desktop × button removes the entry immediately, without a confirm dialog', () => {
+test('deleting via the desktop trash button removes the entry immediately, without a confirm dialog', () => {
   const confirmSpy = vi.spyOn(window, 'confirm')
   render(<Harness initial={base} />)
   fireEvent.click(screen.getByRole('button', { name: 'Xóa Tuấn' }))
@@ -126,6 +126,12 @@ test('back button calls onBack', () => {
   render(<RosterPage roster={base} onBack={onBack} onChange={() => {}} />)
   fireEvent.click(screen.getByRole('button', { name: 'Quay lại' }))
   expect(onBack).toHaveBeenCalledTimes(1)
+})
+
+test('gợi ý cách xóa cho cả hai loại thiết bị', () => {
+  render(<Harness initial={base} />)
+  expect(screen.getByText('💡 Vuốt trái để xóa')).toBeInTheDocument()
+  expect(screen.getByText('💡 Bấm nút thùng rác đỏ để xóa')).toBeInTheDocument()
 })
 
 test('groups entries into A-Z sections, folding diacritics and Đ into D', () => {

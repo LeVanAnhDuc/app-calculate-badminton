@@ -381,3 +381,25 @@ test('collapsed card has no share/copy buttons', () => {
   render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
   expect(screen.queryByRole('button', { name: /Chia sẻ ảnh/ })).not.toBeInTheDocument()
 })
+
+test('vuốt trái một thẻ buổi để xóa, không cần mở chi tiết', () => {
+  render(<Harness initial={[saved]} />)
+  const card = screen.getByTestId('history-swipe-row-s1')
+  fireEvent.touchStart(card, { touches: [{ clientX: 300, clientY: 200 }] })
+  fireEvent.touchMove(card, { touches: [{ clientX: 200, clientY: 200 }] })
+  fireEvent.touchEnd(card)
+  fireEvent.click(screen.getByRole('button', { name: /^Xóa nhanh buổi/ }))
+  expect(screen.getByText(/0 buổi đã lưu/)).toBeInTheDocument()
+})
+
+test('nút "Xóa buổi này" chỉ còn trên desktop — mobile dùng vuốt', () => {
+  render(<Harness initial={[saved]} />)
+  fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+  expect(screen.getByRole('button', { name: 'Xóa buổi này' })).toHaveClass('hidden', 'md:flex')
+})
+
+test('gợi ý cách xóa buổi cho cả hai loại thiết bị', () => {
+  render(<Harness initial={[saved]} />)
+  expect(screen.getByText('💡 Vuốt trái một buổi để xóa')).toBeInTheDocument()
+  expect(screen.getByText('💡 Mở chi tiết rồi bấm nút Xóa buổi này')).toBeInTheDocument()
+})

@@ -1,17 +1,12 @@
-import {
-  useMemo,
-  useRef,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-  type TouchEvent,
-} from 'react'
+import { useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { motion } from 'motion/react'
 import { Drawer } from 'vaul'
 import type { RosterEntry } from '../lib/storage'
 import type { Gender } from '../lib/types'
 import { groupByLetter, matchesQuery } from '../lib/alphabet'
 import { insertAt, toastUndo } from '../lib/undo'
+import { DeleteButton } from './DeleteButton'
+import { SwipeToDelete } from './SwipeToDelete'
 
 interface Props {
   roster: RosterEntry[]
@@ -20,9 +15,6 @@ interface Props {
   // it is at that moment rather than a snapshot from before the toast
   onChange: Dispatch<SetStateAction<RosterEntry[]>>
 }
-
-const SWIPE_OPEN_PX = 80
-const SWIPE_THRESHOLD_PX = 40
 
 function Avatar({ entry }: { entry: RosterEntry }) {
   return (
@@ -107,9 +99,6 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
   const [editError, setEditError] = useState('')
 
   const [openSwipeName, setOpenSwipeName] = useState<string | null>(null)
-  const [swipe, setSwipe] = useState<{ name: string; startX: number; deltaX: number } | null>(
-    null,
-  )
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
   const railRef = useRef<HTMLDivElement | null>(null)
@@ -195,31 +184,6 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
     setEditingName(null)
   }
 
-  const rowTranslate = (name: string) => {
-    if (swipe && swipe.name === name) return swipe.deltaX
-    return openSwipeName === name ? -SWIPE_OPEN_PX : 0
-  }
-
-  const handleTouchStart = (name: string) => (e: TouchEvent) => {
-    setSwipe({ name, startX: e.touches[0].clientX, deltaX: 0 })
-  }
-
-  const handleTouchMove = (name: string) => (e: TouchEvent) => {
-    setSwipe((s) => {
-      if (!s || s.name !== name) return s
-      const dx = e.touches[0].clientX - s.startX
-      return { ...s, deltaX: Math.min(0, Math.max(dx, -SWIPE_OPEN_PX)) }
-    })
-  }
-
-  const handleTouchEnd = (name: string) => () => {
-    setSwipe((s) => {
-      if (!s || s.name !== name) return s
-      setOpenSwipeName(s.deltaX <= -SWIPE_THRESHOLD_PX ? name : null)
-      return null
-    })
-  }
-
   // jsdom has no scrollIntoView, and older mobile browsers ignore the options
   const jumpTo = (letter: string) => {
     sectionRefs.current[letter]?.scrollIntoView?.({ block: 'start' })
@@ -290,6 +254,12 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
         </header>
 
         <main className="relative mt-3">
+          {roster.length > 0 && (
+            <p className="text-center text-xs text-gray-400 pb-2">
+              <span className="md:hidden">💡 Vuốt trái để xóa</span>
+              <span className="hidden md:inline">💡 Bấm nút thùng rác đỏ để xóa</span>
+            </p>
+          )}
           {roster.length === 0 ? (
             <p className="text-center text-sm text-gray-400 py-8 px-4">
               Danh bạ chưa có ai — bấm + để thêm, hoặc thêm người chơi trong buổi.
@@ -318,32 +288,18 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
                     const isOpen = openSwipeName === entry.name
                     const isLast = i === group.items.length - 1
                     return (
-                      <li key={entry.name} className="relative overflow-hidden">
-                        <button
-                          type="button"
-                          aria-label={`Xóa nhanh ${entry.name}`}
-                          onClick={() => requestDelete(entry.name)}
-                          className="absolute inset-y-0 right-0 w-20 bg-red-500 text-white text-sm font-semibold flex items-center justify-center"
-                        >
-                          Xóa
-                        </button>
-                        <div
-                          data-testid={`roster-swipe-row-${entry.name}`}
-                          className={`relative bg-white flex items-center transition-transform duration-150 ease-out ${
+                      <li key={entry.name}>
+                        <SwipeToDelete
+                          testId={`roster-swipe-row-${entry.name}`}
+                          label={`Xóa nhanh ${entry.name}`}
+                          isOpen={isOpen}
+                          onOpenChange={(open) => setOpenSwipeName(open ? entry.name : null)}
+                          onDelete={() => requestDelete(entry.name)}
+                          surfaceClassName={`bg-white flex items-center ${
                             isLast
                               ? ''
                               : 'after:absolute after:bottom-0 after:left-16 after:right-0 after:h-px after:bg-gray-200'
                           }`}
-                          style={{ transform: `translateX(${rowTranslate(entry.name)}px)` }}
-                          onTouchStart={handleTouchStart(entry.name)}
-                          onTouchMove={handleTouchMove(entry.name)}
-                          onTouchEnd={handleTouchEnd(entry.name)}
-                          onClickCapture={(e) => {
-                            if (isOpen) {
-                              setOpenSwipeName(null)
-                              e.stopPropagation()
-                            }
-                          }}
                         >
                           <button
                             type="button"
@@ -368,19 +324,15 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
                             >
                               <PencilIcon />
                             </button>
-                            <button
-                              type="button"
-                              aria-label={`Xóa ${entry.name}`}
+                            <DeleteButton
+                              label={`Xóa ${entry.name}`}
                               onClick={() => requestDelete(entry.name)}
-                              className="hidden md:flex md:w-10 md:h-10 items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg text-2xl leading-none"
-                            >
-                              ×
-                            </button>
+                            />
                             <span className="md:hidden text-gray-300">
                               <ChevronIcon />
                             </span>
                           </div>
-                        </div>
+                        </SwipeToDelete>
                       </li>
                     )
                   })}
