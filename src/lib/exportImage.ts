@@ -1,6 +1,6 @@
 import { formatVND } from './format'
 import { formatHours } from './time'
-import type { CalcResult, Mode } from './types'
+import type { CalcResult, Mode, Player } from './types'
 
 const SCALE = 2
 const WIDTH = 800
@@ -8,9 +8,11 @@ const PADDING = 24
 const HEADER_HEIGHT = 90
 const ROW_HEIGHT = 64
 const FOOTER_HEIGHT = 44
+const PAID_ICON_WIDTH = 22
 
 const EMERALD_600 = '#059669'
 const GRAY_50 = '#f9fafb'
+const GRAY_300 = '#d1d5db'
 const GRAY_400 = '#9ca3af'
 const GRAY_500 = '#6b7280'
 const GRAY_900 = '#111827'
@@ -45,7 +47,9 @@ export function renderResultImage(
   result: CalcResult,
   mode: Mode,
   dateLabel: string,
+  players: Player[],
 ): HTMLCanvasElement {
+  const paidById = new Map(players.map((p) => [p.id, p.paid]))
   const rowCount = result.players.length
   const height = HEADER_HEIGHT + rowCount * ROW_HEIGHT + FOOTER_HEIGHT
 
@@ -82,14 +86,20 @@ export function renderResultImage(
       ctx.fillRect(0, y, WIDTH, ROW_HEIGHT)
     }
 
+    const paid = paidById.get(p.playerId) ?? false
     ctx.textAlign = 'left'
+    ctx.fillStyle = paid ? EMERALD_600 : GRAY_300
+    ctx.font = 'bold 18px sans-serif'
+    ctx.fillText(paid ? '✓' : '○', PADDING, y + 28)
+
+    const nameX = PADDING + PAID_ICON_WIDTH
     ctx.fillStyle = GRAY_900
     ctx.font = 'bold 20px sans-serif'
-    ctx.fillText(p.name, PADDING, y + 28)
+    ctx.fillText(p.name, nameX, y + 28)
 
     ctx.fillStyle = GRAY_500
     ctx.font = '14px sans-serif'
-    ctx.fillText(playerNote(mode, p), PADDING, y + 48)
+    ctx.fillText(playerNote(mode, p), nameX, y + 48)
 
     ctx.textAlign = 'right'
     ctx.fillStyle = GRAY_900
@@ -109,9 +119,10 @@ export function renderResultImage(
 export function downloadResultImage(
   result: CalcResult,
   mode: Mode,
+  players: Player[],
   date: Date = new Date(),
 ): void {
-  const canvas = renderResultImage(result, mode, formatDateLabel(date))
+  const canvas = renderResultImage(result, mode, formatDateLabel(date), players)
   canvas.toBlob((blob) => {
     if (!blob) return
     const url = URL.createObjectURL(blob)
