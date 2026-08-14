@@ -97,9 +97,22 @@ function normalizePlayer(p: Player): Player {
   return { ...p, paid: p.paid ?? false }
 }
 
+/** Di trú mềm: buổi cũ không có `extras` → mảng rỗng. Không làm mất trường khác. */
 function normalizeSession(s: SessionInput): SessionInput {
-  return { ...s, players: s.players.map(normalizePlayer) }
+  return { ...s, players: s.players.map(normalizePlayer), extras: s.extras ?? [] }
 }
+
+/** Di trú mềm: kết quả cũ không có `extrasTotal` → 0. Số tiền đã lưu giữ nguyên. */
+function normalizeResult(r: CalcResult): CalcResult {
+  return { ...r, players: r.players.map((p) => ({ ...p, extrasTotal: p.extrasTotal ?? 0 })) }
+}
+
+const isExtraCost = (v: unknown): boolean =>
+  isObject(v) &&
+  typeof v.id === 'string' &&
+  typeof v.label === 'string' &&
+  typeof v.amount === 'number' &&
+  typeof v.playerId === 'string'
 
 const isSession = (v: unknown): boolean =>
   isObject(v) &&
@@ -113,7 +126,10 @@ const isSession = (v: unknown): boolean =>
   typeof v.femaleRatio === 'number' &&
   (v.rounding === 'up1000' || v.rounding === 'exact') &&
   Array.isArray(v.players) &&
-  v.players.every((p) => isPlayer(p))
+  v.players.every((p) => isPlayer(p)) &&
+  // migration: dữ liệu cũ không có trường `extras` — chấp nhận mảng hợp lệ hoặc undefined,
+  // normalizeSession() sẽ điền extras: [] khi load.
+  (v.extras === undefined || (Array.isArray(v.extras) && v.extras.every((e) => isExtraCost(e))))
 
 const isPlayerResult = (v: unknown): boolean =>
   isObject(v) &&
@@ -125,7 +141,10 @@ const isPlayerResult = (v: unknown): boolean =>
   typeof v.courtShare === 'number' &&
   typeof v.shuttleShare === 'number' &&
   typeof v.raw === 'number' &&
-  typeof v.amount === 'number'
+  typeof v.amount === 'number' &&
+  // migration: kết quả đã lưu trước tính năng này không có `extrasTotal` — chấp nhận
+  // number hoặc undefined, normalizeResult() điền 0 khi load.
+  (typeof v.extrasTotal === 'number' || v.extrasTotal === undefined)
 
 const isCalcResult = (v: unknown): boolean =>
   isObject(v) &&
@@ -173,7 +192,9 @@ export function loadHistory(): SavedSession[] {
     if (!raw) return []
     const parsed: unknown = JSON.parse(raw)
     const valid = Array.isArray(parsed) ? (parsed.filter(isSavedSession) as SavedSession[]) : []
-    return valid.slice(0, HISTORY_LIMIT).map((s) => ({ ...s, input: normalizeSession(s.input) }))
+    return valid
+      .slice(0, HISTORY_LIMIT)
+      .map((s) => ({ ...s, input: normalizeSession(s.input), result: normalizeResult(s.result) }))
   } catch {
     return []
   }

@@ -8,6 +8,7 @@ import {
   loadRoster,
   loadSettings,
   saveCollectorAccount,
+  saveCurrentSession,
   saveHistory,
   saveRoster,
   saveSettings,
@@ -94,6 +95,7 @@ test('currentSession valid roundtrip', () => {
         paid: false,
       },
     ],
+    extras: [],
   }
   localStorage.setItem('currentSession', JSON.stringify(valid))
   const loaded = loadCurrentSession()
@@ -177,6 +179,7 @@ test('history valid roundtrip', () => {
             paid: false,
           },
         ],
+        extras: [],
       },
       result: {
         totalCost: 525000,
@@ -192,6 +195,7 @@ test('history valid roundtrip', () => {
             hours: null,
             courtShare: 250000,
             shuttleShare: 250000,
+            extrasTotal: 0,
             raw: 500000,
             amount: 500000,
           },
@@ -270,6 +274,7 @@ function makeSession(id: string, savedAt: string): SavedSession {
       players: [
         { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null, paid: false },
       ],
+      extras: [],
     },
     result: {
       totalCost: 525000,
@@ -285,6 +290,7 @@ function makeSession(id: string, savedAt: string): SavedSession {
           hours: null,
           courtShare: 250000,
           shuttleShare: 250000,
+          extrasTotal: 0,
           raw: 500000,
           amount: 500000,
         },
@@ -328,6 +334,7 @@ test('history salvages valid entries instead of wiping everything when one entry
           paid: false,
         },
       ],
+      extras: [],
     },
     result: {
       totalCost: 525000,
@@ -343,6 +350,7 @@ test('history salvages valid entries instead of wiping everything when one entry
           hours: null,
           courtShare: 250000,
           shuttleShare: 250000,
+          extrasTotal: 0,
           raw: 500000,
           amount: 500000,
         },
@@ -369,4 +377,104 @@ test('collectorAccount rejects corrupt or incomplete data', () => {
   expect(loadCollectorAccount()).toBeNull()
   localStorage.setItem('collectorAccount', JSON.stringify({ bankBin: '970422' }))
   expect(loadCollectorAccount()).toBeNull()
+})
+
+describe('chi phí phát sinh khác', () => {
+  const legacyInput = {
+    mode: 'ratio' as const,
+    shuttleCount: 10,
+    shuttlePrice: 25000,
+    courtFee: 500000,
+    courtStart: '09:00',
+    courtEnd: '11:00',
+    maleRatio: 1.5,
+    femaleRatio: 1.0,
+    rounding: 'up1000' as const,
+    players: [
+      {
+        id: '1',
+        name: 'Tuấn',
+        gender: 'male' as const,
+        halfSession: false,
+        startTime: null,
+        endTime: null,
+        paid: false,
+      },
+      {
+        id: '2',
+        name: 'Lan',
+        gender: 'female' as const,
+        halfSession: false,
+        startTime: null,
+        endTime: null,
+        paid: false,
+      },
+    ],
+  }
+
+  // 12
+  test('migration: a currentSession saved without `extras` loads with extras: [] and keeps every player', () => {
+    localStorage.setItem('currentSession', JSON.stringify(legacyInput))
+    const loaded = loadCurrentSession()
+    expect(loaded).not.toBeNull()
+    expect(loaded!.extras).toEqual([])
+    expect(loaded!.players).toHaveLength(2)
+    expect(loaded!.players.map((p) => p.name)).toEqual(['Tuấn', 'Lan'])
+  })
+
+  // 13
+  test('migration: a history result saved without `extrasTotal` loads with 0, amounts untouched', () => {
+    const legacy = [
+      {
+        id: 'session1',
+        savedAt: '2024-01-01T10:00:00Z',
+        input: legacyInput,
+        result: {
+          totalCost: 750000,
+          totalCollected: 750000,
+          surplus: 0,
+          emptyHours: 0,
+          players: [
+            {
+              playerId: '1',
+              name: 'Tuấn',
+              gender: 'male' as const,
+              halfSession: false,
+              hours: null,
+              courtShare: 300000,
+              shuttleShare: 150000,
+              raw: 450000,
+              amount: 450000,
+            },
+          ],
+        },
+      },
+    ]
+    localStorage.setItem('history', JSON.stringify(legacy))
+    const loaded = loadHistory()
+    expect(loaded).toHaveLength(1)
+    expect(loaded[0].result.players[0].extrasTotal).toBe(0)
+    expect(loaded[0].result.players[0].amount).toBe(450000)
+    expect(loaded[0].input.extras).toEqual([])
+  })
+
+  // 14
+  test('round-trip: a session with two extras comes back with every field intact', () => {
+    const extras = [
+      { id: 'e1', label: 'Nước', amount: 15000, playerId: '1' },
+      { id: 'e2', label: 'Thuê vợt', amount: 20000, playerId: '2' },
+    ]
+    saveCurrentSession({ ...legacyInput, extras })
+    expect(loadCurrentSession()!.extras).toEqual(extras)
+  })
+
+  // 15
+  test('guard rejects a malformed extras entry and falls back instead of throwing', () => {
+    localStorage.setItem(
+      'currentSession',
+      JSON.stringify({ ...legacyInput, extras: [{ amount: 'nhiều' }] }),
+    )
+    expect(() => loadCurrentSession()).not.toThrow()
+    expect(loadCurrentSession()).toBeNull()
+  })
 })

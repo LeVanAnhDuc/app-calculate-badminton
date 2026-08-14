@@ -1,5 +1,5 @@
 import { calcHourlyMode, calcRatioMode, calcSession, roundAmount, validateSession } from './calc'
-import type { Player, SessionInput } from './types'
+import type { ExtraCost, Player, SessionInput } from './types'
 
 function player(p: Partial<Player> & Pick<Player, 'name' | 'gender'>): Player {
   return { id: p.name, halfSession: false, startTime: null, endTime: null, paid: false, ...p }
@@ -23,6 +23,7 @@ function ratioInput(over: Partial<SessionInput> = {}): SessionInput {
       player({ name: 'Lan', gender: 'female' }),
       player({ name: 'Hoa', gender: 'female' }),
     ],
+    extras: [],
     ...over,
   }
 }
@@ -76,6 +77,7 @@ function hourlyInput(over: Partial<SessionInput> = {}): SessionInput {
       player({ name: 'Lan', gender: 'female' }),
       player({ name: 'Hoa', gender: 'female', startTime: '19:00', endTime: '20:30' }),
     ],
+    extras: [],
     ...over,
   }
 }
@@ -178,4 +180,167 @@ test('validateSession rejects a cleared player time input instead of letting NaN
       }),
     ),
   ).toContain('Giờ chơi của A chưa đủ 2 mốc')
+})
+
+describe('chi phí phát sinh khác', () => {
+  function extra(over: Partial<ExtraCost> = {}): ExtraCost {
+    return { id: `e-${over.label ?? over.playerId ?? '1'}`, label: 'Nước', amount: 0, playerId: 'Hùng', ...over }
+  }
+
+  const twoMales = [player({ name: 'Hùng', gender: 'male' }), player({ name: 'Tuấn', gender: 'male' })]
+
+  // 1
+  test('an extra cost is charged in full to its owner and to nobody else', () => {
+    const r = calcRatioMode(
+      ratioInput({
+        courtFee: 100000,
+        shuttleCount: 0,
+        rounding: 'exact',
+        players: twoMales,
+        extras: [extra({ id: 'e1', label: 'Thuê vợt', amount: 20000, playerId: 'Hùng' })],
+      }),
+    )
+    expect(r.players.map((p) => p.amount)).toEqual([70000, 50000])
+    expect(r.players[0].extrasTotal).toBe(20000)
+    expect(r.players[1].extrasTotal).toBe(0)
+    expect(r.totalCost).toBe(120000)
+    expect(r.surplus).toBe(0)
+  })
+
+  // 2
+  test('extras are added BEFORE rounding, so they never trigger a second round-up', () => {
+    // court 100.400 split between two equal males → 50.200 each
+    const r = calcRatioMode(
+      ratioInput({
+        courtFee: 100400,
+        shuttleCount: 0,
+        rounding: 'up1000',
+        players: twoMales,
+        extras: [extra({ id: 'e1', label: 'Nước', amount: 500, playerId: 'Hùng' })],
+      }),
+    )
+    expect(r.players[0].courtShare + r.players[0].shuttleShare).toBeCloseTo(50200, 6)
+    expect(r.players[0].raw).toBeCloseTo(50700, 6)
+    expect(r.players[0].amount).toBe(51000)
+    expect(r.players[0].amount).not.toBe(52000)
+  })
+
+  // 3
+  test('several extras on the same person add up into one extrasTotal', () => {
+    const r = calcRatioMode(
+      ratioInput({
+        courtFee: 100000,
+        shuttleCount: 0,
+        rounding: 'exact',
+        players: twoMales,
+        extras: [
+          extra({ id: 'e1', label: 'Nước', amount: 15000, playerId: 'Hùng' }),
+          extra({ id: 'e2', label: 'Thuê vợt', amount: 20000, playerId: 'Hùng' }),
+        ],
+      }),
+    )
+    expect(r.players[0].extrasTotal).toBe(35000)
+    expect(r.players[0].raw).toBe(50000 + 35000)
+  })
+
+  // 4
+  test('hourly court/shuttle splitting is untouched by extras', () => {
+    const withoutExtras = calcHourlyMode(hourlyInput())
+    const withExtras = calcHourlyMode(
+      hourlyInput({ extras: [extra({ id: 'e1', amount: 20000, playerId: 'Tuấn' })] }),
+    )
+    expect(withExtras.players.map((p) => p.courtShare)).toEqual(
+      withoutExtras.players.map((p) => p.courtShare),
+    )
+    expect(withExtras.players.map((p) => p.shuttleShare)).toEqual(
+      withoutExtras.players.map((p) => p.shuttleShare),
+    )
+    expect(withExtras.players.map((p) => p.hours)).toEqual(withoutExtras.players.map((p) => p.hours))
+    expect(withExtras.emptyHours).toBe(withoutExtras.emptyHours)
+    // only the extras-derived figures move
+    expect(withExtras.players[0].raw).toBe(withoutExtras.players[0].raw + 20000)
+    expect(withExtras.totalCost).toBe(withoutExtras.totalCost + 20000)
+    expect(withExtras.totalCollected).toBe(withoutExtras.totalCollected + 20000)
+  })
+
+  // 5
+  test('totalCost includes extras and surplus stays totalCollected − totalCost in both modes', () => {
+    const extras = [
+      extra({ id: 'e1', label: 'Nước', amount: 15000, playerId: 'Tuấn' }),
+      extra({ id: 'e2', label: 'Thuê vợt', amount: 20000, playerId: 'Lan' }),
+    ]
+    const ratio = calcRatioMode(ratioInput({ extras }))
+    expect(ratio.totalCost).toBe(300000 + 35000)
+    expect(ratio.surplus).toBe(ratio.totalCollected - ratio.totalCost)
+
+    const hourly = calcHourlyMode(hourlyInput({ extras }))
+    expect(hourly.totalCost).toBe(450000 + 35000)
+    expect(hourly.surplus).toBe(hourly.totalCollected - hourly.totalCost)
+  })
+
+  // 6
+  test('an orphaned extra (unknown playerId) inflates nobody and no total', () => {
+    const clean = calcRatioMode(ratioInput({ players: twoMales }))
+    const orphan = calcRatioMode(
+      ratioInput({
+        players: twoMales,
+        extras: [extra({ id: 'e1', label: 'Nước', amount: 99000, playerId: 'ai-do-khong-co' })],
+      }),
+    )
+    expect(orphan.totalCost).toBe(clean.totalCost)
+    expect(orphan.players.map((p) => p.raw)).toEqual(clean.players.map((p) => p.raw))
+    expect(orphan.players.every((p) => p.extrasTotal === 0)).toBe(true)
+  })
+
+  // 7
+  test('regression: an empty extras list reproduces the pre-feature result exactly', () => {
+    const r = calcRatioMode(ratioInput({ extras: [] }))
+    expect(r.totalCost).toBe(300000)
+    expect(r.players.map((p) => p.amount)).toEqual([79000, 79000, 40000, 53000, 53000])
+    expect(r.players.every((p) => p.extrasTotal === 0)).toBe(true)
+    expect(r.players.map((p) => p.raw)).toEqual(
+      r.players.map((p) => p.courtShare + p.shuttleShare),
+    )
+  })
+
+  // 8
+  test('validateSession flags a negative amount', () => {
+    expect(
+      validateSession(
+        ratioInput({ extras: [extra({ id: 'e1', label: 'Nước', amount: -1, playerId: 'Tuấn' })] }),
+      ),
+    ).toContain('Số tiền của "Nước" chưa hợp lệ')
+  })
+
+  // 9
+  test('validateSession flags an extra whose owner is not in the session', () => {
+    expect(
+      validateSession(
+        ratioInput({ extras: [extra({ id: 'e1', label: 'Nước', amount: 1000, playerId: 'xxx' })] }),
+      ),
+    ).toContain('Khoản phát sinh "Nước" chưa chọn người trả')
+  })
+
+  // 10
+  test('a blank label with amount 0 is deliberately NOT an error (rows are typed in gradually)', () => {
+    expect(
+      validateSession(
+        ratioInput({ extras: [extra({ id: 'e1', label: '', amount: 0, playerId: 'Tuấn' })] }),
+      ),
+    ).toEqual([])
+  })
+
+  // 11
+  test('a session whose only cost is an extra is not blocked by "Tổng chi phải lớn hơn 0"', () => {
+    const errors = validateSession(
+      ratioInput({
+        courtFee: 0,
+        shuttleCount: 0,
+        players: twoMales,
+        extras: [extra({ id: 'e1', label: 'Nước', amount: 20000, playerId: 'Hùng' })],
+      }),
+    )
+    expect(errors).not.toContain('Tổng chi phải lớn hơn 0')
+    expect(errors).toEqual([])
+  })
 })

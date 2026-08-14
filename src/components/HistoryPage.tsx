@@ -7,6 +7,7 @@ import { durationHours } from '../lib/time'
 import { PaidToggle } from './PaidToggle'
 import { QRSheet } from './QRSheet'
 import { PaidSummaryLine, SurplusRow, TotalCollectedRow } from './ResultPanel'
+import { CopyTextButton, ShareImageButton } from './ShareButtons'
 
 function QRIcon() {
   return (
@@ -174,6 +175,17 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                             <span className="text-gray-500">Tiền sân</span>
                             <span className="font-semibold text-gray-900">{formatVND(s.input.courtFee)}</span>
                           </div>
+                          {s.input.extras.map((e) => (
+                            <div key={e.id} className="flex justify-between text-sm">
+                              <span className="text-gray-500">
+                                {e.label.trim() || 'Khoản khác'} ·{' '}
+                                {s.input.players.find((p) => p.id === e.playerId)?.name ?? '?'}
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {formatVND(e.amount)}
+                              </span>
+                            </div>
+                          ))}
                           {s.input.mode === 'hourly' && (
                             <div className="flex justify-between">
                               <span className="text-gray-500">Giờ thuê sân</span>
@@ -231,7 +243,11 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                                     <span className="text-xs text-gray-400">
                                       ({p.gender === 'male' ? 'Nam' : 'Nữ'}
                                       {s.input.mode === 'ratio' && p.halfSession ? ' · ½ buổi' : ''}
-                                      {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''})
+                                      {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''}
+                                      {p.extrasTotal > 0
+                                        ? ` · +${formatVND(p.extrasTotal)} phát sinh`
+                                        : ''}
+                                      )
                                     </span>
                                   </span>
                                 </span>
@@ -253,21 +269,39 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                         </ul>
                       </div>
                     </div>
-                    <div className="border-t border-gray-100 p-4 space-y-2 md:space-y-0 md:flex md:gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onReuse(s)}
-                        className="w-full md:flex-1 h-12 rounded-xl bg-emerald-600 text-white text-sm font-semibold"
-                      >
-                        Dùng lại danh sách này cho buổi mới
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => window.confirm('Xóa buổi này?') && onDelete(s.id)}
-                        className="w-full md:w-auto md:px-4 h-12 rounded-xl border border-red-200 text-red-500 text-sm font-semibold"
-                      >
-                        Xóa buổi này
-                      </button>
+                    <div className="border-t border-gray-100 p-4 space-y-2">
+                      <div className="flex gap-2">
+                        <ShareImageButton
+                          result={s.result}
+                          mode={s.input.mode}
+                          players={s.input.players}
+                          date={new Date(s.savedAt)}
+                          variant="wide"
+                        />
+                        <CopyTextButton
+                          result={s.result}
+                          mode={s.input.mode}
+                          players={s.input.players}
+                          date={new Date(s.savedAt)}
+                          variant="wide"
+                        />
+                      </div>
+                      <div className="space-y-2 md:space-y-0 md:flex md:gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onReuse(s)}
+                          className="w-full md:flex-1 h-12 rounded-xl bg-emerald-600 text-white text-sm font-semibold"
+                        >
+                          Dùng lại danh sách này cho buổi mới
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onDelete(s.id)}
+                          className="w-full md:w-auto md:px-4 h-12 rounded-xl border border-red-200 text-red-500 text-sm font-semibold"
+                        >
+                          Xóa buổi này
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}

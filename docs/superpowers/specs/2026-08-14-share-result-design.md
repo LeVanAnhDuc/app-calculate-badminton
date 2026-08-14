@@ -22,7 +22,7 @@ nhưng app hiện chỉ *tải* ảnh PNG về máy. Thêm:
   🏸 Tính tiền cầu lông 14/08/2026
   ✓ Đức (Nam): 70.000đ
   ○ Lan (Nữ · ½ buổi): 35.000đ
-  ○ Hùng (Nam · 1h30): 52.000đ
+  ○ Hùng (Nam · 1.5 giờ): 52.000đ
   ```
 
   - `✓` = đã trả, `○` = chưa trả (khớp ảnh PNG).

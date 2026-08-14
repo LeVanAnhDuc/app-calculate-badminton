@@ -73,11 +73,17 @@ export function qrSectionHeight(count: number): number {
   return QR_TITLE_H + Math.ceil(count / QR_COLS) * QR_CELL_H
 }
 
-function playerNote(mode: Mode, p: CalcResult['players'][number]): string {
+export function playerNote(mode: Mode, p: CalcResult['players'][number]): string {
   const genderLabel = p.gender === 'male' ? 'Nam' : 'Nữ'
-  if (mode === 'ratio' && p.halfSession) return `${genderLabel} · ½ buổi`
-  if (mode === 'hourly' && p.hours !== null) return `${genderLabel} · ${formatHours(p.hours)}`
-  return genderLabel
+  const base =
+    mode === 'ratio' && p.halfSession
+      ? `${genderLabel} · ½ buổi`
+      : mode === 'hourly' && p.hours !== null
+        ? `${genderLabel} · ${formatHours(p.hours)}`
+        : genderLabel
+  // appended to the existing note line rather than drawn as a third line —
+  // ROW_HEIGHT is fixed at two lines of text
+  return p.extrasTotal > 0 ? `${base} · + ${formatVND(p.extrasTotal)} phát sinh` : base
 }
 
 /**

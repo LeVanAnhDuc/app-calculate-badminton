@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { HistoryPage } from './HistoryPage'
 import { calcHourlyMode, calcRatioMode } from '../lib/calc'
 import { saveCollectorAccount, type SavedSession } from '../lib/storage'
@@ -7,6 +7,11 @@ import type { SessionInput } from '../lib/types'
 
 vi.mock('qrcode', () => ({
   default: { toDataURL: vi.fn().mockResolvedValue('data:image/png;base64,TEST') },
+}))
+
+vi.mock('../lib/shareResult', () => ({
+  shareResultImage: vi.fn().mockResolvedValue('shared'),
+  copyResultText: vi.fn().mockResolvedValue(true),
 }))
 
 beforeEach(() => localStorage.clear())
@@ -25,6 +30,7 @@ const input: SessionInput = {
     { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null, paid: false },
     { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null, paid: false },
   ],
+  extras: [],
 }
 
 const saved: SavedSession = {
@@ -83,16 +89,17 @@ test('cards start collapsed; tapping one expands it, tapping again collapses it'
   expect(screen.queryByText('Tổng thu')).not.toBeInTheDocument()
 })
 
-test('delete asks for confirmation', () => {
+test('delete calls onDelete straight away, without a confirm dialog', () => {
   const onDelete = vi.fn()
-  vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+  const confirmSpy = vi.spyOn(window, 'confirm')
   render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={onDelete} onTogglePaid={() => {}} onReuse={() => {}} />)
   fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
   fireEvent.click(screen.getByRole('button', { name: 'Xóa buổi này' }))
-  expect(onDelete).not.toHaveBeenCalled()
-  vi.spyOn(window, 'confirm').mockReturnValueOnce(true)
-  fireEvent.click(screen.getByRole('button', { name: 'Xóa buổi này' }))
+  // deleting is undoable via the "Hoàn tác" toast App raises, so nothing is
+  // asked up front
+  expect(confirmSpy).not.toHaveBeenCalled()
   expect(onDelete).toHaveBeenCalledWith('s1')
+  confirmSpy.mockRestore()
 })
 
 test('reuse passes the session', () => {
@@ -160,6 +167,7 @@ test('hourly-mode detail shows hours and never shows leftover ½ buổi note', (
         paid: false,
       },
     ],
+    extras: [],
   }
   const hourlySaved: SavedSession = {
     id: 'h1',
@@ -177,7 +185,6 @@ test('hourly-mode detail shows hours and never shows leftover ½ buổi note', (
 })
 
 test('deleting an expanded session collapses the view instead of auto-expanding another card', () => {
-  vi.spyOn(window, 'confirm').mockReturnValue(true)
   render(<Harness initial={[saved, savedB]} />)
   // expand saved (id s1, the first/newest card)
   fireEvent.click(screen.getAllByText(/2 người · 1 nam, 1 nữ/)[0])
@@ -185,6 +192,45 @@ test('deleting an expanded session collapses the view instead of auto-expanding 
   fireEvent.click(screen.getByRole('button', { name: 'Xóa buổi này' }))
   // savedB remains but nothing auto-expands — expandedId cleared, not re-pointed
   expect(screen.queryByText('Tổng thu')).not.toBeInTheDocument()
+})
+
+describe('chi phí phát sinh khác', () => {
+  const inputWithExtras: SessionInput = {
+    ...input,
+    extras: [
+      { id: 'e1', label: 'Nước', amount: 20000, playerId: '1' },
+      { id: 'e2', label: '   ', amount: 5000, playerId: 'da-bi-xoa' },
+    ],
+  }
+  const savedWithExtras: SavedSession = {
+    id: 'sx',
+    savedAt: '2026-08-13T20:15:00.000Z',
+    input: inputWithExtras,
+    result: calcRatioMode(inputWithExtras),
+  }
+
+  // 19
+  test('the cost block lists every extra with its label and the person charged', () => {
+    render(<HistoryPage history={[savedWithExtras]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+    fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+    expect(screen.getByText('Nước · Tuấn')).toBeInTheDocument()
+    // blank label falls back to "Khoản khác"; an owner missing from the saved
+    // player list (hand-edited data) falls back to "?"
+    expect(screen.getByText('Khoản khác · ?')).toBeInTheDocument()
+  })
+
+  test('a player carrying an extra gets the "+… phát sinh" note next to their gender', () => {
+    render(<HistoryPage history={[savedWithExtras]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+    fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+    expect(screen.getByText(/\+20\.000đ phát sinh/)).toBeInTheDocument()
+  })
+
+  test('a session saved before the feature renders exactly as it did before — no extra rows', () => {
+    render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+    fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+    expect(screen.queryByText(/phát sinh/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Khoản khác/)).not.toBeInTheDocument()
+  })
 })
 
 describe('paid tracking', () => {
@@ -250,4 +296,25 @@ test('QR button in expanded session opens the sheet with the session-date memo',
   // memo uses the session's savedAt (August), not today. Match the month only —
   // the exact day of '2026-08-13T20:15:00.000Z' depends on the machine timezone.
   expect(await screen.findByText(/^Cau long \d{2}\/08 Tuan$/)).toBeInTheDocument()
+})
+
+test('expanded card offers share and copy using the saved date', async () => {
+  const { shareResultImage } = await import('../lib/shareResult')
+  render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+  fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+  fireEvent.click(screen.getByRole('button', { name: /Chia sẻ ảnh/ }))
+  await waitFor(() =>
+    expect(vi.mocked(shareResultImage)).toHaveBeenCalledWith(
+      saved.result,
+      saved.input.mode,
+      saved.input.players,
+      new Date(saved.savedAt),
+    ),
+  )
+  expect(screen.getByRole('button', { name: /Copy kết quả/ })).toBeInTheDocument()
+})
+
+test('collapsed card has no share/copy buttons', () => {
+  render(<HistoryPage history={[saved]} onBack={() => {}} onDelete={() => {}} onTogglePaid={() => {}} onReuse={() => {}} />)
+  expect(screen.queryByRole('button', { name: /Chia sẻ ảnh/ })).not.toBeInTheDocument()
 })

@@ -4,10 +4,29 @@ import { PlayerList } from './PlayerList'
 import type { Gender, Player, SessionInput } from '../lib/types'
 import type { RosterEntry } from '../lib/storage'
 
-function Harness({ initial, roster = [] }: { initial: SessionInput; roster?: RosterEntry[] }) {
+function Harness({
+  initial,
+  roster = [],
+  frequent = [],
+  onRemovePlayer,
+  onAdd,
+}: {
+  initial: SessionInput
+  roster?: RosterEntry[]
+  frequent?: RosterEntry[]
+  onRemovePlayer?: (playerId: string) => void
+  onAdd?: (name: string, gender: Gender) => void
+}) {
   const [input, setInput] = useState(initial)
   const onPatch = (p: Partial<SessionInput>) => setInput((s) => ({ ...s, ...p }))
+  // App owns the real removal (plus its "Hoàn tác" toast); the harness stands
+  // in for it so the list still shrinks in these component-level tests
+  const removePlayer = (playerId: string) => {
+    onRemovePlayer?.(playerId)
+    setInput((s) => ({ ...s, players: s.players.filter((p) => p.id !== playerId) }))
+  }
   const onAddPlayer = (name: string, gender: Gender) => {
+    onAdd?.(name, gender)
     const player: Player = {
       id: name,
       name,
@@ -35,8 +54,10 @@ function Harness({ initial, roster = [] }: { initial: SessionInput; roster?: Ros
     <PlayerList
       input={input}
       roster={roster}
+      frequent={frequent}
       onPatch={onPatch}
       onAddPlayer={onAddPlayer}
+      onRemovePlayer={removePlayer}
       onChangeGender={onChangeGender}
       onRenamePlayer={onRenamePlayer}
     />
@@ -58,6 +79,7 @@ const base: SessionInput = {
   players: [
     { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null, paid: false },
   ],
+  extras: [],
 }
 
 test('adds a player and blocks duplicates', () => {
@@ -72,10 +94,27 @@ test('adds a player and blocks duplicates', () => {
   expect(screen.getByText(/đã có trong buổi/)).toBeInTheDocument()
 })
 
-test('remove button removes from session', () => {
+test('remove button reports the player id via onRemovePlayer instead of patching the list itself', () => {
+  const onRemovePlayer = vi.fn()
+  render(<Harness initial={base} onRemovePlayer={onRemovePlayer} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa Tuấn' }))
+  expect(onRemovePlayer).toHaveBeenCalledWith('1')
+  expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
+})
+
+test('the quick (swipe) delete button also goes through onRemovePlayer', () => {
+  const onRemovePlayer = vi.fn()
+  render(<Harness initial={base} onRemovePlayer={onRemovePlayer} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa nhanh Tuấn' }))
+  expect(onRemovePlayer).toHaveBeenCalledWith('1')
+})
+
+test('no window.confirm is shown before deleting a player', () => {
+  const confirmSpy = vi.spyOn(window, 'confirm')
   render(<Harness initial={base} />)
   fireEvent.click(screen.getByRole('button', { name: 'Xóa Tuấn' }))
-  expect(screen.queryByText('Tuấn')).not.toBeInTheDocument()
+  expect(confirmSpy).not.toHaveBeenCalled()
+  confirmSpy.mockRestore()
 })
 
 test('half-session pill toggles in ratio mode', () => {
@@ -389,4 +428,38 @@ test('players render as list items inside a list, in players-array order', () =>
   const items = screen.getAllByRole('listitem')
   expect(items[0]).toHaveTextContent('Tuấn')
   expect(items[1]).toHaveTextContent('Lan')
+})
+
+const frequent: RosterEntry[] = [
+  { name: 'Hùng', gender: 'male' },
+  { name: 'Hoa', gender: 'female' },
+]
+
+test('frequent chips render under a "Hay chơi cùng" label while the name input is empty', () => {
+  render(<Harness initial={base} frequent={frequent} />)
+  expect(screen.getByText('Hay chơi cùng')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Thêm Hùng · Nam' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Thêm Hoa · Nữ' })).toBeInTheDocument()
+})
+
+test('no frequent chips when there is nobody to suggest', () => {
+  render(<Harness initial={base} />)
+  expect(screen.queryByText('Hay chơi cùng')).not.toBeInTheDocument()
+})
+
+test('frequent chips disappear once the user types — roster suggestions take over', async () => {
+  render(<Harness initial={base} roster={[{ name: 'Hoa', gender: 'female' }]} frequent={frequent} />)
+  fireEvent.change(screen.getByPlaceholderText('Tên người chơi'), { target: { value: 'h' } })
+  // the chip row exits with a motion fade, so it stays mounted for a tick
+  await waitFor(() => expect(screen.queryByText('Hay chơi cùng')).not.toBeInTheDocument())
+  expect(screen.getByText('Từ danh bạ')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Hoa · Nữ' })).toBeInTheDocument()
+})
+
+test('tapping a frequent chip adds that person with the chip gender', async () => {
+  const onAdd = vi.fn()
+  render(<Harness initial={base} frequent={frequent} onAdd={onAdd} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Thêm Hoa · Nữ' }))
+  expect(onAdd).toHaveBeenCalledWith('Hoa', 'female')
+  await waitFor(() => expect(screen.getByText(/^1 nam · 1 nữ$/)).toBeInTheDocument())
 })

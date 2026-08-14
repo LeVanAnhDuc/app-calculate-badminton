@@ -12,14 +12,24 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - Làm tròn lên 1.000đ (mặc định) hoặc giữ chính xác
   - Hiển thị số dư tổng thu vs tổng chi (ẩn sau nút 👁 mỗi lần mở ứng dụng)
 
+- **Chi phí phát sinh khác**
+  - Nhập các khoản lặt vặt (nước, thuê vợt, quấn cán…) ngay trong mục Chi phí
+  - Mỗi khoản gán cho đúng một người, người đó chịu toàn bộ — cộng thẳng vào phần của họ trước khi làm tròn
+
 - **Danh bạ & danh sách tự động nhớ**
   - Gợi ý tên từ danh bạ khi gõ (không phân biệt hoa/thường)
+  - Chip "Hay chơi cùng" khi ô tên còn trống: bấm một phát là thêm người hay gặp nhất (xếp hạng theo số buổi đã lưu, tự bỏ ai đã có trong buổi)
   - Danh sách buổi hiện tại được giữ nguyên giữa các lần dùng — lần sau chỉ cần sửa đổi
 
 - **Lịch sử chi tiết & tái sử dụng**
   - Xem lại chi tiết từng buổi (chi phí, hệ số, kết quả tính)
   - "Dùng lại danh sách này" để nạp người chơi của buổi cũ vào buổi mới
-  - Xóa buổi với xác nhận
+  - Xóa buổi chỉ bằng một chạm, lỡ tay thì bấm "Hoàn tác"
+
+- **Xóa an toàn với "Hoàn tác"**
+  - Xóa người chơi, buổi đã lưu hay người trong danh bạ không còn phải bấm xác nhận
+  - Thông báo "Hoàn tác" hiện 6 giây, khôi phục lại đúng vị trí cũ và giữ nguyên mọi thay đổi bạn làm trong lúc đó
+  - Bấm "Buổi mới" nhầm cũng lấy lại được toàn bộ buổi đang nhập
 
 - **Theo dõi ai đã trả tiền**
   - Đánh dấu ✓ đã trả cho từng người ngay trên bảng kết quả và trong lịch sử
@@ -48,7 +58,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (160 test cases)
+- **Testing**: Vitest + React Testing Library (236 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

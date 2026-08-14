@@ -25,6 +25,7 @@ const input: SessionInput = {
     { id: '1', name: 'Tuấn', gender: 'male', halfSession: false, startTime: null, endTime: null, paid: false },
     { id: '2', name: 'Lan', gender: 'female', halfSession: false, startTime: null, endTime: null, paid: false },
   ],
+  extras: [],
 }
 
 // Mirrors how App.tsx wires ResultPanel: onPatch persists a players patch back
@@ -253,6 +254,48 @@ describe('paid tracking', () => {
   })
 })
 
+describe('chi phí phát sinh khác', () => {
+  const withExtras: SessionInput = {
+    ...input,
+    extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerId: '1' }],
+  }
+
+  // 17
+  test('only the player who owns an extra gets the amber "+ phát sinh" line', () => {
+    const result = calcRatioMode(withExtras)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={withExtras.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    const note = screen.getByText('+ phát sinh 20.000')
+    expect(note).toHaveClass('text-amber-600')
+    // the big number already includes the extra: 180.000 + 20.000
+    expect(screen.getByText('200.000đ')).toBeInTheDocument()
+    // Lan has no extras, so exactly one note exists on screen
+    expect(screen.getAllByText(/\+ phát sinh/)).toHaveLength(1)
+  })
+
+  test('the fullscreen overlay shows the same "+ phát sinh" line', () => {
+    const result = calcRatioMode(withExtras)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={withExtras.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+    // main panel + overlay each render one
+    expect(screen.getAllByText('+ phát sinh 20.000')).toHaveLength(2)
+  })
+
+  test('no "+ phát sinh" line at all when the session has no extras', () => {
+    const result = calcRatioMode(input)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    expect(screen.queryByText(/\+ phát sinh/)).not.toBeInTheDocument()
+  })
+})
+
 test('"Buổi mới" button is always clickable, even with no result', () => {
   const onNewSession = vi.fn()
   render(
@@ -272,7 +315,7 @@ test('"Buổi mới" button is always clickable, even with no result', () => {
   expect(onNewSession).toHaveBeenCalledTimes(1)
 })
 
-describe('PNG result download', () => {
+describe('share / copy result', () => {
   // jsdom doesn't implement the canvas 2D context; stub only the methods
   // exportImage.ts actually calls so renderResultImage/downloadResultImage
   // can run against a real (fake-drawing) HTMLCanvasElement.
@@ -298,13 +341,18 @@ describe('PNG result download', () => {
         callback(new Blob(['fake-png'], { type: 'image/png' }))
       },
     )
+    // canvasToPngFile calls toDataURL before the share attempt; jsdom throws
+    // 'not implemented', so stub it.
+    vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue(
+      `data:image/png;base64,${btoa('fake-png')}`,
+    )
   }
 
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  test('clicking the download button triggers an anchor download with the expected filename and shows a toast', async () => {
+  test('clicking the share button triggers an anchor download with the expected filename and shows a toast', async () => {
     stubCanvas()
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url')
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
@@ -320,15 +368,17 @@ describe('PNG result download', () => {
     render(
       <ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}} onNewSession={() => {}} onPatch={() => {}} />,
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Tải ảnh kết quả' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ ảnh kết quả' }))
 
     await waitFor(() =>
       expect(downloadedFilename).toMatch(/^tinh-tien-cau-long-\d{4}-\d{2}-\d{2}\.png$/),
     )
+    // renderResultImage is async since the VietQR merge — the toast fires
+    // after the promise chain settles, so it must be awaited
     await waitFor(() => expect(toastSpy).toHaveBeenCalledWith('Đã tải ảnh kết quả'))
   })
 
-  test('downloading with a mix of paid and unpaid players does not crash and still names the file correctly', async () => {
+  test('sharing with a mix of paid and unpaid players does not crash and still names the file correctly', async () => {
     stubCanvas()
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url')
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
@@ -360,7 +410,7 @@ describe('PNG result download', () => {
       />,
     )
     expect(() =>
-      fireEvent.click(screen.getByRole('button', { name: 'Tải ảnh kết quả' })),
+      fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ ảnh kết quả' })),
     ).not.toThrow()
 
     await waitFor(() =>
@@ -368,7 +418,7 @@ describe('PNG result download', () => {
     )
   })
 
-  test('the download button is also available inside the fullscreen overlay', async () => {
+  test('the share button is also available inside the fullscreen overlay', async () => {
     stubCanvas()
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url')
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
@@ -386,17 +436,17 @@ describe('PNG result download', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
     // the overlay stacks on top of the (still-mounted) main panel, so there
-    // are now two download buttons — scope to the one inside the overlay,
+    // are now two share buttons — scope to the one inside the overlay,
     // which shares its immediate parent with the overlay's "Đóng" close button
     const overlayButtonGroup = screen.getByRole('button', { name: 'Đóng' }).closest('div')!
-    fireEvent.click(within(overlayButtonGroup).getByRole('button', { name: 'Tải ảnh kết quả' }))
+    fireEvent.click(within(overlayButtonGroup).getByRole('button', { name: 'Chia sẻ ảnh kết quả' }))
 
     await waitFor(() =>
       expect(downloadedFilename).toMatch(/^tinh-tien-cau-long-\d{4}-\d{2}-\d{2}\.png$/),
     )
   })
 
-  test('no download button is shown when there is no result', () => {
+  test('no share or copy button is shown when there is no result', () => {
     render(
       <ResultPanel
         result={null}
@@ -408,7 +458,27 @@ describe('PNG result download', () => {
         onPatch={() => {}}
       />,
     )
-    expect(screen.queryByRole('button', { name: 'Tải ảnh kết quả' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Chia sẻ ảnh kết quả' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Copy kết quả' })).not.toBeInTheDocument()
+  })
+
+  test('copy button writes the result text to the clipboard and toasts', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+      writable: true,
+    })
+    const toastSpy = vi.spyOn(toast, 'success').mockImplementation(() => '')
+    const result = calcRatioMode(input)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}} onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Copy kết quả' }))
+    await waitFor(() => expect(toastSpy).toHaveBeenCalledWith('Đã copy kết quả ✓'))
+    expect(writeText.mock.calls[0][0]).toContain('Tuấn')
+    expect(writeText.mock.calls[0][0]).toContain('🏸 Tính tiền cầu lông')
+    delete (navigator as unknown as Record<string, unknown>).clipboard
   })
 })
 
