@@ -21,8 +21,16 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - "Dùng lại danh sách này" để nạp người chơi của buổi cũ vào buổi mới
   - Xóa buổi với xác nhận
 
+- **Theo dõi ai đã trả tiền**
+  - Đánh dấu ✓ đã trả cho từng người ngay trên bảng kết quả và trong lịch sử
+  - Trạng thái đã trả hiển thị cả trong ảnh kết quả tải về
+
+- **Chia sẻ kết quả**
+  - Tải bảng kết quả về dưới dạng ảnh PNG để gửi vào nhóm chat
+
 - **Giao diện linh hoạt**
   - Sửa giờ chơi qua bottom sheet (vaul), chọn giờ với wheel picker 24h kiểu iOS
+  - Kéo tay nắm ⠿ để sắp xếp thứ tự người chơi (mobile & desktop)
   - Vuốt trái để xóa người chơi (mobile)
   - Responsive: mobile 1 cột, desktop 2 cột sticky với animation mượt (Motion)
 
@@ -35,7 +43,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (84 test cases)
+- **Testing**: Vitest + React Testing Library (137 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

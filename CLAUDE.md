@@ -22,3 +22,7 @@ Manual overrides, honored only in the HEAD commit subject line:
 - `[skip release]` — no release for this push (use for docs/CI-only changes when a release would be noise)
 
 When merging a feature branch into `main`, make sure the merge/HEAD commit subject carries the right prefix — with multiple commits pushed at once, the workflow scans the whole range, so a single `feat:` commit anywhere in the push is enough for a minor bump.
+
+## README (REQUIRED — keep in sync with features)
+
+Releases are automated, README is not. Every user-facing feature (`feat:` commit) MUST update the "Tính năng chính" section of `README.md` in the same branch, before merging into `main` — a short Vietnamese bullet in the existing style. While touching README, also refresh stale counts if noticed (e.g. the test-case number in Tech Stack). Docs-only README syncs use a `docs:` prefix and never a `[skip release]` marker (it would cancel the release of feature commits pushed together with it).
