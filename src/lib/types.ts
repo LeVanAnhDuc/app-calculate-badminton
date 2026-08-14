@@ -12,17 +12,30 @@ export interface Player {
   paid: boolean                 // đã trả tiền hay chưa, mặc định false
 }
 
+export interface ShuttleLine {
+  id: string
+  name: string                  // "Hải Yến 3 sao" — có thể rỗng lúc vừa thêm
+  count: number                 // số quả, nguyên ≥ 0
+  price: number                 // VND / quả, ≥ 0
+}
+
 export interface ExtraCost {
   id: string
   label: string                 // "Thuê vợt", "Nước" — có thể rỗng lúc vừa thêm
-  amount: number                // VND, số nguyên ≥ 0
-  playerId: string              // Player.id của người chịu TOÀN BỘ khoản này
+  amount: number                // VND, số nguyên ≥ 0 — TỔNG của khoản, không phải phần mỗi người
+  playerIds: string[]           // tập người cùng chịu; chia ĐỀU theo đầu người
+}
+
+/** Một khoản phát sinh đã chia, tính sẵn cho MỘT người — chỉ dùng để hiển thị. */
+export interface ExtraShare {
+  label: string                 // đã chuẩn hóa: nhãn rỗng → "Khoản khác"
+  share: number                 // phần của riêng người này = amount / số người chịu (raw)
+  sharedCount: number           // số người cùng chịu; > 1 → UI in "(chung, N người)"
 }
 
 export interface SessionInput {
   mode: Mode
-  shuttleCount: number
-  shuttlePrice: number
+  shuttles: ShuttleLine[]       // nhiều loại cầu trong cùng buổi; [] = không mua cầu
   courtFee: number
   courtStart: string            // "HH:mm", used in mode 'hourly'
   courtEnd: string
@@ -41,7 +54,8 @@ export interface PlayerResult {
   hours: number | null          // null in mode 'ratio'
   courtShare: number            // raw (unrounded)
   shuttleShare: number          // raw (unrounded)
-  extrasTotal: number           // tổng khoản phát sinh của riêng người này (raw)
+  extras: ExtraShare[]          // từng khoản của riêng người này, đã chia sẵn
+  extrasTotal: number           // = tổng extras[].share; GIỮ LẠI cho buổi lưu bởi v1.4.0
   raw: number                   // courtShare + shuttleShare + extrasTotal
   amount: number                // rounded per input.rounding
 }

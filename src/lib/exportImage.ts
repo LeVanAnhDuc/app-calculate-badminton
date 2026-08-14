@@ -2,14 +2,16 @@ import QRCode from 'qrcode'
 import { formatVND } from './format'
 import { loadCollectorAccount, type CollectorAccount } from './storage'
 import { formatHours } from './time'
-import type { CalcResult, Mode, Player } from './types'
+import type { CalcResult, ExtraShare, Mode, Player, PlayerResult } from './types'
 import { buildMemo, buildVietQRPayload } from './vietqr'
 
 const SCALE = 2
 const WIDTH = 800
 const PADDING = 24
 const HEADER_HEIGHT = 90
-const ROW_HEIGHT = 64
+const ROW_HEIGHT = 64 // still exactly two lines of text (name y+28, note y+48)
+const EXTRA_LINE_HEIGHT = 20 // = the name → note gap (48 − 28)
+const EXTRA_INDENT = 12 // matches the web's pl-3
 const FOOTER_HEIGHT = 44
 const PAID_ICON_WIDTH = 22
 const QR_COLS = 3
@@ -17,6 +19,17 @@ const QR_SIZE = 180
 const QR_CELL_W = (WIDTH - PADDING * 2) / QR_COLS
 const QR_CELL_H = QR_SIZE + 60 // QR + name + amount lines
 const QR_TITLE_H = 56
+
+/** Rows grow with the number of itemised extras instead of being fixed. */
+function rowHeight(p: PlayerResult): number {
+  return ROW_HEIGHT + p.extras.length * EXTRA_LINE_HEIGHT
+}
+
+/** One itemised extra as a single line — shared with shareResult.ts. */
+export function extraShareLine(x: ExtraShare): string {
+  const who = x.sharedCount > 1 ? ` (chung, ${x.sharedCount} người)` : ''
+  return `· ${x.label}${who} ${formatVND(x.share)}`
+}
 
 const EMERALD_600 = '#059669'
 const GRAY_50 = '#f9fafb'
@@ -81,9 +94,11 @@ export function playerNote(mode: Mode, p: CalcResult['players'][number]): string
       : mode === 'hourly' && p.hours !== null
         ? `${genderLabel} · ${formatHours(p.hours)}`
         : genderLabel
-  // appended to the existing note line rather than drawn as a third line —
-  // ROW_HEIGHT is fixed at two lines of text
-  return p.extrasTotal > 0 ? `${base} · + ${formatVND(p.extrasTotal)} phát sinh` : base
+  // Each extra already has its own line → do not repeat the total here. The
+  // suffix survives only for v1.4.0 data (extrasTotal but no extras).
+  return p.extras.length === 0 && p.extrasTotal > 0
+    ? `${base} · + ${formatVND(p.extrasTotal)} phát sinh`
+    : base
 }
 
 /**
@@ -99,8 +114,11 @@ export async function renderResultImage(
   qrItems: QRItem[] = [],
 ): Promise<HTMLCanvasElement> {
   const paidById = new Map(players.map((p) => [p.id, p.paid]))
-  const rowCount = result.players.length
-  const height = HEADER_HEIGHT + rowCount * ROW_HEIGHT + qrSectionHeight(qrItems.length) + FOOTER_HEIGHT
+  const height =
+    HEADER_HEIGHT +
+    result.players.reduce((s, p) => s + rowHeight(p), 0) +
+    qrSectionHeight(qrItems.length) +
+    FOOTER_HEIGHT
 
   const canvas = document.createElement('canvas')
   canvas.width = WIDTH * SCALE
@@ -127,12 +145,13 @@ export async function renderResultImage(
   ctx.font = '16px sans-serif'
   ctx.fillText(dateLabel, PADDING, 68)
 
-  // player rows
+  // player rows — y accumulates each row's OWN height
+  let y = HEADER_HEIGHT
   result.players.forEach((p, i) => {
-    const y = HEADER_HEIGHT + i * ROW_HEIGHT
+    const h = rowHeight(p)
     if (i % 2 === 1) {
       ctx.fillStyle = GRAY_50
-      ctx.fillRect(0, y, WIDTH, ROW_HEIGHT)
+      ctx.fillRect(0, y, WIDTH, h) // the zebra stripe covers the whole tall row
     }
 
     const paid = paidById.get(p.playerId) ?? false
@@ -150,15 +169,25 @@ export async function renderResultImage(
     ctx.font = '14px sans-serif'
     ctx.fillText(playerNote(mode, p), nameX, y + 48)
 
+    // same font/colour as the note line; bottom padding is preserved: the last
+    // baseline sits at 48 + 20n and the row ends at 64 + 20n → still 16px
+    p.extras.forEach((x, k) => {
+      ctx.fillText(extraShareLine(x), nameX + EXTRA_INDENT, y + 48 + (k + 1) * EXTRA_LINE_HEIGHT)
+    })
+
     ctx.textAlign = 'right'
     ctx.fillStyle = GRAY_900
     ctx.font = 'bold 20px sans-serif'
+    // deliberately keyed off the ORIGINAL ROW_HEIGHT so the amount stays level
+    // with the name instead of drifting to the middle of a tall row
     ctx.fillText(formatVND(p.amount), WIDTH - PADDING, y + ROW_HEIGHT / 2 + 7)
+    y += h
   })
 
-  // QR section — "Quét QR để trả tiền" (unpaid players only)
+  // QR section — "Quét QR để trả tiền" (unpaid players only). `y` is the
+  // accumulated bottom of the variable-height player rows.
   if (qrItems.length > 0) {
-    const sectionY = HEADER_HEIGHT + rowCount * ROW_HEIGHT
+    const sectionY = y
     ctx.textAlign = 'left'
     ctx.fillStyle = GRAY_900
     ctx.font = 'bold 18px sans-serif'

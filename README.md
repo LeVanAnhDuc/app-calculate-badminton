@@ -8,13 +8,20 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - **Chia theo tỉ lệ**: Cộng tiền cầu & sân, chia theo hệ số giới tính (Nam/Nữ), hỗ trợ nhập ½ buổi
   - **Sân theo giờ**: Tiền sân chia theo giờ chơi thực tế từng người, tiền cầu vẫn chia theo hệ số (phù hợp khi nhóm có người đến muộn/về sớm)
 
+- **Nhiều loại cầu trong một buổi**
+  - Mỗi loại có tên, số lượng và giá riêng — tổng tiền cầu vẫn chia theo hệ số như cũ
+  - Chọn loại cầu bằng bottom sheet: chip loại hay dùng, gõ để lọc, chọn xong tự điền giá lần trước
+  - Lịch sử liệt kê rõ từng loại cầu đã dùng trong buổi
+
 - **Làm tròn và quản lý số dư**
   - Làm tròn lên 1.000đ (mặc định) hoặc giữ chính xác
   - Hiển thị số dư tổng thu vs tổng chi (ẩn sau nút 👁 mỗi lần mở ứng dụng)
 
 - **Chi phí phát sinh khác**
   - Nhập các khoản lặt vặt (nước, thuê vợt, quấn cán…) ngay trong mục Chi phí
-  - Mỗi khoản gán cho đúng một người, người đó chịu toàn bộ — cộng thẳng vào phần của họ trước khi làm tròn
+  - Chọn một người, một nhóm nhỏ hay cả nhóm cùng chịu — số tiền chia đều theo đầu người
+  - Kết quả liệt kê từng khoản dưới tên mỗi người, có cả trong ảnh PNG và bản copy text
+  - Xóa người chơi thì khoản chung vẫn giữ nguyên tổng, những người còn lại gánh phần đó
 
 - **Danh bạ & danh sách tự động nhớ**
   - Gợi ý tên từ danh bạ khi gõ (không phân biệt hoa/thường)
@@ -36,7 +43,9 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - Trạng thái đã trả hiển thị cả trong ảnh kết quả tải về
 
 - **Chia sẻ kết quả**
-  - Tải bảng kết quả về dưới dạng ảnh PNG để gửi vào nhóm chat
+  - Bấm nút chia sẻ để gửi ảnh kết quả thẳng vào Zalo/Messenger qua share sheet của điện thoại (máy không hỗ trợ sẽ tự tải ảnh PNG về)
+  - Copy kết quả dạng text (tên + số tiền + dấu ✓ đã trả) để dán vào chat
+  - Chia sẻ lại ảnh/text của buổi cũ ngay trong lịch sử, giữ đúng ngày đã lưu
 
 - **Mã VietQR cho từng người chơi**
   - Nhập tài khoản người thu một lần — app sẽ dùng cho mọi buổi sau
@@ -58,7 +67,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (236 test cases)
+- **Testing**: Vitest + React Testing Library (301 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

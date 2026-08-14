@@ -5,6 +5,7 @@ import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
 import { durationHours } from '../lib/time'
 import { PaidToggle } from './PaidToggle'
+import { payerSummary } from './PayerSelect'
 import { QRSheet } from './QRSheet'
 import { PaidSummaryLine, SurplusRow, TotalCollectedRow } from './ResultPanel'
 import { CopyTextButton, ShareImageButton } from './ShareButtons'
@@ -163,23 +164,30 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                       <div>
                         <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Chi phí</h3>
                         <div className="space-y-1.5 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">
-                              Tiền cầu ({s.input.shuttleCount} quả × {formatVND(s.input.shuttlePrice)})
-                            </span>
-                            <span className="font-semibold text-gray-900">
-                              {formatVND(s.input.shuttleCount * s.input.shuttlePrice)}
-                            </span>
-                          </div>
+                          {s.input.shuttles
+                            .filter((l) => l.count > 0)
+                            .map((l) => (
+                              <div key={l.id} className="flex justify-between">
+                                <span className="text-gray-500">
+                                  {l.name.trim() || 'Tiền cầu'} ({l.count} quả ×{' '}
+                                  {formatVND(l.price)})
+                                </span>
+                                <span className="font-semibold text-gray-900">
+                                  {formatVND(l.count * l.price)}
+                                </span>
+                              </div>
+                            ))}
                           <div className="flex justify-between">
                             <span className="text-gray-500">Tiền sân</span>
                             <span className="font-semibold text-gray-900">{formatVND(s.input.courtFee)}</span>
                           </div>
                           {s.input.extras.map((e) => (
                             <div key={e.id} className="flex justify-between text-sm">
+                              {/* the amount on the right is the WHOLE `amount`,
+                                  not one share — this is the "Chi phí" block */}
                               <span className="text-gray-500">
                                 {e.label.trim() || 'Khoản khác'} ·{' '}
-                                {s.input.players.find((p) => p.id === e.playerId)?.name ?? '?'}
+                                {payerSummary(s.input.players, e.playerIds, '?')}
                               </span>
                               <span className="font-semibold text-gray-900">
                                 {formatVND(e.amount)}
@@ -244,11 +252,20 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                                       ({p.gender === 'male' ? 'Nam' : 'Nữ'}
                                       {s.input.mode === 'ratio' && p.halfSession ? ' · ½ buổi' : ''}
                                       {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''}
-                                      {p.extrasTotal > 0
+                                      {/* itemised extras get their own lines below, so
+                                          the suffix is kept only for v1.4.0 sessions */}
+                                      {p.extras.length === 0 && p.extrasTotal > 0
                                         ? ` · +${formatVND(p.extrasTotal)} phát sinh`
                                         : ''}
                                       )
                                     </span>
+                                    {p.extras.map((x, k) => (
+                                      <span key={k} className="text-xs text-gray-400 block pl-3">
+                                        · {x.label}
+                                        {x.sharedCount > 1 ? ` (chung, ${x.sharedCount} người)` : ''}{' '}
+                                        {formatVND(x.share)}
+                                      </span>
+                                    ))}
                                   </span>
                                 </span>
                                 <span className="flex items-center gap-2">

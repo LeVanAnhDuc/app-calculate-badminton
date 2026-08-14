@@ -13,8 +13,7 @@ beforeEach(() => localStorage.clear())
 
 const input: SessionInput = {
   mode: 'ratio',
-  shuttleCount: 6,
-  shuttlePrice: 25000,
+  shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }],
   courtFee: 150000,
   courtStart: '19:00',
   courtEnd: '21:00',
@@ -66,11 +65,11 @@ test('surplus hidden behind eye toggle by default', () => {
   const result = calcRatioMode({ ...input, courtFee: 151000 })
   render(<ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
       onNewSession={() => {}} onPatch={() => {}} />)
-  // both Tổng thu and Số dư are hidden by default
-  expect(screen.getAllByText('•••••')).toHaveLength(2)
+  // "còn thiếu", Tổng thu and Số dư are all hidden by default
+  expect(screen.getAllByText('•••••')).toHaveLength(3)
   fireEvent.click(screen.getByRole('button', { name: 'Hiện số dư' }))
-  // Tổng thu stays hidden; only the surplus row was revealed
-  expect(screen.getAllByText('•••••')).toHaveLength(1)
+  // the other two stay hidden; only the surplus row was revealed
+  expect(screen.getAllByText('•••••')).toHaveLength(2)
   expect(screen.getByText(/\+\d/)).toBeInTheDocument()
 })
 
@@ -242,6 +241,38 @@ describe('paid tracking', () => {
     expect(screen.queryByText(/còn thiếu/)).not.toBeInTheDocument()
   })
 
+  // scoped to the settlement line: Tổng thu and Số dư mask themselves with the
+  // same ••••• in this same panel
+  test('the amount owed starts hidden behind ••••• and the eye reveals it', () => {
+    render(<Harness initialInput={input} />)
+    const line = screen.getByText(/còn thiếu/)
+    expect(line).toHaveTextContent('còn thiếu •••••')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hiện số tiền còn thiếu' }))
+    expect(line).toHaveTextContent('còn thiếu 300.000đ')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ẩn số tiền còn thiếu' }))
+    expect(line).toHaveTextContent('còn thiếu •••••')
+  })
+
+  test('revealing the amount in the panel leaves the overlay copy independently hidden', () => {
+    render(<Harness initialInput={input} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Hiện số tiền còn thiếu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+    // panel revealed, overlay still masked — same per-instance behaviour as
+    // Tổng thu / Số dư
+    expect(screen.getAllByRole('button', { name: 'Hiện số tiền còn thiếu' })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: 'Ẩn số tiền còn thiếu' })).toHaveLength(1)
+  })
+
+  test('"✓ Đã thu đủ" has no amount, so it has no eye button', () => {
+    render(<Harness initialInput={input} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Đánh dấu Tuấn đã trả' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Đánh dấu Lan đã trả' }))
+    expect(screen.getByText('✓ Đã thu đủ')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /số tiền còn thiếu/ })).not.toBeInTheDocument()
+  })
+
   test('the fullscreen overlay shows the same settlement summary and toggle works there too', () => {
     render(<Harness initialInput={input} />)
     fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
@@ -257,25 +288,62 @@ describe('paid tracking', () => {
 describe('chi phí phát sinh khác', () => {
   const withExtras: SessionInput = {
     ...input,
-    extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerId: '1' }],
+    extras: [{ id: 'e1', label: 'Nước', amount: 20000, playerIds: ['1'] }],
   }
 
-  // 17
-  test('only the player who owns an extra gets the amber "+ phát sinh" line', () => {
+  // 17 / 29
+  test('only the player charged for an extra gets the amber detail line', () => {
     const result = calcRatioMode(withExtras)
     render(
       <ResultPanel result={result} mode="ratio" errors={[]} players={withExtras.players} onSave={() => {}}
         onNewSession={() => {}} onPatch={() => {}} />,
     )
-    const note = screen.getByText('+ phát sinh 20.000')
+    const note = screen.getByText(/· Nước 20\.000/)
     expect(note).toHaveClass('text-amber-600')
+    // a solo extra is not labelled "(chung, …)"
+    expect(note).not.toHaveTextContent('chung')
     // the big number already includes the extra: 180.000 + 20.000
     expect(screen.getByText('200.000đ')).toBeInTheDocument()
     // Lan has no extras, so exactly one note exists on screen
-    expect(screen.getAllByText(/\+ phát sinh/)).toHaveLength(1)
+    expect(screen.getAllByText(/· Nước/)).toHaveLength(1)
   })
 
-  test('the fullscreen overlay shows the same "+ phát sinh" line', () => {
+  // 29
+  test('a player carrying two extras gets one line each, itemised by label', () => {
+    const twoExtras: SessionInput = {
+      ...input,
+      extras: [
+        { id: 'e1', label: 'Nước', amount: 15000, playerIds: ['1'] },
+        { id: 'e2', label: 'Thuê vợt', amount: 20000, playerIds: ['1'] },
+      ],
+    }
+    const result = calcRatioMode(twoExtras)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={twoExtras.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    expect(screen.getByText(/· Nước 15\.000/)).toBeInTheDocument()
+    expect(screen.getByText(/· Thuê vợt 20\.000/)).toBeInTheDocument()
+    // no lump-sum line survives next to the itemised ones
+    expect(screen.queryByText(/\+ phát sinh/)).not.toBeInTheDocument()
+  })
+
+  // 29
+  test('a shared extra says how many heads it was split between, on every bearer', () => {
+    const shared: SessionInput = {
+      ...input,
+      extras: [{ id: 'e1', label: 'Nước', amount: 100000, playerIds: ['1', '2'] }],
+    }
+    const result = calcRatioMode(shared)
+    render(
+      <ResultPanel result={result} mode="ratio" errors={[]} players={shared.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    expect(screen.getAllByText(/· Nước \(chung, 2 người\) 50\.000/)).toHaveLength(2)
+  })
+
+  // 29
+  test('the fullscreen overlay itemises exactly the same lines', () => {
     const result = calcRatioMode(withExtras)
     render(
       <ResultPanel result={result} mode="ratio" errors={[]} players={withExtras.players} onSave={() => {}}
@@ -283,16 +351,34 @@ describe('chi phí phát sinh khác', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
     // main panel + overlay each render one
-    expect(screen.getAllByText('+ phát sinh 20.000')).toHaveLength(2)
+    expect(screen.getAllByText(/· Nước 20\.000/)).toHaveLength(2)
   })
 
-  test('no "+ phát sinh" line at all when the session has no extras', () => {
+  // 30
+  test('fallback: a v1.4.0 result (a total but no itemisation) still shows one "+ phát sinh" line', () => {
+    const base = calcRatioMode(input)
+    const legacy = {
+      ...base,
+      players: base.players.map((p, i) =>
+        i === 0 ? { ...p, extras: [], extrasTotal: 35000 } : p,
+      ),
+    }
+    render(
+      <ResultPanel result={legacy} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
+        onNewSession={() => {}} onPatch={() => {}} />,
+    )
+    expect(screen.getByText('+ phát sinh 35.000')).toBeInTheDocument()
+    expect(screen.queryByText(/^· /)).not.toBeInTheDocument()
+  })
+
+  test('no extras line at all when the session has no extras', () => {
     const result = calcRatioMode(input)
     render(
       <ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
         onNewSession={() => {}} onPatch={() => {}} />,
     )
     expect(screen.queryByText(/\+ phát sinh/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^· /)).not.toBeInTheDocument()
   })
 })
 

@@ -8,7 +8,14 @@ const player = (over: Partial<Player>): Player => ({
 
 const pr = (over: Partial<CalcResult['players'][number]>): CalcResult['players'][number] => ({
   playerId: '1', name: 'Đức', gender: 'male', halfSession: false,
-  hours: null, courtShare: 0, shuttleShare: 0, extrasTotal: 0, raw: 70000, amount: 70000, ...over,
+  hours: null, courtShare: 0, shuttleShare: 0, extras: [], extrasTotal: 0,
+  raw: 70000, amount: 70000, ...over,
+})
+
+const share = (label: string, amount: number, sharedCount = 1) => ({
+  label,
+  share: amount,
+  sharedCount,
 })
 
 const result = (players: CalcResult['players']): CalcResult => ({
@@ -36,6 +43,44 @@ test('hourly mode shows hours note', () => {
   const r = result([pr({ playerId: '1', name: 'Hùng', hours: 1.5, amount: 52000 })])
   expect(formatResultText(r, 'hourly', '14/08/2026', players)).toBe(
     '🏸 Tính tiền cầu lông 14/08/2026\n○ Hùng (Nam · 1.5 giờ): 52.000đ',
+  )
+})
+
+// 25
+test('each extra becomes its own indented child line under the player', () => {
+  const players = [player({ id: '1', name: 'An' }), player({ id: '2', name: 'Bình', paid: true })]
+  const r = result([
+    pr({
+      playerId: '1',
+      name: 'An',
+      amount: 85000,
+      extras: [share('Nước', 15000), share('Thuê vợt', 20000)],
+      extrasTotal: 35000,
+    }),
+    pr({
+      playerId: '2',
+      name: 'Bình',
+      amount: 134000,
+      extras: [share('Nước', 33333.333, 3)],
+      extrasTotal: 33333.333,
+    }),
+  ])
+  expect(formatResultText(r, 'ratio', '14/08/2026', players)).toBe(
+    '🏸 Tính tiền cầu lông 14/08/2026\n' +
+      '○ An (Nam): 85.000đ\n' +
+      '   · Nước 15.000đ\n' +
+      '   · Thuê vợt 20.000đ\n' +
+      '✓ Bình (Nam): 134.000đ\n' +
+      '   · Nước (chung, 3 người) 33.333đ',
+  )
+})
+
+// 25 (second half)
+test('a v1.4.0 session produces byte-identical text to before the feature', () => {
+  const players = [player({ id: '1', name: 'An' })]
+  const r = result([pr({ playerId: '1', name: 'An', amount: 90000, extras: [], extrasTotal: 20000 })])
+  expect(formatResultText(r, 'ratio', '14/08/2026', players)).toBe(
+    '🏸 Tính tiền cầu lông 14/08/2026\n○ An (Nam · + 20.000đ phát sinh): 90.000đ',
   )
 })
 
