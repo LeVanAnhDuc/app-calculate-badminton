@@ -3,6 +3,7 @@ import { MotionConfig } from 'motion/react'
 import { Toaster, toast } from 'sonner'
 import { CostForm } from './components/CostForm'
 import { HistoryPage } from './components/HistoryPage'
+import { InstallBanner } from './components/InstallBanner'
 import { ModeSwitch } from './components/ModeSwitch'
 import { PlayerList } from './components/PlayerList'
 import { RatioInputs } from './components/RatioInputs'
@@ -343,6 +344,7 @@ export default function App() {
             </button>
           </div>
         </main>
+        <InstallBanner />
         </div>
       </div>
     </MotionConfig>
