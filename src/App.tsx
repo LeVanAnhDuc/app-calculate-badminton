@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MotionConfig } from 'motion/react'
 import { Toaster, toast } from 'sonner'
 import { CostForm } from './components/CostForm'
@@ -10,6 +10,7 @@ import { ResultPanel } from './components/ResultPanel'
 import { RosterPage } from './components/RosterPage'
 import { RoundingToggle } from './components/RoundingToggle'
 import { calcSession, validateSession } from './lib/calc'
+import { frequentPlayers } from './lib/frequent'
 import { insertAt, toastUndo } from './lib/undo'
 import {
   addToRoster,
@@ -149,6 +150,12 @@ export default function App() {
     }))
     setRoster((r) => addToRoster(r, newName, player.gender))
   }
+
+  // Tần suất suy ra từ lịch sử đã lưu (không lưu thêm trường nào vào danh bạ).
+  const frequent = useMemo(
+    () => frequentPlayers(history, roster, session.players),
+    [history, roster, session.players],
+  )
 
   const errors = validateSession(session)
   const result = errors.length === 0 ? calcSession(session) : null
@@ -297,6 +304,7 @@ export default function App() {
             <PlayerList
               input={session}
               roster={roster}
+              frequent={frequent}
               onPatch={onPatch}
               onAddPlayer={handleAddPlayer}
               onRemovePlayer={handleRemovePlayer}
