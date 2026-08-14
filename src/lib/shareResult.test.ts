@@ -96,6 +96,19 @@ describe('shareResultImage / copyResultText', () => {
     expect(file.size).toBeGreaterThan(0)
   })
 
+  test('falls back to download when the canvas produces a malformed data URL', async () => {
+    stubCanvas()
+    // '' has no comma, so split(',')[1] is undefined and atob(undefined) throws.
+    vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('')
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    const anchorClick = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {})
+    await expect(shareResultImage(res, 'ratio', players, date)).resolves.toBe('downloaded')
+    expect(anchorClick).toHaveBeenCalled()
+  })
+
   test('shares the PNG file when navigator.canShare accepts files', async () => {
     stubCanvas()
     const share = vi.fn().mockResolvedValue(undefined)

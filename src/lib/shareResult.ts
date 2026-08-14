@@ -47,14 +47,20 @@ export async function shareResultImage(
   players: Player[],
   date: Date = new Date(),
 ): Promise<ShareOutcome> {
-  const canvas = renderResultImage(result, mode, formatDateLabel(date), players)
-  const file = canvasToPngFile(canvas, `tinh-tien-cau-long-${formatFilenameDate(date)}.png`)
+  let file: File
+  try {
+    const canvas = renderResultImage(result, mode, formatDateLabel(date), players)
+    file = canvasToPngFile(canvas, `tinh-tien-cau-long-${formatFilenameDate(date)}.png`)
+  } catch {
+    downloadResultImage(result, mode, players, date)
+    return 'downloaded'
+  }
   if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: 'Tính tiền cầu lông' })
       return 'shared'
     } catch (e) {
-      if (e instanceof Error && e.name === 'AbortError') return 'cancelled'
+      if ((e as { name?: string } | null)?.name === 'AbortError') return 'cancelled'
       // real failure (permissions, etc.) — fall through to download
     }
   }

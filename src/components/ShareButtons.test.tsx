@@ -58,3 +58,14 @@ test('wide variant renders labelled buttons and forwards the date', async () => 
     expect(shareMock).toHaveBeenCalledWith(result, 'ratio', players, date),
   )
 })
+
+test('copy button forwards the date to copyResultText', async () => {
+  const copyMock = vi.mocked(copyResultText)
+  copyMock.mockResolvedValue(true)
+  const date = new Date(2026, 7, 1)
+  render(<CopyTextButton result={result} mode="ratio" players={players} date={date} />)
+  await userEvent.click(screen.getByRole('button', { name: 'Copy kết quả' }))
+  await waitFor(() =>
+    expect(copyMock).toHaveBeenCalledWith(result, 'ratio', players, date),
+  )
+})

@@ -278,9 +278,8 @@ describe('share / copy result', () => {
         callback(new Blob(['fake-png'], { type: 'image/png' }))
       },
     )
-    // jsdom throws "not implemented" on toDataURL; the download fallback
-    // in shareResult.ts doesn't call it directly, but canvas-related code
-    // paths may — stub it so nothing throws.
+    // canvasToPngFile calls toDataURL before the share attempt; jsdom throws
+    // 'not implemented', so stub it.
     vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue(
       `data:image/png;base64,${btoa('fake-png')}`,
     )
