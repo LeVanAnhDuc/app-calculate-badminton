@@ -5,6 +5,12 @@ import { ResultPanel } from './ResultPanel'
 import { calcRatioMode } from '../lib/calc'
 import type { SessionInput } from '../lib/types'
 
+vi.mock('qrcode', () => ({
+  default: { toDataURL: vi.fn().mockResolvedValue('data:image/png;base64,TEST') },
+}))
+
+beforeEach(() => localStorage.clear())
+
 const input: SessionInput = {
   mode: 'ratio',
   shuttleCount: 6,
@@ -384,4 +390,14 @@ describe('PNG result download', () => {
     )
     expect(screen.queryByRole('button', { name: 'Tải ảnh kết quả' })).not.toBeInTheDocument()
   })
+})
+
+test('QR button opens the QR sheet; without a stored account the setup form appears', async () => {
+  const result = calcRatioMode(input)
+  render(
+    <ResultPanel result={result} mode="ratio" errors={[]} players={input.players} onSave={() => {}}
+      onNewSession={() => {}} onPatch={() => {}} />,
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Mã QR cho Tuấn' }))
+  expect(await screen.findByPlaceholderText('Số tài khoản')).toBeInTheDocument()
 })
