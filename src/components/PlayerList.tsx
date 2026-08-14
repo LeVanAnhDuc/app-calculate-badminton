@@ -33,6 +33,7 @@ export function PlayerList({
   const [editError, setEditError] = useState('')
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  void isDragging
 
   const males = input.players.filter((p) => p.gender === 'male').length
   const females = input.players.length - males
