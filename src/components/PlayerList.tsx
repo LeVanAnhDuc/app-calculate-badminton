@@ -12,8 +12,19 @@ import { TimeSelect } from './TimeSelect'
 interface Props {
   input: SessionInput
   roster: RosterEntry[]
+  /**
+   * Những người hay gặp, đã xếp hạng & lọc sẵn bởi App (suy ra từ lịch sử).
+   * Component này chỉ hiển thị — không nhận `history` thô.
+   */
+  frequent: RosterEntry[]
   onPatch: (p: Partial<SessionInput>) => void
   onAddPlayer: (name: string, gender: Gender) => void
+  /**
+   * Only reports which player to drop — the removal itself (and the "Hoàn
+   * tác" toast that can put it back) is owned by App, so undo can re-insert
+   * into the freshest list instead of a snapshot captured here.
+   */
+  onRemovePlayer: (playerId: string) => void
   onChangeGender: (playerId: string, gender: Gender) => void
   onRenamePlayer: (playerId: string, newName: string) => void
 }
@@ -21,8 +32,10 @@ interface Props {
 export function PlayerList({
   input,
   roster,
+  frequent,
   onPatch,
   onAddPlayer,
+  onRemovePlayer,
   onChangeGender,
   onRenamePlayer,
 }: Props) {
@@ -50,6 +63,9 @@ export function PlayerList({
       )
     : []
 
+  // Chip chỉ hiện khi chưa gõ gì — gõ vào thì gợi ý "Từ danh bạ" tiếp quản.
+  const showFrequent = trimmedName === '' && frequent.length > 0
+
   const rosterMatch = trimmedName
     ? (roster.find((r) => r.name.toLowerCase() === trimmedName.toLowerCase()) ?? null)
     : null
@@ -71,8 +87,10 @@ export function PlayerList({
   const updatePlayer = (id: string, patch: Partial<Player>) =>
     onPatch({ players: input.players.map((p) => (p.id === id ? { ...p, ...patch } : p)) })
 
-  const removePlayer = (id: string) =>
-    onPatch({ players: input.players.filter((p) => p.id !== id) })
+  const removePlayer = (id: string) => {
+    setOpenSwipeId(null)
+    onRemovePlayer(id)
+  }
 
   const openEdit = (p: Player) => {
     setOpenSwipeId(null)
@@ -212,6 +230,35 @@ export function PlayerList({
                 <span className="text-xs text-gray-400">{r.gender === 'male' ? 'Nam' : 'Nữ'}</span>
               </button>
             ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showFrequent && (
+          <motion.div
+            key="frequent"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="flex flex-col gap-2 mt-2"
+          >
+            <p className="text-xs font-semibold text-gray-400 px-1">Hay chơi cùng</p>
+            <div className="flex flex-wrap gap-2">
+              {frequent.map((r) => (
+                <button
+                  key={r.name}
+                  type="button"
+                  aria-label={`Thêm ${r.name} · ${r.gender === 'male' ? 'Nam' : 'Nữ'}`}
+                  onClick={() => add(r.name, r.gender)}
+                  className="h-12 rounded-full border border-gray-200 bg-white hover:bg-gray-50 flex items-center gap-2 pl-2 pr-4"
+                >
+                  <GenderBadge gender={r.gender} />
+                  <span className="text-sm font-medium text-gray-900">{r.name}</span>
+                </button>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

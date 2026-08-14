@@ -1,10 +1,28 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react'
 import App from './App'
 import { loadHistory } from './lib/storage'
 
 beforeEach(() => localStorage.clear())
 
-test('full flow: add players, see results, save session persists to history', () => {
+/**
+ * Names of the session's players, in list order. Scoped to the "Người chơi"
+ * section because the result panel repeats every name; each row's
+ * "Đổi giới tính {tên}" button is unique per row and keeps DOM order.
+ */
+function playerNames(): string[] {
+  const section = screen.getByRole('heading', { name: 'Người chơi' }).closest('section')!
+  return within(section)
+    .queryAllByRole('button', { name: /^Đổi giới tính / })
+    .map((b) => b.getAttribute('aria-label')!.replace('Đổi giới tính ', ''))
+}
+
+function addPlayer(name: string) {
+  fireEvent.change(screen.getByPlaceholderText('Tên người chơi'), { target: { value: name } })
+  fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
+}
+
+// renders the whole App several times over; needs headroom beyond the 5s default under parallel load
+test('full flow: add players, see results, save session persists to history', { timeout: 15000 }, () => {
   render(<App />)
   // costs: 6 shuttles ×25k default price, court 150k
   fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
@@ -53,7 +71,10 @@ test('hourly mode: save persists finite amounts, verified through the real loade
 })
 
 test('saving shows a toast and disables the save button briefly to prevent duplicate saves', async () => {
-  vi.useFakeTimers({ shouldAdvanceTime: true })
+  // only the save-button timeout is faked: faking requestAnimationFrame too
+  // leaves Motion's frame loop stalled for the rest of the file, so later
+  // tests would never see an AnimatePresence exit animation finish
+  vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ['setTimeout', 'clearTimeout'] })
   render(<App />)
   fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
@@ -83,30 +104,97 @@ test('session state is restored from localStorage', () => {
   expect(screen.getByLabelText('Tiền sân')).toHaveValue('999.000')
 })
 
-test('"Buổi mới" resets the session after confirmation, and does nothing when cancelled', () => {
+test('"Buổi mới" resets straight away and "Hoàn tác" brings the previous session back', async () => {
   render(<App />)
   fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
   fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
-  const nameInput = screen.getByPlaceholderText('Tên người chơi')
-  fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
-  fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
   // "Tuấn" appears both in the player row and in the result panel's amount
   // breakdown, so scope on the row's own quick-delete button instead
+  addPlayer('Tuấn')
   expect(screen.getByRole('button', { name: 'Xóa Tuấn' })).toBeInTheDocument()
 
-  // cancelling the confirm leaves everything untouched
-  vi.spyOn(window, 'confirm').mockReturnValueOnce(false)
+  // no confirm dialog any more: the reset happens immediately
   fireEvent.click(screen.getByRole('button', { name: 'Buổi mới' }))
-  expect(screen.getByRole('button', { name: 'Xóa Tuấn' })).toBeInTheDocument()
-  expect(screen.getByLabelText('Tiền sân')).toHaveValue('150.000')
-
-  // confirming clears players and costs, but keeps remembered settings
-  vi.spyOn(window, 'confirm').mockReturnValueOnce(true)
-  fireEvent.click(screen.getByRole('button', { name: 'Buổi mới' }))
-  expect(screen.queryByRole('button', { name: 'Xóa Tuấn' })).not.toBeInTheDocument()
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: 'Xóa Tuấn' })).not.toBeInTheDocument(),
+  )
   expect(screen.getByText('Chưa có người chơi nào')).toBeInTheDocument()
   expect(screen.getByLabelText('Tiền sân')).toHaveValue('')
   expect(screen.getByLabelText('Số quả cầu')).toHaveValue('')
+
+  // the undo toast restores the whole previous session snapshot
+  fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tác' }))
+  expect(await screen.findByRole('button', { name: 'Xóa Tuấn' })).toBeInTheDocument()
+  expect(screen.getByLabelText('Tiền sân')).toHaveValue('150.000')
+  expect(screen.getByLabelText('Số quả cầu')).toHaveValue('6')
+})
+
+test('"Buổi mới" on an already-empty session resets silently — nothing to undo', async () => {
+  render(<App />)
+  fireEvent.click(screen.getByRole('button', { name: 'Buổi mới' }))
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  })
+  expect(screen.queryByRole('button', { name: 'Hoàn tác' })).not.toBeInTheDocument()
+  expect(screen.getByText('Chưa có người chơi nào')).toBeInTheDocument()
+})
+
+test('deleting a player toasts an undo that restores it in place, keeping later changes', async () => {
+  render(<App />)
+  addPlayer('An')
+  addPlayer('Nam')
+  addPlayer('Bình')
+  expect(playerNames()).toEqual(['An', 'Nam', 'Bình'])
+
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa Nam' }))
+  await waitFor(() => expect(playerNames()).toEqual(['An', 'Bình']))
+  expect(await screen.findByText('Đã xóa "Nam"')).toBeInTheDocument()
+
+  // a change made while the toast is still up must survive the undo
+  addPlayer('Hùng')
+  expect(playerNames()).toEqual(['An', 'Bình', 'Hùng'])
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tác' }))
+  await waitFor(() => expect(playerNames()).toEqual(['An', 'Nam', 'Bình', 'Hùng']))
+})
+
+test('undo restores a deleted player with its paid / ½ buổi state intact', async () => {
+  render(<App />)
+  addPlayer('An')
+  addPlayer('Nam')
+  fireEvent.click(screen.getByRole('button', { name: '½ buổi Nam' }))
+  expect(screen.getByRole('button', { name: '½ buổi Nam' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa Nam' }))
+  await waitFor(() => expect(playerNames()).toEqual(['An']))
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tác' }))
+  await waitFor(() => expect(playerNames()).toEqual(['An', 'Nam']))
+  expect(screen.getByRole('button', { name: '½ buổi Nam' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+})
+
+test('deleting a saved session in history toasts an undo that restores it at its old spot', async () => {
+  render(<App />)
+  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
+  addPlayer('Tuấn')
+  fireEvent.click(screen.getByRole('button', { name: 'Lưu buổi này' }))
+
+  fireEvent.click(screen.getByRole('button', { name: 'Xem lịch sử các buổi →' }))
+  expect(screen.getByText(/1 buổi đã lưu/)).toBeInTheDocument()
+  fireEvent.click(screen.getByText(/1 người · 1 nam, 0 nữ/))
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa buổi này' }))
+  expect(screen.getByText(/0 buổi đã lưu/)).toBeInTheDocument()
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tác' }))
+  await waitFor(() => expect(screen.getByText(/1 buổi đã lưu/)).toBeInTheDocument())
+  expect(loadHistory()).toHaveLength(1)
 })
 
 test('a failed history save surfaces an error toast instead of failing silently', async () => {
@@ -172,6 +260,27 @@ test('browser back button (popstate) closes the history page', () => {
 
   fireEvent(window, new PopStateEvent('popstate'))
   expect(screen.queryByRole('heading', { name: 'Lịch sử các buổi' })).not.toBeInTheDocument()
+})
+
+test('deleting a roster entry toasts an undo that puts it back at its old index', async () => {
+  render(<App />)
+  addPlayer('An')
+  addPlayer('Nam')
+  addPlayer('Bình')
+
+  fireEvent.click(screen.getByRole('button', { name: 'Danh bạ người chơi →' }))
+  expect(screen.getByText('3 người đã lưu')).toBeInTheDocument()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Xóa Nam' }))
+  expect(screen.getByText('2 người đã lưu')).toBeInTheDocument()
+  expect(await screen.findByText('Đã xóa "Nam" khỏi danh bạ')).toBeInTheDocument()
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Hoàn tác' }))
+  await waitFor(() => expect(screen.getByText('3 người đã lưu')).toBeInTheDocument())
+  const names = screen
+    .getAllByRole('button', { name: /^Sửa / })
+    .map((b) => b.getAttribute('aria-label')!.replace('Sửa ', ''))
+  expect(names).toEqual(['An', 'Nam', 'Bình'])
 })
 
 test('opening the roster pushes browser state; the in-app ← button navigates back', async () => {
