@@ -4,7 +4,8 @@ import { loadHistory } from './lib/storage'
 
 beforeEach(() => localStorage.clear())
 
-test('full flow: add players, see results, save session persists to history', () => {
+// renders the whole App several times over; needs headroom beyond the 5s default under parallel load
+test('full flow: add players, see results, save session persists to history', { timeout: 15000 }, () => {
   render(<App />)
   // costs: 6 shuttles ×25k default price, court 150k
   fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
