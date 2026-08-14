@@ -12,6 +12,8 @@ export const PWA_MANIFEST: Partial<ManifestOptions> = {
   lang: 'vi',
   display: 'standalone',
   orientation: 'portrait',
+  // Cũng khai riêng ở <meta name="theme-color"> trong index.html (đọc trước
+  // khi manifest tải xong) — pwaManifest.test.ts canh hai giá trị này đồng bộ.
   theme_color: '#059669',
   background_color: '#f9fafb',
   start_url: '.',

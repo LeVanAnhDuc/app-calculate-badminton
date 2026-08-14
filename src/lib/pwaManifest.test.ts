@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { PWA_MANIFEST } from './pwaManifest'
 
 test('start_url và scope tương đối để chạy đúng trên GitHub Pages', () => {
@@ -27,4 +28,21 @@ test('có đủ icon any và maskable', () => {
 test('màu khớp với giao diện app', () => {
   expect(PWA_MANIFEST.theme_color).toBe('#059669')      // emerald-600, trùng header
   expect(PWA_MANIFEST.background_color).toBe('#f9fafb') // gray-50, nền trang
+})
+
+test('theme_color khớp với <meta name="theme-color"> trong index.html', () => {
+  // index.html khai riêng thẻ meta này (cho lần tải đầu, trước khi manifest
+  // được đọc); không có ràng buộc runtime nào giữ nó đồng bộ với
+  // PWA_MANIFEST.theme_color, nên test này canh bằng tay.
+  const html = readFileSync('index.html', 'utf-8')
+  const metaTags = html.match(/<meta[^>]*>/g) ?? []
+  const themeColorTag = metaTags.find((tag) => /\bname=["']theme-color["']/.test(tag))
+  if (!themeColorTag) {
+    throw new Error('Không tìm thấy thẻ <meta name="theme-color"> trong index.html')
+  }
+  const contentMatch = themeColorTag.match(/\bcontent=["']([^"']+)["']/)
+  if (!contentMatch) {
+    throw new Error(`Thẻ theme-color trong index.html không có thuộc tính content: ${themeColorTag}`)
+  }
+  expect(contentMatch[1]).toBe(PWA_MANIFEST.theme_color)
 })
