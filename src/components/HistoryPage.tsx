@@ -1,14 +1,16 @@
 import { Fragment, useEffect, useState } from 'react'
 import { formatVND } from '../lib/format'
+import { paidCount } from '../lib/settlement'
 import type { SavedSession } from '../lib/storage'
 import { formatHours } from '../lib/time'
 import { durationHours } from '../lib/time'
-import { SurplusRow, TotalCollectedRow } from './ResultPanel'
+import { PaidSummaryLine, PaidToggle, SurplusRow, TotalCollectedRow } from './ResultPanel'
 
 interface Props {
   history: SavedSession[]
   onBack: () => void
   onDelete: (id: string) => void
+  onTogglePaid: (sessionId: string, playerId: string) => void
   onReuse: (s: SavedSession) => void
 }
 
@@ -33,7 +35,7 @@ function monthLabel(iso: string): string {
   return `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
 }
 
-export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
+export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   // cards never auto-expand; this only guards against a deleted card
@@ -81,6 +83,7 @@ export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
           {history.map((s, i) => {
             const males = s.input.players.filter((p) => p.gender === 'male').length
             const females = s.input.players.length - males
+            const unpaidPlayerCount = s.input.players.length - paidCount(s.input.players)
             const expanded = expandedId === s.id
             const showMonthHeader = i === 0 || monthKey(s.savedAt) !== monthKey(history[i - 1].savedAt)
             return (
@@ -102,8 +105,15 @@ export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
                 >
                   <div>
                     <h2 className="font-bold text-gray-900 text-sm">{sessionDate(s.savedAt)}</h2>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      {s.input.players.length} người · {males} nam, {females} nữ
+                    <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-2">
+                      <span>
+                        {s.input.players.length} người · {males} nam, {females} nữ
+                      </span>
+                      {unpaidPlayerCount > 0 && (
+                        <span className="text-xs text-amber-600 bg-amber-50 rounded-full px-2 py-0.5">
+                          ⚠ {unpaidPlayerCount} chưa trả
+                        </span>
+                      )}
                     </p>
                   </div>
                   <div className="text-right">
@@ -165,23 +175,38 @@ export function HistoryPage({ history, onBack, onDelete, onReuse }: Props) {
                       </div>
                       <div>
                         <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Mỗi người trả</h3>
+                        <div className="mb-2">
+                          <PaidSummaryLine players={s.input.players} results={s.result.players} />
+                        </div>
                         <ul className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-sm">
-                          {s.result.players.map((p) => (
-                            <li
-                              key={p.playerId}
-                              className="flex justify-between bg-gray-50 rounded-lg px-3 py-2"
-                            >
-                              <span className="text-gray-900">
-                                {p.name}{' '}
-                                <span className="text-xs text-gray-400">
-                                  ({p.gender === 'male' ? 'Nam' : 'Nữ'}
-                                  {s.input.mode === 'ratio' && p.halfSession ? ' · ½ buổi' : ''}
-                                  {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''})
+                          {s.result.players.map((p) => {
+                            const paid = s.input.players.find((pl) => pl.id === p.playerId)?.paid ?? false
+                            return (
+                              <li
+                                key={p.playerId}
+                                className={`flex justify-between items-center rounded-lg px-3 py-2 ${
+                                  paid ? 'bg-emerald-50' : 'bg-gray-50'
+                                }`}
+                              >
+                                <span className="flex items-center gap-2 text-gray-900">
+                                  <PaidToggle
+                                    paid={paid}
+                                    name={p.name}
+                                    onToggle={() => onTogglePaid(s.id, p.playerId)}
+                                  />
+                                  <span>
+                                    {p.name}{' '}
+                                    <span className="text-xs text-gray-400">
+                                      ({p.gender === 'male' ? 'Nam' : 'Nữ'}
+                                      {s.input.mode === 'ratio' && p.halfSession ? ' · ½ buổi' : ''}
+                                      {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''})
+                                    </span>
+                                  </span>
                                 </span>
-                              </span>
-                              <span className="font-bold">{formatVND(p.amount)}</span>
-                            </li>
-                          ))}
+                                <span className="font-bold">{formatVND(p.amount)}</span>
+                              </li>
+                            )
+                          })}
                         </ul>
                       </div>
                     </div>

@@ -129,6 +129,30 @@ test('a failed history save surfaces an error toast instead of failing silently'
   vi.restoreAllMocks()
 })
 
+test('paid toggle in history detail persists through the real loader', () => {
+  render(<App />)
+  fireEvent.change(screen.getByLabelText('Số quả cầu'), { target: { value: '6' } })
+  fireEvent.change(screen.getByLabelText('Tiền sân'), { target: { value: '150000' } })
+  const nameInput = screen.getByPlaceholderText('Tên người chơi')
+  fireEvent.change(nameInput, { target: { value: 'Tuấn' } })
+  fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Nữ' }))
+  fireEvent.change(nameInput, { target: { value: 'Lan' } })
+  fireEvent.click(screen.getByRole('button', { name: '+ Thêm người chơi' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Lưu buổi này' }))
+
+  fireEvent.click(screen.getByRole('button', { name: 'Xem lịch sử các buổi →' }))
+  expect(screen.getByText('⚠ 2 chưa trả')).toBeInTheDocument()
+  fireEvent.click(screen.getByText(/2 người · 1 nam, 1 nữ/))
+  fireEvent.click(screen.getByRole('button', { name: 'Đánh dấu Tuấn đã trả' }))
+  expect(screen.getByText('⚠ 1 chưa trả')).toBeInTheDocument()
+
+  const savedHistory = loadHistory()
+  expect(savedHistory).toHaveLength(1)
+  expect(savedHistory[0].input.players.find((p) => p.name === 'Tuấn')?.paid).toBe(true)
+  expect(savedHistory[0].input.players.find((p) => p.name === 'Lan')?.paid).toBe(false)
+})
+
 test('opening history pushes browser state; the in-app ← button navigates back', async () => {
   render(<App />)
   fireEvent.click(screen.getByRole('button', { name: 'Xem lịch sử các buổi →' }))

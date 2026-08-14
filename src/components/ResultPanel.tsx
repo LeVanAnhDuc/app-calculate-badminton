@@ -4,8 +4,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import { toast } from 'sonner'
 import { downloadResultImage } from '../lib/exportImage'
 import { formatNumber, formatVND } from '../lib/format'
+import { paidCount, unpaidAmount } from '../lib/settlement'
 import { formatHours } from '../lib/time'
-import type { CalcResult, Mode, PlayerResult } from '../lib/types'
+import type { CalcResult, Mode, Player, PlayerResult, SessionInput } from '../lib/types'
 import { EyeButton } from './EyeButton'
 
 interface HiddenAmountRowProps {
@@ -62,9 +63,68 @@ export function TotalCollectedRow({ total }: { total: number }) {
   )
 }
 
-function PlayerRow({ p, mode, large }: { p: PlayerResult; mode: Mode; large?: boolean }) {
+export function PaidToggle({
+  paid,
+  name,
+  onToggle,
+}: {
+  paid: boolean
+  name: string
+  onToggle: () => void
+}) {
   return (
-    <li className="flex justify-between items-center bg-gray-50 rounded-xl px-3 py-2.5">
+    <button
+      type="button"
+      aria-label={paid ? `Bỏ đánh dấu ${name} đã trả` : `Đánh dấu ${name} đã trả`}
+      onClick={onToggle}
+      className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-full ${
+        paid ? 'bg-emerald-600 text-white' : 'border-2 border-gray-300'
+      }`}
+    >
+      {paid && <span className="text-base leading-none">✓</span>}
+    </button>
+  )
+}
+
+export function PaidSummaryLine({
+  players,
+  results,
+}: {
+  players: Player[]
+  results: PlayerResult[]
+}) {
+  const n = players.length
+  const x = paidCount(players)
+  if (n > 0 && x === n) {
+    return <p className="text-sm text-emerald-600">✓ Đã thu đủ</p>
+  }
+  const unpaid = unpaidAmount(players, results)
+  return (
+    <p className="text-sm text-gray-500">
+      Đã thu {x}/{n} · còn thiếu <span className="text-amber-600">{formatVND(unpaid)}</span>
+    </p>
+  )
+}
+
+function PlayerRow({
+  p,
+  mode,
+  large,
+  paid,
+  onTogglePaid,
+}: {
+  p: PlayerResult
+  mode: Mode
+  large?: boolean
+  paid: boolean
+  onTogglePaid: () => void
+}) {
+  return (
+    <li
+      className={`flex justify-between items-center rounded-xl px-3 py-2.5 ${
+        paid ? 'bg-emerald-50' : 'bg-gray-50'
+      }`}
+    >
       <div>
         <span className={`font-medium text-gray-900 block ${large ? 'text-lg' : ''}`}>
           {p.name}{' '}
@@ -80,7 +140,10 @@ function PlayerRow({ p, mode, large }: { p: PlayerResult; mode: Mode; large?: bo
           </span>
         )}
       </div>
-      <span className={`font-bold text-gray-900 ${large ? 'text-xl' : ''}`}>{formatVND(p.amount)}</span>
+      <div className="flex items-center gap-2">
+        <PaidToggle paid={paid} name={p.name} onToggle={onTogglePaid} />
+        <span className={`font-bold text-gray-900 ${large ? 'text-xl' : ''}`}>{formatVND(p.amount)}</span>
+      </div>
     </li>
   )
 }
@@ -126,9 +189,17 @@ function DownloadIcon() {
   )
 }
 
-function DownloadImageButton({ result, mode }: { result: CalcResult; mode: Mode }) {
+function DownloadImageButton({
+  result,
+  mode,
+  players,
+}: {
+  result: CalcResult
+  mode: Mode
+  players: Player[]
+}) {
   const handleDownload = () => {
-    downloadResultImage(result, mode)
+    downloadResultImage(result, mode, players)
     toast.success('Đã tải ảnh kết quả')
   }
   return (
@@ -147,10 +218,14 @@ function DownloadImageButton({ result, mode }: { result: CalcResult; mode: Mode 
 function FullscreenResult({
   result,
   mode,
+  players,
+  onTogglePaid,
   onClose,
 }: {
   result: CalcResult
   mode: Mode
+  players: Player[]
+  onTogglePaid: (playerId: string) => void
   onClose: () => void
 }) {
   useEffect(() => {
@@ -181,7 +256,7 @@ function FullscreenResult({
         <div className="sticky top-0 bg-gray-50 border-b border-gray-100 flex items-center justify-between px-4 py-4">
           <h2 className="text-lg font-bold text-gray-900">Kết quả</h2>
           <div className="flex items-center gap-1">
-            <DownloadImageButton result={result} mode={mode} />
+            <DownloadImageButton result={result} mode={mode} players={players} />
             <button
               type="button"
               aria-label="Đóng"
@@ -199,9 +274,19 @@ function FullscreenResult({
               Có {formatHours(result.emptyHours)} sân thuê không ai chơi — phần này được chia đều.
             </p>
           )}
+          <div className="mb-2">
+            <PaidSummaryLine players={players} results={result.players} />
+          </div>
           <ul data-testid="fullscreen-player-grid" className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {result.players.map((p) => (
-              <PlayerRow key={p.playerId} p={p} mode={mode} large />
+              <PlayerRow
+                key={p.playerId}
+                p={p}
+                mode={mode}
+                large
+                paid={players.find((pl) => pl.id === p.playerId)?.paid ?? false}
+                onTogglePaid={() => onTogglePaid(p.playerId)}
+              />
             ))}
           </ul>
           <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
@@ -219,16 +304,30 @@ interface Props {
   result: CalcResult | null
   mode: Mode
   errors: string[]
+  players: Player[]
   onSave: () => void
   onNewSession: () => void
+  onPatch: (patch: Partial<SessionInput>) => void
   saveDisabled?: boolean
 }
 
 const NO_PLAYERS_ERROR = 'Cần ít nhất 1 người chơi'
 
-export function ResultPanel({ result, mode, errors, onSave, onNewSession, saveDisabled }: Props) {
+export function ResultPanel({
+  result,
+  mode,
+  errors,
+  players,
+  onSave,
+  onNewSession,
+  onPatch,
+  saveDisabled,
+}: Props) {
   const [fullscreen, setFullscreen] = useState(false)
   const isEmptyPlayers = errors.length === 1 && errors[0] === NO_PLAYERS_ERROR
+  const handleTogglePaid = (playerId: string) => {
+    onPatch({ players: players.map((pl) => (pl.id === playerId ? { ...pl, paid: !pl.paid } : pl)) })
+  }
 
   return (
     <section className="bg-white rounded-2xl shadow-sm p-4 border-2 border-emerald-100">
@@ -236,7 +335,7 @@ export function ResultPanel({ result, mode, errors, onSave, onNewSession, saveDi
         <h2 className="text-base font-bold text-gray-900">Kết quả</h2>
         {result !== null && (
           <div className="flex items-center gap-1">
-            <DownloadImageButton result={result} mode={mode} />
+            <DownloadImageButton result={result} mode={mode} players={players} />
             <button
               type="button"
               aria-label="Xem toàn màn hình"
@@ -249,6 +348,12 @@ export function ResultPanel({ result, mode, errors, onSave, onNewSession, saveDi
           </div>
         )}
       </div>
+
+      {result !== null && (
+        <div className="mb-3">
+          <PaidSummaryLine players={players} results={result.players} />
+        </div>
+      )}
 
       {result === null ? (
         isEmptyPlayers ? (
@@ -284,7 +389,13 @@ export function ResultPanel({ result, mode, errors, onSave, onNewSession, saveDi
           )}
           <ul className="space-y-2">
             {result.players.map((p) => (
-              <PlayerRow key={p.playerId} p={p} mode={mode} />
+              <PlayerRow
+                key={p.playerId}
+                p={p}
+                mode={mode}
+                paid={players.find((pl) => pl.id === p.playerId)?.paid ?? false}
+                onTogglePaid={() => handleTogglePaid(p.playerId)}
+              />
             ))}
           </ul>
           <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
@@ -313,7 +424,13 @@ export function ResultPanel({ result, mode, errors, onSave, onNewSession, saveDi
 
       <AnimatePresence>
         {fullscreen && result !== null && (
-          <FullscreenResult result={result} mode={mode} onClose={() => setFullscreen(false)} />
+          <FullscreenResult
+            result={result}
+            mode={mode}
+            players={players}
+            onTogglePaid={handleTogglePaid}
+            onClose={() => setFullscreen(false)}
+          />
         )}
       </AnimatePresence>
     </section>

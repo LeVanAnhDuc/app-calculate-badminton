@@ -101,6 +101,7 @@ export default function App() {
       halfSession: false,
       startTime: null,
       endTime: null,
+      paid: false,
     }
     setSession((s) => ({ ...s, players: [...s.players, player] }))
     setRoster((r) => addToRoster(r, name, gender))
@@ -181,6 +182,23 @@ export default function App() {
           history={history}
           onBack={() => window.history.back()}
           onDelete={(id) => setHistory((h) => h.filter((s) => s.id !== id))}
+          onTogglePaid={(sessionId, playerId) =>
+            setHistory((h) =>
+              h.map((s) =>
+                s.id !== sessionId
+                  ? s
+                  : {
+                      ...s,
+                      input: {
+                        ...s.input,
+                        players: s.input.players.map((p) =>
+                          p.id === playerId ? { ...p, paid: !p.paid } : p,
+                        ),
+                      },
+                    },
+              ),
+            )
+          }
           onReuse={(s) => {
             setSession((cur) => ({
               ...cur,
@@ -191,6 +209,7 @@ export default function App() {
                 halfSession: false,
                 startTime: null,
                 endTime: null,
+                paid: false,
               })),
             }))
             setPage('main')
@@ -263,8 +282,10 @@ export default function App() {
               result={result}
               mode={session.mode}
               errors={errors}
+              players={session.players}
               onSave={handleSave}
               onNewSession={handleNewSession}
+              onPatch={onPatch}
               saveDisabled={saveDisabled}
             />
             <button
