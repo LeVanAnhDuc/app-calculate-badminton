@@ -43,7 +43,9 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - Trạng thái đã trả hiển thị cả trong ảnh kết quả tải về
 
 - **Chia sẻ kết quả**
-  - Tải bảng kết quả về dưới dạng ảnh PNG để gửi vào nhóm chat
+  - Bấm nút chia sẻ để gửi ảnh kết quả thẳng vào Zalo/Messenger qua share sheet của điện thoại (máy không hỗ trợ sẽ tự tải ảnh PNG về)
+  - Copy kết quả dạng text (tên + số tiền + dấu ✓ đã trả) để dán vào chat
+  - Chia sẻ lại ảnh/text của buổi cũ ngay trong lịch sử, giữ đúng ngày đã lưu
 
 - **Giao diện linh hoạt**
   - Sửa giờ chơi qua bottom sheet (vaul), chọn giờ với wheel picker 24h kiểu iOS
