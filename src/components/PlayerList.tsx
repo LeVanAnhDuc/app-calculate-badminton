@@ -1,10 +1,11 @@
-import { useState, type TouchEvent } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Drawer } from 'vaul'
 import type { RosterEntry } from '../lib/storage'
 import { durationHours, formatHours } from '../lib/time'
 import type { Gender, Player, SessionInput } from '../lib/types'
 import { GenderBadge } from './GenderBadge'
+import { PlayerRow } from './PlayerRow'
 import { TimeSelect } from './TimeSelect'
 
 interface Props {
@@ -14,28 +15,6 @@ interface Props {
   onAddPlayer: (name: string, gender: Gender) => void
   onChangeGender: (playerId: string, gender: Gender) => void
   onRenamePlayer: (playerId: string, newName: string) => void
-}
-
-const SWIPE_OPEN_PX = 80
-const SWIPE_THRESHOLD_PX = 40
-
-function PencilIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-      <path d="m15 5 4 4" />
-    </svg>
-  )
 }
 
 export function PlayerList({
@@ -53,7 +32,6 @@ export function PlayerList({
   const [editName, setEditName] = useState('')
   const [editError, setEditError] = useState('')
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
-  const [swipe, setSwipe] = useState<{ id: string; startX: number; deltaX: number } | null>(null)
 
   const males = input.players.filter((p) => p.gender === 'male').length
   const females = input.players.length - males
@@ -132,31 +110,6 @@ export function PlayerList({
     const e = p.endTime ?? input.courtEnd
     const full = p.startTime === null && p.endTime === null
     return `${s}–${e} · ${full ? 'cả buổi' : formatHours(durationHours(s, e))}`
-  }
-
-  const rowTranslate = (id: string) => {
-    if (swipe && swipe.id === id) return swipe.deltaX
-    return openSwipeId === id ? -SWIPE_OPEN_PX : 0
-  }
-
-  const handleTouchStart = (id: string) => (e: TouchEvent) => {
-    setSwipe({ id, startX: e.touches[0].clientX, deltaX: 0 })
-  }
-
-  const handleTouchMove = (id: string) => (e: TouchEvent) => {
-    setSwipe((s) => {
-      if (!s || s.id !== id) return s
-      const dx = e.touches[0].clientX - s.startX
-      return { ...s, deltaX: Math.min(0, Math.max(dx, -SWIPE_OPEN_PX)) }
-    })
-  }
-
-  const handleTouchEnd = (id: string) => () => {
-    setSwipe((s) => {
-      if (!s || s.id !== id) return s
-      setOpenSwipeId(s.deltaX <= -SWIPE_THRESHOLD_PX ? id : null)
-      return null
-    })
   }
 
   return (
@@ -281,111 +234,20 @@ export function PlayerList({
       ) : (
         <ul className="mt-3 divide-y divide-gray-100">
           <AnimatePresence initial={false}>
-            {input.players.map((p) => {
-              const isOpen = openSwipeId === p.id
-              return (
-                <motion.li
-                  key={p.id}
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                <div className="relative overflow-hidden">
-                  <button
-                    type="button"
-                    aria-label={`Xóa nhanh ${p.name}`}
-                    onClick={() => removePlayer(p.id)}
-                    className="absolute inset-y-0 right-0 w-20 bg-red-500 text-white text-sm font-semibold flex items-center justify-center"
-                  >
-                    Xóa
-                  </button>
-                  <div
-                    data-testid={`swipe-row-${p.id}`}
-                    className="relative bg-white py-2.5 transition-transform duration-150 ease-out"
-                    style={{ transform: `translateX(${rowTranslate(p.id)}px)` }}
-                    onTouchStart={handleTouchStart(p.id)}
-                    onTouchMove={handleTouchMove(p.id)}
-                    onTouchEnd={handleTouchEnd(p.id)}
-                    onClickCapture={(e) => {
-                      if (isOpen) {
-                        setOpenSwipeId(null)
-                        e.stopPropagation()
-                      }
-                    }}
-                  >
-                    <div className="flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <button
-                          type="button"
-                          aria-label={`Đổi giới tính ${p.name}`}
-                          title="Đổi giới tính"
-                          onClick={() =>
-                            onChangeGender(p.id, p.gender === 'male' ? 'female' : 'male')
-                          }
-                        >
-                          <GenderBadge gender={p.gender} />
-                        </button>
-                        <button
-                          type="button"
-                          className="text-left min-w-0"
-                          onClick={() => openEdit(p)}
-                        >
-                          <span className="font-medium text-gray-900 block truncate">{p.name}</span>
-                          {input.mode === 'hourly' && (
-                            <span
-                              className={`text-xs ${
-                                p.startTime === null
-                                  ? 'text-gray-400'
-                                  : 'font-semibold text-emerald-700'
-                              }`}
-                            >
-                              {timeLabel(p)}
-                            </span>
-                          )}
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {input.mode === 'ratio' && (
-                          <motion.button
-                            type="button"
-                            aria-pressed={p.halfSession}
-                            aria-label={`½ buổi ${p.name}`}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => updatePlayer(p.id, { halfSession: !p.halfSession })}
-                            className={`h-9 px-2.5 rounded-full text-xs font-semibold transition-colors duration-200 ${
-                              p.halfSession
-                                ? 'bg-emerald-600 text-white'
-                                : 'border border-gray-200 text-gray-400'
-                            }`}
-                          >
-                            {p.halfSession ? '½ buổi ✓' : '½ buổi'}
-                          </motion.button>
-                        )}
-                        <button
-                          type="button"
-                          aria-label={`Sửa ${p.name}`}
-                          title="Sửa"
-                          onClick={() => openEdit(p)}
-                          className="hidden md:flex md:w-10 md:h-10 items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg"
-                        >
-                          <PencilIcon />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={`Xóa ${p.name}`}
-                          onClick={() => removePlayer(p.id)}
-                          className="hidden md:flex md:w-10 md:h-10 items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg text-2xl leading-none"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.li>
-            )
-          })}
+            {input.players.map((p) => (
+              <PlayerRow
+                key={p.id}
+                player={p}
+                mode={input.mode}
+                timeLabel={timeLabel(p)}
+                isSwipeOpen={openSwipeId === p.id}
+                onSwipeOpenChange={setOpenSwipeId}
+                onRemove={removePlayer}
+                onChangeGender={onChangeGender}
+                onEdit={openEdit}
+                onToggleHalf={(pl) => updatePlayer(pl.id, { halfSession: !pl.halfSession })}
+              />
+            ))}
           </AnimatePresence>
         </ul>
       )}
