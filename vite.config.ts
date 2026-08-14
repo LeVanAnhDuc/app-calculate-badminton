@@ -2,11 +2,30 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { VitePWA } from 'vite-plugin-pwa'
+import { PWA_MANIFEST } from './src/lib/pwaManifest'
 
 export default defineConfig({
   // GitHub Pages serves the app from /<repo-name>/ — set only in the deploy workflow
   base: process.env.GITHUB_PAGES === 'true' ? '/app-calculate-badminton/' : '/',
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      // service worker tải bản mới ngầm, tự áp dụng ở lần mở app kế tiếp.
+      // An toàn vì App.tsx ghi localStorage ngay mỗi lần state đổi.
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      manifest: PWA_MANIFEST,
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        navigateFallback: 'index.html',
+      },
+      // không đăng ký SW khi `npm run dev` — tránh sửa code mà trình duyệt
+      // vẫn phục vụ bản cache cũ
+      devOptions: { enabled: false },
+    }),
+  ],
   test: {
     environment: 'jsdom',
     setupFiles: './src/test-setup.ts',
