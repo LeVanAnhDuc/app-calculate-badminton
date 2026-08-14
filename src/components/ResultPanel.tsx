@@ -218,8 +218,7 @@ function DownloadImageButton({
   players: Player[]
 }) {
   const handleDownload = () => {
-    downloadResultImage(result, mode, players)
-    toast.success('Đã tải ảnh kết quả')
+    void downloadResultImage(result, mode, players).then(() => toast.success('Đã tải ảnh kết quả'))
   }
   return (
     <button

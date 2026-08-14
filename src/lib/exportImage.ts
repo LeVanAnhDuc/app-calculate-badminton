@@ -1,6 +1,9 @@
+import QRCode from 'qrcode'
 import { formatVND } from './format'
+import { loadCollectorAccount, type CollectorAccount } from './storage'
 import { formatHours } from './time'
 import type { CalcResult, Mode, Player } from './types'
+import { buildMemo, buildVietQRPayload } from './vietqr'
 
 const SCALE = 2
 const WIDTH = 800
@@ -9,6 +12,11 @@ const HEADER_HEIGHT = 90
 const ROW_HEIGHT = 64
 const FOOTER_HEIGHT = 44
 const PAID_ICON_WIDTH = 22
+const QR_COLS = 3
+const QR_SIZE = 180
+const QR_CELL_W = (WIDTH - PADDING * 2) / QR_COLS
+const QR_CELL_H = QR_SIZE + 60 // QR + name + amount lines
+const QR_TITLE_H = 56
 
 const EMERALD_600 = '#059669'
 const GRAY_50 = '#f9fafb'
@@ -31,6 +39,40 @@ export function formatFilenameDate(date: Date): string {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
 }
 
+export interface QRItem {
+  name: string
+  amount: number
+  payload: string
+}
+
+/** QR cho người CHƯA trả — không có tài khoản người thu thì không có QR nào. */
+export function buildQRItems(
+  result: CalcResult,
+  players: Player[],
+  account: CollectorAccount | null,
+  date: Date,
+): QRItem[] {
+  if (!account) return []
+  const paidById = new Map(players.map((p) => [p.id, p.paid]))
+  return result.players
+    .filter((p) => !(paidById.get(p.playerId) ?? false))
+    .map((p) => ({
+      name: p.name,
+      amount: p.amount,
+      payload: buildVietQRPayload({
+        bankBin: account.bankBin,
+        accountNo: account.accountNo,
+        amount: p.amount,
+        memo: buildMemo(date, p.name),
+      }),
+    }))
+}
+
+export function qrSectionHeight(count: number): number {
+  if (count === 0) return 0
+  return QR_TITLE_H + Math.ceil(count / QR_COLS) * QR_CELL_H
+}
+
 function playerNote(mode: Mode, p: CalcResult['players'][number]): string {
   const genderLabel = p.gender === 'male' ? 'Nam' : 'Nữ'
   if (mode === 'ratio' && p.halfSession) return `${genderLabel} · ½ buổi`
@@ -43,15 +85,16 @@ function playerNote(mode: Mode, p: CalcResult['players'][number]): string {
  * libraries). Deliberately excludes tổng thu / số dư / tổng chi — only
  * per-player amounts are shown.
  */
-export function renderResultImage(
+export async function renderResultImage(
   result: CalcResult,
   mode: Mode,
   dateLabel: string,
   players: Player[],
-): HTMLCanvasElement {
+  qrItems: QRItem[] = [],
+): Promise<HTMLCanvasElement> {
   const paidById = new Map(players.map((p) => [p.id, p.paid]))
   const rowCount = result.players.length
-  const height = HEADER_HEIGHT + rowCount * ROW_HEIGHT + FOOTER_HEIGHT
+  const height = HEADER_HEIGHT + rowCount * ROW_HEIGHT + qrSectionHeight(qrItems.length) + FOOTER_HEIGHT
 
   const canvas = document.createElement('canvas')
   canvas.width = WIDTH * SCALE
@@ -107,6 +150,36 @@ export function renderResultImage(
     ctx.fillText(formatVND(p.amount), WIDTH - PADDING, y + ROW_HEIGHT / 2 + 7)
   })
 
+  // QR section — "Quét QR để trả tiền" (unpaid players only)
+  if (qrItems.length > 0) {
+    const sectionY = HEADER_HEIGHT + rowCount * ROW_HEIGHT
+    ctx.textAlign = 'left'
+    ctx.fillStyle = GRAY_900
+    ctx.font = 'bold 18px sans-serif'
+    ctx.fillText('Quét QR để trả tiền', PADDING, sectionY + 34)
+    for (let i = 0; i < qrItems.length; i++) {
+      const item = qrItems[i]
+      const col = i % QR_COLS
+      const row = Math.floor(i / QR_COLS)
+      const cellX = PADDING + col * QR_CELL_W
+      const cellY = sectionY + QR_TITLE_H + row * QR_CELL_H
+      const qrCanvas = document.createElement('canvas')
+      await QRCode.toCanvas(qrCanvas, item.payload, {
+        errorCorrectionLevel: 'M',
+        margin: 1,
+        width: QR_SIZE * SCALE,
+      })
+      ctx.drawImage(qrCanvas, cellX + (QR_CELL_W - QR_SIZE) / 2, cellY, QR_SIZE, QR_SIZE)
+      ctx.textAlign = 'center'
+      ctx.fillStyle = GRAY_900
+      ctx.font = 'bold 16px sans-serif'
+      ctx.fillText(item.name, cellX + QR_CELL_W / 2, cellY + QR_SIZE + 20)
+      ctx.font = '15px sans-serif'
+      ctx.fillStyle = GRAY_500
+      ctx.fillText(formatVND(item.amount), cellX + QR_CELL_W / 2, cellY + QR_SIZE + 40)
+    }
+  }
+
   // footer
   ctx.textAlign = 'center'
   ctx.fillStyle = GRAY_400
@@ -116,13 +189,14 @@ export function renderResultImage(
   return canvas
 }
 
-export function downloadResultImage(
+export async function downloadResultImage(
   result: CalcResult,
   mode: Mode,
   players: Player[],
   date: Date = new Date(),
-): void {
-  const canvas = renderResultImage(result, mode, formatDateLabel(date), players)
+): Promise<void> {
+  const qrItems = buildQRItems(result, players, loadCollectorAccount(), date)
+  const canvas = await renderResultImage(result, mode, formatDateLabel(date), players, qrItems)
   canvas.toBlob((blob) => {
     if (!blob) return
     const url = URL.createObjectURL(blob)

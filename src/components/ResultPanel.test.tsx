@@ -290,7 +290,7 @@ describe('PNG result download', () => {
     vi.restoreAllMocks()
   })
 
-  test('clicking the download button triggers an anchor download with the expected filename and shows a toast', () => {
+  test('clicking the download button triggers an anchor download with the expected filename and shows a toast', async () => {
     stubCanvas()
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url')
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
@@ -308,11 +308,13 @@ describe('PNG result download', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Tải ảnh kết quả' }))
 
-    expect(downloadedFilename).toMatch(/^tinh-tien-cau-long-\d{4}-\d{2}-\d{2}\.png$/)
-    expect(toastSpy).toHaveBeenCalledWith('Đã tải ảnh kết quả')
+    await waitFor(() =>
+      expect(downloadedFilename).toMatch(/^tinh-tien-cau-long-\d{4}-\d{2}-\d{2}\.png$/),
+    )
+    await waitFor(() => expect(toastSpy).toHaveBeenCalledWith('Đã tải ảnh kết quả'))
   })
 
-  test('downloading with a mix of paid and unpaid players does not crash and still names the file correctly', () => {
+  test('downloading with a mix of paid and unpaid players does not crash and still names the file correctly', async () => {
     stubCanvas()
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url')
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
@@ -347,10 +349,12 @@ describe('PNG result download', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Tải ảnh kết quả' })),
     ).not.toThrow()
 
-    expect(downloadedFilename).toMatch(/^tinh-tien-cau-long-\d{4}-\d{2}-\d{2}\.png$/)
+    await waitFor(() =>
+      expect(downloadedFilename).toMatch(/^tinh-tien-cau-long-\d{4}-\d{2}-\d{2}\.png$/),
+    )
   })
 
-  test('the download button is also available inside the fullscreen overlay', () => {
+  test('the download button is also available inside the fullscreen overlay', async () => {
     stubCanvas()
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fake-url')
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
@@ -373,7 +377,9 @@ describe('PNG result download', () => {
     const overlayButtonGroup = screen.getByRole('button', { name: 'Đóng' }).closest('div')!
     fireEvent.click(within(overlayButtonGroup).getByRole('button', { name: 'Tải ảnh kết quả' }))
 
-    expect(downloadedFilename).toMatch(/^tinh-tien-cau-long-\d{4}-\d{2}-\d{2}\.png$/)
+    await waitFor(() =>
+      expect(downloadedFilename).toMatch(/^tinh-tien-cau-long-\d{4}-\d{2}-\d{2}\.png$/),
+    )
   })
 
   test('no download button is shown when there is no result', () => {
