@@ -186,7 +186,7 @@ function PlayerRow({
           aria-label={`Mã QR cho ${p.name}`}
           title={`Mã QR cho ${p.name}`}
           onClick={onShowQR}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+          className="w-11 h-11 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
         >
           <QRIcon />
         </button>
@@ -262,7 +262,7 @@ function FullscreenResult({
       >
         <div className="sticky top-0 bg-gray-50 border-b border-gray-100 flex items-center justify-between px-4 py-4">
           <h2 className="text-lg font-bold text-gray-900">Kết quả</h2>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <ShareImageButton result={result} mode={mode} players={players} />
             <CopyTextButton result={result} mode={mode} players={players} />
             <button
@@ -270,7 +270,7 @@ function FullscreenResult({
               aria-label="Đóng"
               title="Đóng"
               onClick={onClose}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+              className="w-11 h-11 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
             >
               <CloseIcon size={18} />
             </button>
@@ -345,7 +345,7 @@ export function ResultPanel({
       <div className="flex justify-between items-center mb-3">
         <h2 className="text-base font-bold text-gray-900">Kết quả</h2>
         {result !== null && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <ShareImageButton result={result} mode={mode} players={players} />
             <CopyTextButton result={result} mode={mode} players={players} />
             <button
@@ -353,7 +353,7 @@ export function ResultPanel({
               aria-label="Xem toàn màn hình"
               title="Xem toàn màn hình"
               onClick={() => setFullscreen(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+              className="w-11 h-11 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
             >
               <MaximizeIcon />
             </button>

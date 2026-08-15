@@ -77,6 +77,8 @@ export function PlayerRow({
         disabled={dragging}
         surfaceClassName="bg-white py-2.5"
       >
+          {/* Các nút đứng một mình (avatar, tên) nới vùng chạm lên 44px bằng
+              margin âm: diện mạo và chiều cao hàng giữ nguyên như cũ. */}
           <div className="flex items-center justify-between gap-1">
             <div className="flex items-center gap-2 min-w-0">
               <button
@@ -97,10 +99,15 @@ export function PlayerRow({
                 aria-label={`Đổi giới tính ${player.name}`}
                 title="Đổi giới tính"
                 onClick={() => onChangeGender(player.id, player.gender === 'male' ? 'female' : 'male')}
+                className="w-11 h-11 -m-1.5 flex items-center justify-center shrink-0"
               >
                 <GenderBadge gender={player.gender} />
               </button>
-              <button type="button" className="text-left min-w-0" onClick={() => onEdit(player)}>
+              <button
+                type="button"
+                className="min-h-11 py-2 -my-2 flex flex-col justify-center text-left min-w-0"
+                onClick={() => onEdit(player)}
+              >
                 <span className="font-medium text-gray-900 block truncate">{player.name}</span>
                 {mode === 'hourly' && (
                   <span
@@ -121,7 +128,7 @@ export function PlayerRow({
                   aria-label={`½ buổi ${player.name}`}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => onToggleHalf(player)}
-                  className={`h-9 px-2.5 rounded-full text-xs font-semibold transition-colors duration-200 ${
+                  className={`h-11 px-2.5 rounded-full text-xs font-semibold transition-colors duration-200 ${
                     player.halfSession
                       ? 'bg-emerald-600 text-white'
                       : 'border border-gray-200 text-gray-400'

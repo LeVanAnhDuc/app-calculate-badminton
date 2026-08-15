@@ -9,12 +9,14 @@ export function EyeButton({
   shownLabel?: string
   hiddenLabel?: string
 }) {
+  // -my-1.5 giữ nguyên chiều cao hàng như hồi nút còn 36px: nút mắt luôn đứng
+  // một mình nên đệm âm không làm nó chồng lấn nút nào khác
   return (
     <button
       type="button"
       aria-label={shown ? shownLabel : hiddenLabel}
       onClick={onToggle}
-      className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+      className="w-11 h-11 -my-1.5 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

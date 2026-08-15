@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { toast } from 'sonner'
+import { PaidToggle } from './PaidToggle'
 import { ResultPanel } from './ResultPanel'
 import { calcRatioMode } from '../lib/calc'
 import type { SessionInput } from '../lib/types'
@@ -594,4 +595,55 @@ test('dấu tích đã trả là icon SVG chứ không phải glyph chữ', () =
   const toggle = screen.getAllByRole('button', { name: /^Bỏ đánh dấu/ })[0]
   expect(toggle.querySelector('svg')).not.toBeNull()
   expect(toggle.textContent).toBe('')
+})
+
+describe('vùng chạm tối thiểu 44×44', () => {
+  const renderPanel = () =>
+    render(
+      <ResultPanel result={calcRatioMode(input)} mode="ratio" errors={[]} players={input.players}
+        onSave={() => {}} onNewSession={() => {}} onPatch={() => {}} />,
+    )
+
+  test('nút mã QR của mỗi người chơi rộng 44px', () => {
+    renderPanel()
+    expect(screen.getByRole('button', { name: 'Mã QR cho Tuấn' })).toHaveClass('w-11', 'h-11')
+  })
+
+  test('nút xem toàn màn hình rộng 44px', () => {
+    renderPanel()
+    expect(screen.getByRole('button', { name: 'Xem toàn màn hình' })).toHaveClass('w-11', 'h-11')
+  })
+
+  test('nút Đóng của lớp toàn màn hình rộng 44px', () => {
+    renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+    expect(screen.getByRole('button', { name: 'Đóng' })).toHaveClass('w-11', 'h-11')
+  })
+
+  test('hàng nút icon giãn gap-2 để hai vùng chạm 44px không chồng nhau', () => {
+    renderPanel()
+    const row = screen.getByRole('button', { name: 'Xem toàn màn hình' }).parentElement
+    expect(row).toHaveClass('gap-2')
+    fireEvent.click(screen.getByRole('button', { name: 'Xem toàn màn hình' }))
+    expect(screen.getByRole('button', { name: 'Đóng' }).parentElement).toHaveClass('gap-2')
+  })
+
+  test('nút con mắt ẩn/hiện tiền rộng 44px', () => {
+    renderPanel()
+    expect(screen.getByRole('button', { name: 'Hiện tổng thu' })).toHaveClass('w-11', 'h-11')
+  })
+
+  test('nút đánh dấu đã trả có vùng chạm 44px nhưng vòng tròn vẫn 28px', () => {
+    renderPanel()
+    const toggle = screen.getAllByRole('button', { name: /^Đánh dấu/ })[0]
+    expect(toggle).toHaveClass('w-11', 'h-11')
+    expect(toggle.querySelector('.w-7.h-7')).not.toBeNull()
+  })
+
+  test('PaidToggle cỡ sm cũng đủ 44px, vòng tròn giữ 24px', () => {
+    render(<PaidToggle paid={false} name="Tuấn" onToggle={() => {}} size="sm" />)
+    const toggle = screen.getByRole('button', { name: 'Đánh dấu Tuấn đã trả' })
+    expect(toggle).toHaveClass('w-11', 'h-11')
+    expect(toggle.querySelector('.w-6.h-6')).not.toBeNull()
+  })
 })

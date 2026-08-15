@@ -2,8 +2,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { CheckIcon } from './icons'
 
 const SIZES = {
-  md: { hit: 'w-10 h-10', circle: 'w-7 h-7', check: 16 },
-  sm: { hit: 'w-9 h-9', circle: 'w-6 h-6', check: 14 },
+  md: { hit: 'w-11 h-11', circle: 'w-7 h-7', check: 16 },
+  sm: { hit: 'w-11 h-11', circle: 'w-6 h-6', check: 14 },
 } as const
 
 interface PaidToggleProps {
@@ -17,7 +17,8 @@ interface PaidToggleProps {
  * Shared paid/unpaid toggle used by ResultPanel (inline + full-screen) and
  * HistoryPage's expanded detail rows. A springy ✓ pops in on the visible
  * circle (kept at w-7 h-7 so it visually balances the row's w-8 h-8 gender
- * avatar) while the tap target stays a full ≥40px hit area around it.
+ * avatar) while the tap target stays a full 44×44 hit area around it — the two
+ * sizes differ only in how big the visible circle is, not in tap area.
  */
 export function PaidToggle({ paid, name, onToggle, size = 'md' }: PaidToggleProps) {
   const { hit, circle, check } = SIZES[size]
