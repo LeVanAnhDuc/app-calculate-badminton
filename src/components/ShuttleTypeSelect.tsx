@@ -2,12 +2,15 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Drawer } from 'vaul'
 import { formatVND } from '../lib/format'
+import { MoneyInput } from './MoneyInput'
 import type { ShuttleType } from '../lib/shuttleTypes'
 
 interface Props {
   value: string
-  /** `price` chỉ có khi người dùng chọn một gợi ý; gõ tay thì để nguyên giá. */
-  onChange: (name: string, price?: number) => void
+  /** Đơn giá / quả của dòng này. */
+  price: number
+  /** Luôn gửi cả tên lẫn giá — không còn tham số optional. */
+  onChange: (name: string, price: number) => void
   /** Đã xếp hạng & lọc sẵn bởi cha — component này chỉ hiển thị. */
   suggestions: ShuttleType[]
   'aria-label': string
@@ -15,13 +18,15 @@ interface Props {
 }
 
 /**
- * Chọn loại cầu theo mô-típ `TimeSelect`: một nút hiển thị giá trị mở bottom
- * sheet (vaul) thay vì `<select>` native. Trong sheet: gõ tên tự do, chip loại
- * hay dùng khi ô còn trống, danh sách lọc theo tiền tố khi đã gõ. Kéo xuống /
- * bấm overlay / Esc = hủy, giữ nguyên giá trị cũ.
+ * Chọn loại cầu theo mô-típ `TimeSelect`: một nút hiển thị tên + đơn giá mở
+ * bottom sheet (vaul) thay vì `<select>` native. Trong sheet: gõ tên tự do, ô
+ * giá / quả ngay dưới, chip loại hay dùng khi ô tên còn trống, danh sách lọc
+ * theo tiền tố khi đã gõ. Kéo xuống / bấm overlay / Esc = hủy, giữ nguyên cả
+ * tên lẫn giá cũ.
  */
 export function ShuttleTypeSelect({
   value,
+  price,
   onChange,
   suggestions,
   'aria-label': label,
@@ -29,9 +34,11 @@ export function ShuttleTypeSelect({
 }: Props) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(value)
+  const [draftPrice, setDraftPrice] = useState(price)
 
   const openSheet = () => {
     setDraft(value)
+    setDraftPrice(price)
     setOpen(true)
   }
 
@@ -47,7 +54,7 @@ export function ShuttleTypeSelect({
   }
 
   const commit = () => {
-    onChange(trimmed)
+    onChange(trimmed, draftPrice)
     setOpen(false)
   }
 
@@ -57,11 +64,20 @@ export function ShuttleTypeSelect({
         type="button"
         aria-label={label}
         onClick={openSheet}
-        className={`h-11 rounded-xl border border-gray-300 px-3 text-sm text-left truncate ${
-          value ? 'text-gray-900 font-medium' : 'text-gray-400'
+        className={`h-11 rounded-xl border border-gray-300 px-3 text-left flex items-center ${
+          value && price > 0 ? 'gap-1.5' : ''
         } ${className}`}
       >
-        {value || 'Chọn loại cầu'}
+        {value ? (
+          <>
+            <span className="text-sm font-medium text-gray-900 truncate">{value}</span>
+            {price > 0 && (
+              <span className="text-sm text-gray-400 shrink-0">· {formatVND(price)}</span>
+            )}
+          </>
+        ) : (
+          <span className="text-sm text-gray-400">Chọn loại cầu</span>
+        )}
       </button>
 
       <Drawer.Root open={open} onOpenChange={(o: boolean) => !o && setOpen(false)}>
@@ -84,6 +100,14 @@ export function ShuttleTypeSelect({
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && commit()}
                 className="w-full h-12 rounded-xl border border-gray-300 px-3 text-base text-gray-900"
+              />
+
+              <label className="text-xs text-gray-500 block mt-3 mb-1">Giá / quả</label>
+              <MoneyInput
+                aria-label="Giá / quả"
+                value={draftPrice}
+                onChange={setDraftPrice}
+                className="w-full"
               />
 
               <AnimatePresence>

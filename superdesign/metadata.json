@@ -1,5 +1,16 @@
 [
   {
+    "file": "shuttle_row_1.html",
+    "title": "Hàng chi phí cầu — gộp đơn giá vào sheet",
+    "note": "Hàng còn 2 ô: [tên · giá] [số quả] · dòng phụ thành tiền · giá sửa trong bottom sheet",
+    "screen": "main",
+    "viewport": "mobile",
+    "status": "approved",
+    "date": "2026-08-15",
+    "badge": "🆕",
+    "wide": true
+  },
+  {
     "file": "mode2_hourly_1.html",
     "title": "Chế độ 2: Sân theo giờ — Mobile",
     "note": "Giờ thuê sân → tự áp cho mọi người · sửa ngoại lệ · kết quả tách sân + cầu",

@@ -84,39 +84,41 @@ export function CostForm({ input, shuttleTypes, onPatch }: Props) {
                 onOpenChange={(open) => setOpenSwipeId(open ? l.id : null)}
                 onDelete={() => removeShuttle(l.id)}
                 className="rounded-xl"
-                surfaceClassName="bg-white flex gap-2 items-center"
+                surfaceClassName="bg-white"
               >
-              <ShuttleTypeSelect
-                aria-label={`Loại cầu ${i + 1}`}
-                value={l.name}
-                suggestions={shuttleTypes.filter(
-                  (t) =>
-                    !shuttles.some(
-                      (o) => o.id !== l.id && o.name.trim().toLowerCase() === t.name.toLowerCase(),
-                    ),
-                )}
-                onChange={(name, price) =>
-                  patchShuttle(l.id, price === undefined ? { name } : { name, price })
-                }
-                className="flex-1 min-w-0"
-              />
-              <input
-                aria-label={`Số quả của ${label}`}
-                inputMode="numeric"
-                value={l.count === 0 ? '' : l.count}
-                placeholder="0"
-                onChange={(ev) =>
-                  patchShuttle(l.id, { count: Number(ev.target.value.replace(/\D/g, '') || 0) })
-                }
-                className="w-14 h-11 rounded-xl border border-gray-300 px-2 text-base font-semibold text-gray-900 text-center"
-              />
-              <MoneyInput
-                aria-label={`Giá / quả của ${label}`}
-                value={l.price}
-                onChange={(v) => patchShuttle(l.id, { price: v })}
-                className="w-24 h-11! text-base!"
-              />
-              <DeleteButton label={`Xóa ${label}`} onClick={() => removeShuttle(l.id)} />
+              {/* hai tầng: đơn giá đã dọn vào sheet loại cầu, hàng chỉ còn hai
+                  control và một dòng phụ nhắc lại phép nhân */}
+              <div className="flex gap-2 items-center">
+                <ShuttleTypeSelect
+                  aria-label={`Loại cầu ${i + 1}`}
+                  value={l.name}
+                  price={l.price}
+                  suggestions={shuttleTypes.filter(
+                    (t) =>
+                      !shuttles.some(
+                        (o) => o.id !== l.id && o.name.trim().toLowerCase() === t.name.toLowerCase(),
+                      ),
+                  )}
+                  onChange={(name, price) => patchShuttle(l.id, { name, price })}
+                  className="flex-1 min-w-0"
+                />
+                <input
+                  aria-label={`Số quả của ${label}`}
+                  inputMode="numeric"
+                  value={l.count === 0 ? '' : l.count}
+                  placeholder="0"
+                  onChange={(ev) =>
+                    patchShuttle(l.id, { count: Number(ev.target.value.replace(/\D/g, '') || 0) })
+                  }
+                  className="w-16 h-11 rounded-xl border border-gray-300 px-2 text-base font-semibold text-gray-900 text-center"
+                />
+                <DeleteButton label={`Xóa ${label}`} onClick={() => removeShuttle(l.id)} />
+              </div>
+              {l.count > 0 && l.price > 0 && (
+                <p className="text-xs text-gray-400 mt-1 px-1">
+                  {l.count} quả × {formatVND(l.price)} = {formatVND(l.count * l.price)}
+                </p>
+              )}
               </SwipeToDelete>
             </li>
           )

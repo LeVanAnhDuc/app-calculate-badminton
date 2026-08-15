@@ -4,6 +4,35 @@ import { CostForm } from './CostForm'
 import type { ShuttleType } from '../lib/shuttleTypes'
 import type { SessionInput } from '../lib/types'
 
+// Ghi lại props truyền xuống ShuttleTypeSelect mà vẫn render component thật:
+// đơn giá không còn ô riêng ở hàng nên đây là chỗ duy nhất kiểm tra được
+// CostForm có đưa `price` xuống sheet hay không.
+const shuttleSelect = vi.hoisted(() => ({ calls: [] as Record<string, unknown>[] }))
+vi.mock('./ShuttleTypeSelect', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./ShuttleTypeSelect')>()
+  return {
+    ShuttleTypeSelect: (props: Parameters<typeof actual.ShuttleTypeSelect>[0]) => {
+      shuttleSelect.calls.push(props as unknown as Record<string, unknown>)
+      return <actual.ShuttleTypeSelect {...props} />
+    },
+  }
+})
+
+/** Props mới nhất mà hàng có nhãn `label` nhận được. */
+function selectProps(label: string) {
+  const found = shuttleSelect.calls.filter((p) => p['aria-label'] === label).at(-1)
+  if (!found) throw new Error(`ShuttleTypeSelect "${label}" chưa từng được render`)
+  return found as {
+    value: string
+    price: number
+    onChange: (name: string, price: number) => void
+  }
+}
+
+beforeEach(() => {
+  shuttleSelect.calls.length = 0
+})
+
 function Harness({
   initial,
   shuttleTypes = [],
@@ -152,20 +181,115 @@ describe('chi phí phát sinh khác', () => {
 })
 
 describe('nhiều loại cầu', () => {
-  test('thêm dòng, nhập số lượng và giá, tổng cộng đúng', () => {
-    render(<Harness initial={base} />)
+  test('thêm dòng, nhập số lượng rồi lấy giá từ sheet, tổng cộng đúng', () => {
+    render(<Harness initial={base} shuttleTypes={[{ name: 'Ba Sao', price: 20000 }]} />)
     expect(screen.getByText('150.000đ')).toBeInTheDocument() // tiền cầu 1 dòng
 
     fireEvent.click(screen.getByRole('button', { name: '+ Thêm loại cầu' }))
     const counts = screen.getAllByLabelText(/^Số quả của/)
-    const prices = screen.getAllByLabelText(/^Giá \/ quả của/)
     expect(counts).toHaveLength(2)
 
     fireEvent.change(counts[1], { target: { value: '2' } })
-    fireEvent.change(prices[1], { target: { value: '20000' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Loại cầu 2' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Chọn Ba Sao · 20.000đ' }))
 
     expect(screen.getByText('190.000đ')).toBeInTheDocument() // tiền cầu
     expect(screen.getByText('340.000đ')).toBeInTheDocument() // TỔNG CHI
+  })
+
+  // Đơn giá chuyển hẳn vào sheet: hàng chỉ còn loại cầu + số quả + nút xóa.
+  test('hàng cầu không còn ô đơn giá riêng', () => {
+    render(<Harness initial={base} />)
+    expect(screen.queryByLabelText(/^Giá \/ quả của/)).not.toBeInTheDocument()
+  })
+
+  test('ShuttleTypeSelect nhận đơn giá của chính dòng đó', () => {
+    render(
+      <Harness
+        initial={{
+          ...base,
+          shuttles: [
+            { id: 's1', name: 'Hải Yến', count: 12, price: 25000 },
+            { id: 's2', name: 'Ba Sao', count: 6, price: 30000 },
+          ],
+        }}
+      />,
+    )
+    expect(selectProps('Loại cầu 1')).toMatchObject({ value: 'Hải Yến', price: 25000 })
+    expect(selectProps('Loại cầu 2')).toMatchObject({ value: 'Ba Sao', price: 30000 })
+  })
+
+  test('sheet trả về tên + giá thì ghi cả hai vào đúng dòng', () => {
+    const onPatch = vi.fn()
+    const first = { id: 's1', name: 'Hải Yến', count: 12, price: 25000 }
+    const second = { id: 's2', name: '', count: 0, price: 0 }
+    render(
+      <CostForm
+        input={{ ...base, shuttles: [first, second] }}
+        shuttleTypes={[]}
+        onPatch={onPatch}
+      />,
+    )
+    selectProps('Loại cầu 2').onChange('Ba Sao', 20000)
+    expect(onPatch).toHaveBeenCalledWith({
+      shuttles: [first, { id: 's2', name: 'Ba Sao', count: 0, price: 20000 }],
+    })
+  })
+
+  describe('dòng phụ thành tiền', () => {
+    test('hiện phép nhân khi đã có cả số quả lẫn đơn giá', () => {
+      render(
+        <Harness
+          initial={{ ...base, shuttles: [{ id: 's1', name: 'Hải Yến', count: 12, price: 25000 }] }}
+        />,
+      )
+      expect(screen.getByText('12 quả × 25.000đ = 300.000đ')).toBeInTheDocument()
+    })
+
+    test('chưa nhập số quả thì không hiện (hàng không cao thêm)', () => {
+      render(
+        <Harness
+          initial={{ ...base, shuttles: [{ id: 's1', name: 'Hải Yến', count: 0, price: 25000 }] }}
+        />,
+      )
+      expect(screen.queryByText(/quả ×/)).not.toBeInTheDocument()
+    })
+
+    test('chưa có đơn giá thì không hiện', () => {
+      render(
+        <Harness
+          initial={{ ...base, shuttles: [{ id: 's1', name: 'Hải Yến', count: 12, price: 0 }] }}
+        />,
+      )
+      expect(screen.queryByText(/quả ×/)).not.toBeInTheDocument()
+    })
+
+    test('nhập số quả xong thì dòng phụ xuất hiện ngay', () => {
+      render(
+        <Harness
+          initial={{ ...base, shuttles: [{ id: 's1', name: 'Hải Yến', count: 0, price: 25000 }] }}
+        />,
+      )
+      fireEvent.change(screen.getByLabelText('Số quả của Hải Yến'), { target: { value: '4' } })
+      expect(screen.getByText('4 quả × 25.000đ = 100.000đ')).toBeInTheDocument()
+    })
+  })
+
+  // Hai tầng: [loại cầu | số quả | xóa] ở trên, dòng phụ ở dưới. Nếu mặt trượt
+  // của SwipeToDelete còn `flex` thì dòng phụ bị kéo lên nằm cùng hàng.
+  test('hàng cầu xếp hai tầng, flex nằm ở tầng control', () => {
+    render(
+      <Harness
+        initial={{ ...base, shuttles: [{ id: 's1', name: 'Hải Yến', count: 12, price: 25000 }] }}
+      />,
+    )
+    const controls = screen.getByRole('button', { name: 'Xóa Hải Yến' }).parentElement!
+    expect(controls).toHaveClass('flex', 'gap-2', 'items-center')
+    expect(screen.getByLabelText('Số quả của Hải Yến')).toHaveClass('w-16')
+
+    const surface = screen.getByTestId('shuttle-swipe-row-s1')
+    expect(surface).not.toHaveClass('flex')
+    expect(surface).toContainElement(screen.getByText('12 quả × 25.000đ = 300.000đ'))
   })
 
   test('đặt tên loại cầu qua sheet rồi xóa dòng', () => {

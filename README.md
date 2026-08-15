@@ -11,6 +11,8 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Nhiều loại cầu trong một buổi**
   - Mỗi loại có tên, số lượng và giá riêng — tổng tiền cầu vẫn chia theo hệ số như cũ
   - Chọn loại cầu bằng bottom sheet: chip loại hay dùng, gõ để lọc, chọn xong tự điền giá lần trước
+  - Hàng nhập chỉ còn 2 ô — đơn giá nằm cùng tên loại cầu trong bottom sheet, nút ngoài hiện sẵn "Hải Yến · 25.000đ" nên không phải mở ra mới biết giá
+  - Mỗi hàng hiện thành tiền riêng ("12 quả × 25.000đ = 300.000đ"), khỏi nhẩm khi kiểm tra
   - Lịch sử liệt kê rõ từng loại cầu đã dùng trong buổi
 
 - **Làm tròn và quản lý số dư**
@@ -86,7 +88,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (390 test cases)
+- **Testing**: Vitest + React Testing Library (403 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án
