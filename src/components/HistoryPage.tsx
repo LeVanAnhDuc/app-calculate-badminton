@@ -90,8 +90,10 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
   }).length
 
   return (
-    <div className="bg-gray-100 min-h-screen flex justify-center">
-      <div className="w-full max-w-[390px] md:max-w-5xl bg-gray-50 min-h-screen pb-8">
+    <div className="bg-gray-100 min-h-dvh flex justify-center">
+      {/* pb gộp 2rem + safe-area: hai utility padding-bottom trên cùng element
+          sẽ đè nhau theo thứ tự CSS nên gộp thành một class */}
+      <div className="w-full max-w-[430px] md:max-w-5xl bg-gray-50 min-h-dvh pb-[calc(2rem+env(safe-area-inset-bottom))]">
         <header className="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl md:rounded-none">
           <div className="flex items-center gap-3 md:max-w-5xl md:mx-auto">
             <button

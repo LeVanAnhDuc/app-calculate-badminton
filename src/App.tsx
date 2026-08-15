@@ -311,8 +311,11 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user">
       <Toaster position="top-center" />
-      <div className="bg-gray-100 min-h-screen">
-        <div className="max-w-[390px] mx-auto bg-gray-50 min-h-screen pb-8 md:max-w-none md:bg-gray-100 md:pb-0">
+      <div className="bg-gray-100 min-h-dvh">
+        {/* pb gộp 2rem + safe-area để nút cuối trang không nằm dưới vạch home
+            indicator; gộp vào một class thay vì thêm pb riêng vì hai utility
+            padding-bottom trên cùng element sẽ đè nhau theo thứ tự CSS */}
+        <div className="w-full max-w-[430px] mx-auto bg-gray-50 min-h-dvh pb-[calc(2rem+env(safe-area-inset-bottom))] md:max-w-none md:bg-gray-100 md:pb-0">
         <header className="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl md:rounded-none md:px-0 md:py-5">
           <div className="md:max-w-5xl md:mx-auto md:px-6 md:flex md:items-center md:justify-between">
             <div>
