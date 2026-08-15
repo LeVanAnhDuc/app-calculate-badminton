@@ -5,7 +5,7 @@ import { formatHours } from './time'
 import type { CalcResult, ExtraShare, Mode, Player, PlayerResult } from './types'
 import { buildMemo, buildVietQRPayload } from './vietqr'
 
-const SCALE = 2
+export const SCALE = 2
 const WIDTH = 800
 const PADDING = 24
 const HEADER_HEIGHT = 90
@@ -31,12 +31,12 @@ export function extraShareLine(x: ExtraShare): string {
   return `· ${x.label}${who} ${formatVND(x.share)}`
 }
 
-const EMERALD_600 = '#059669'
+export const EMERALD_600 = '#059669'
 const GRAY_50 = '#f9fafb'
 const GRAY_300 = '#d1d5db'
-const GRAY_400 = '#9ca3af'
-const GRAY_500 = '#6b7280'
-const GRAY_900 = '#111827'
+export const GRAY_400 = '#9ca3af'
+export const GRAY_500 = '#6b7280'
+export const GRAY_900 = '#111827'
 
 function pad2(n: number): string {
   return String(n).padStart(2, '0')

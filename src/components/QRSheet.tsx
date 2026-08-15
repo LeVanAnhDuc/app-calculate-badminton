@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { Drawer } from 'vaul'
 import { BANKS, findBank } from '../lib/banks'
 import { formatVND } from '../lib/format'
+import { sharePlayerQR } from '../lib/qrCard'
 import {
   loadCollectorAccount,
   saveCollectorAccount,
   type CollectorAccount,
 } from '../lib/storage'
 import { buildMemo, buildVietQRPayload } from '../lib/vietqr'
+import { ShareIcon } from './icons'
 import { QRImage } from './QRImage'
 
 interface QRSheetProps {
@@ -192,6 +195,18 @@ export function QRSheet({ open, onClose, playerName, amount, memoDate, paid, onT
                   }`}
                 >
                   {paid ? 'Bỏ đánh dấu đã trả' : '✓ Đã trả'}
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    // sheet vẫn mở và không tự tick "đã trả": gửi QR ≠ đã nhận tiền
+                    const outcome = await sharePlayerQR({ playerName, amount, memoDate, account })
+                    // 'shared'/'cancelled' đã được share sheet của máy phản hồi rồi
+                    if (outcome === 'downloaded') toast.success(`Đã tải ảnh QR của ${playerName}`)
+                  }}
+                  className="w-full h-12 mt-2 rounded-xl font-bold border border-emerald-600 text-emerald-700 flex items-center justify-center gap-2"
+                >
+                  <ShareIcon /> Chia sẻ QR
                 </button>
                 <button
                   type="button"

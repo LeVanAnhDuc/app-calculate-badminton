@@ -63,6 +63,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
   - Nhập tài khoản người thu một lần — app sẽ dùng cho mọi buổi sau
   - Mỗi người quét QR riêng (kèm sẵn số tiền + nội dung chuyển khoản) để trả
   - Mã VietQR hiển thị trong ảnh kết quả PNG chia sẻ
+  - Bấm "Chia sẻ QR" để gửi mã của một người thẳng vào Zalo/Messenger — ảnh thẻ kèm sẵn tên, số tiền, nội dung chuyển khoản và số tài khoản (máy không hỗ trợ sẽ tự tải ảnh về)
 
 - **Thao tác xóa đồng nhất ở mọi danh sách**
   - Mobile: vuốt trái để xóa — người chơi, danh bạ, dòng loại cầu, khoản phát sinh và cả buổi trong lịch sử, không còn nút xóa chiếm chỗ trên hàng
@@ -88,7 +89,7 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (403 test cases)
+- **Testing**: Vitest + React Testing Library (414 test cases)
 - **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Chạy dự án

@@ -83,6 +83,25 @@ export function PencilIcon({ size = 16 }: IconProps) {
   )
 }
 
+export function ShareIcon({ size = 18 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <path d="M12 2v13" />
+      <path d="m16 6-4-4-4 4" />
+      <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
+    </Icon>
+  )
+}
+
+export function CopyIcon({ size = 18 }: IconProps) {
+  return (
+    <Icon size={size}>
+      <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+    </Icon>
+  )
+}
+
 export function TrashIcon({ size = 16 }: IconProps) {
   return (
     <Icon size={size}>
