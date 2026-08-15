@@ -183,8 +183,10 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen flex justify-center">
-      <div className="w-full max-w-[390px] md:max-w-2xl bg-[#F2F2F7] min-h-screen pb-8">
+    <div className="bg-gray-100 min-h-dvh flex justify-center">
+      {/* pb gộp 2rem + safe-area: hai utility padding-bottom trên cùng element
+          sẽ đè nhau theo thứ tự CSS nên gộp thành một class */}
+      <div className="w-full max-w-[430px] md:max-w-2xl bg-[#F2F2F7] min-h-dvh pb-[calc(2rem+env(safe-area-inset-bottom))]">
         <header className="bg-emerald-600 px-4 pt-8 pb-4 rounded-b-3xl md:rounded-none">
           <div className="flex items-center gap-3">
             <button
@@ -333,8 +335,11 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
               // fixed so it stays put while the list scrolls; on wide screens
               // the calc parks it just outside the centered column (max-w-2xl
               // = 672px, so its edge sits 50vw - 336px from the window edge)
-              // instead of letting it drift off to the window edge
-              className="fixed right-0.5 md:right-[calc(50vw-360px)] top-1/2 -translate-y-1/2 z-20 flex flex-col items-center select-none touch-none"
+              // instead of letting it drift off to the window edge.
+              // right-1 (4px) thay vì right-0.5: 2px vừa đè lên mũi ">" của
+              // hàng (danh sách có mx-4) vừa lọt vùng vuốt-để-back của Android.
+              // Nền mờ để chữ không chồng lên nội dung phía dưới.
+              className="fixed right-1 md:right-[calc(50vw-360px)] top-1/2 -translate-y-1/2 z-20 flex flex-col items-center select-none touch-none bg-white/70 backdrop-blur-sm rounded-full py-1"
             >
               {letters.map((letter) => (
                 <button
@@ -342,7 +347,12 @@ export function RosterPage({ roster, onBack, onChange }: Props) {
                   type="button"
                   aria-label={`Tới nhóm ${letter}`}
                   onClick={() => jumpTo(letter)}
-                  className="w-5 h-4 text-[11px] font-semibold leading-none text-emerald-600"
+                  // 44x28 chứ không 44x44: 26 chữ cái xếp dọc không thể mỗi chữ
+                  // cao 44px trong màn 844px. Thao tác chính của rail là vuốt
+                  // (onTouchStart/onTouchMove ở trên), bấm từng chữ chỉ là phụ —
+                  // đây là đánh đổi có chủ ý. -my-1.5 giữ nguyên khoảng cách
+                  // hiển thị giữa các chữ dù ô chạm cao hơn.
+                  className="w-11 h-7 -my-1.5 text-[11px] font-semibold leading-none text-emerald-600"
                 >
                   {letter}
                 </button>

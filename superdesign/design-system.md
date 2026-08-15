@@ -25,7 +25,7 @@ trong cùng commit — đây là nguồn tham chiếu duy nhất cho mọi mocku
 | Chữ chính | `gray-900` | |
 | Chữ phụ | `gray-500` | |
 | Chữ mờ / placeholder | `gray-400` | |
-| Nền trang (mobile) | `gray-50` | Khung 390px ở giữa |
+| Nền trang (mobile) | `gray-50` | Khung tối đa 430px ở giữa |
 | Nền ngoài khung | `gray-100` | Dải hai bên trên desktop |
 | Nền input / vùng chìm | `gray-100` | |
 | Viền | `gray-300` (input), `gray-200`/`gray-100` (chia mục) | |
@@ -47,15 +47,21 @@ dùng màu phẳng.
 ## Chiều cao control
 
 - `h-12` (48px) — nút hành động chính, input chính.
-- `h-11` (44px) — input phụ, nút trong card. Là ngưỡng tap-target tối thiểu của iOS.
-- `h-10` / `h-9` — nút icon nhỏ, chip.
-- Không dùng control thấp hơn `h-9` cho thứ bấm được.
+- `h-11` (44px) — **sàn cho mọi vùng chạm**: nút icon, chip, input phụ, nút trong card.
+  Đây là ngưỡng tap-target tối thiểu của iOS, không có ngoại lệ cho thứ bấm được.
+- `h-10` / `h-9` — chỉ cho phần **nhìn thấy** nằm bên trong một vùng chạm ≥44px:
+  vòng tròn trong PaidToggle, badge giới tính 32px đặt trong nút 44px. Bản thân
+  chúng không bao giờ là vùng chạm.
+- Ngoại lệ duy nhất: rail A–Z trong Danh bạ (`w-11 h-7`) — 26 chữ cái xếp dọc không
+  thể mỗi chữ cao 44px trong màn 844px, và thao tác chính của rail là vuốt chứ
+  không phải bấm.
 
 ## Khung trang
 
 ```html
-<div class="bg-gray-100 min-h-screen">
-  <div class="max-w-[390px] mx-auto bg-gray-50 min-h-screen pb-8
+<div class="bg-gray-100 min-h-dvh">
+  <div class="w-full max-w-[430px] mx-auto bg-gray-50 min-h-dvh
+              pb-[calc(2rem+env(safe-area-inset-bottom))]
               md:max-w-none md:bg-gray-100 md:pb-0">
     <header class="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl
                    md:rounded-none md:px-0 md:py-5"> … </header>
@@ -66,7 +72,15 @@ dùng màu phẳng.
 </div>
 ```
 
-- Mobile: 1 cột, khung cố định 390px, card cách nhau `space-y-4`.
+- Mobile: 1 cột, khung `w-full` giới hạn tối đa 430px (phủ trọn mọi điện thoại thực
+  tế — iPhone 15 Pro Max 430px, Pixel 412px — nên máy to không còn hai dải xám hai
+  bên), card cách nhau `space-y-4`.
+- `min-h-dvh` chứ không `min-h-screen`: thanh địa chỉ của trình duyệt mobile co giãn,
+  `100vh` sẽ tràn ra ngoài màn hình.
+- `pb-[calc(2rem+env(safe-area-inset-bottom))]` để nút cuối trang không nằm dưới vạch
+  home indicator. Gộp thành **một** class thay vì `pb-8` + `pb-[env(...)]` vì hai
+  utility `padding-bottom` trên cùng element sẽ đè nhau theo thứ tự CSS. Cần
+  `viewport-fit=cover` trong meta viewport (`index.html`) thì `env()` mới khác 0.
 - Desktop (`md:`): lưới 5 cột — nhập liệu `md:col-span-3`, kết quả `md:col-span-2` và
   `md:sticky md:top-6`.
 - `-mt-2` cho `main` để card đầu tiên đè nhẹ lên đáy header.

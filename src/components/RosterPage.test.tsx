@@ -184,6 +184,30 @@ test('the A-Z rail lists only the letters in use and jumps to that section', () 
   expect(scrollIntoView).toHaveBeenCalled()
 })
 
+test('the A-Z rail sits clear of the card edge and gives each letter a wide touch area', () => {
+  render(<Harness initial={base} />)
+  const rail = screen.getByTestId('roster-index-rail')
+  // right-1 (4px) chứ không right-0.5: 2px đè lên mũi ">" của hàng và lọt vùng
+  // vuốt-để-back của Android
+  expect(rail).toHaveClass('right-1', 'md:right-[calc(50vw-360px)]')
+  expect(rail).toHaveClass('bg-white/70', 'backdrop-blur-sm', 'rounded-full')
+  // 44x28: cao 28 chứ không 44 vì 26 chữ cái xếp dọc không vừa màn hình
+  expect(within(rail).getByRole('button', { name: 'Tới nhóm T' })).toHaveClass(
+    'w-11',
+    'h-7',
+    '-my-1.5',
+  )
+})
+
+test('the page frame stretches to the phone width instead of a fixed 390px', () => {
+  const { container } = render(<Harness initial={base} />)
+  const frame = container.querySelector('.max-w-\\[430px\\]')
+  expect(frame).not.toBeNull()
+  expect(frame).toHaveClass('w-full', 'min-h-dvh')
+  // padding đáy gộp 2rem + safe-area trong một class để không bị đè bởi pb-8
+  expect(frame).toHaveClass('pb-[calc(2rem+env(safe-area-inset-bottom))]')
+})
+
 test('the A-Z rail is hidden while searching', () => {
   render(<Harness initial={base} />)
   expect(screen.getByTestId('roster-index-rail')).toBeInTheDocument()
