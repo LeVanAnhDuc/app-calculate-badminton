@@ -2,3 +2,4 @@ node_modules
 dist
 .mcp.json
 .superpowers
+.claude/settings.local.json

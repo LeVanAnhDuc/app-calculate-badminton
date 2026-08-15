@@ -7,6 +7,15 @@ Mobile-first React + TypeScript + Vite web app for splitting badminton session c
 - `npx vitest run` — run the test suite
 - `npm run build` — typecheck (`tsc`) + production build; must pass before pushing
 - `npm run dev` — local dev server
+- `npm run design:gallery` — regenerate `superdesign/gallery.html` from `superdesign/metadata.json`
+
+## UI design (REQUIRED — mockup before React)
+
+New screens and significant layout changes go through an HTML mockup in `superdesign/` **before** any React code. Invoke the project skill `/superdesign` — it holds the full workflow (ASCII wireframe → approval → mockup → gallery → code).
+
+- `superdesign/design-system.md` is the single source of truth for design tokens, extracted from `src/`. Read it before drawing; update it in the same commit whenever the real UI changes a shared token (primary colour, radii, control heights).
+- `superdesign/gallery.html` is generated — never hand-edit it. Add the mockup to `superdesign/metadata.json` and run `npm run design:gallery`.
+- Small fixes (copy, one Tailwind class, button order, display bugs) skip this entirely — edit React directly.
 
 ## Commit convention (REQUIRED — releases depend on it)
 

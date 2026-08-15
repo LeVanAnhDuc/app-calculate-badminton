@@ -1,1 +1,83 @@
-[]
+[
+  {
+    "file": "mode2_hourly_1.html",
+    "title": "Chế độ 2: Sân theo giờ — Mobile",
+    "note": "Giờ thuê sân → tự áp cho mọi người · sửa ngoại lệ · kết quả tách sân + cầu",
+    "screen": "main",
+    "viewport": "mobile",
+    "status": "approved",
+    "date": "2026-08-13",
+    "badge": "🆕"
+  },
+  {
+    "file": "mode2_hourly_1_1.html",
+    "title": "Chế độ 2: Sân theo giờ — Desktop/Tablet",
+    "note": "2 cột · sửa giờ inline ngay trên hàng người chơi",
+    "screen": "main",
+    "viewport": "desktop",
+    "status": "approved",
+    "date": "2026-08-13",
+    "badge": "🆕",
+    "wide": true
+  },
+  {
+    "file": "history_1_1.html",
+    "title": "Trang Lịch sử — Mobile",
+    "note": "1 cột · buổi mới nhất mở sẵn · nút xếp dọc",
+    "screen": "history",
+    "viewport": "mobile",
+    "status": "approved",
+    "date": "2026-08-13",
+    "badge": "🆕"
+  },
+  {
+    "file": "history_1.html",
+    "title": "Trang Lịch sử — Desktop/Tablet",
+    "note": "Buổi mới nhất mở sẵn chi tiết · số dư ẩn 👁 · nút dùng lại danh sách",
+    "screen": "history",
+    "viewport": "desktop",
+    "status": "approved",
+    "date": "2026-08-13",
+    "badge": "🆕",
+    "wide": true
+  },
+  {
+    "file": "mobile_first_vietnam_1.html",
+    "title": "Phương án 1 — Court Green (Mobile, đã chọn)",
+    "note": "Sáng, sạch, accent xanh lá sân cầu",
+    "screen": "main",
+    "viewport": "mobile",
+    "status": "approved",
+    "date": "2026-08-13",
+    "badge": "✅"
+  },
+  {
+    "file": "mobile_first_vietnam_1_1.html",
+    "title": "Court Green — bản Desktop/Tablet",
+    "note": "2 cột: nhập liệu trái · kết quả dính phải",
+    "screen": "main",
+    "viewport": "desktop",
+    "status": "approved",
+    "date": "2026-08-13",
+    "badge": "✅",
+    "wide": true
+  },
+  {
+    "file": "mobile_first_vietnam_2.html",
+    "title": "Phương án 2 — Night Match",
+    "note": "Nền tối thể thao, accent vàng chanh",
+    "screen": "main",
+    "viewport": "mobile",
+    "status": "rejected",
+    "date": "2026-08-13"
+  },
+  {
+    "file": "mobile_first_vietnam_3.html",
+    "title": "Phương án 3 — Soft Sky",
+    "note": "Gradient mềm, chip người chơi, thân thiện",
+    "screen": "main",
+    "viewport": "mobile",
+    "status": "rejected",
+    "date": "2026-08-13"
+  }
+]

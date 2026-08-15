@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- FILE SINH TỰ ĐỘNG bởi scripts/superdesign-gallery.mjs — sửa metadata.json rồi chạy `npm run design:gallery`. -->
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Superdesign Gallery</title>
+    <title>Superdesign Gallery — Tính tiền cầu lông</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -102,6 +103,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            gap: 12px;
         }
 
         .design-title { display: flex; align-items: center; gap: 8px; }
@@ -120,9 +122,10 @@
             border-radius: 4px;
             font-size: 0.75rem;
             font-family: inherit;
+            white-space: nowrap;
         }
 
-        .design-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+        .design-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
 
         .design-size, .design-date {
             color: var(--text-secondary);
@@ -143,7 +146,7 @@
         .design-actions { padding: 16px; display: flex; gap: 8px; }
 
         .btn-primary {
-            background: #4299e1;
+            background: #059669;
             color: white;
             border: none;
             padding: 8px 16px;
@@ -154,7 +157,7 @@
             transition: background 0.2s ease;
         }
 
-        .btn-primary:hover { background: #3182ce; }
+        .btn-primary:hover { background: #047857; }
 
         @media (max-width: 768px) {
             .gallery-grid { grid-template-columns: 1fr; }
@@ -167,7 +170,7 @@
     <div class="header">
         <div class="header-content">
             <h1>superdesign.gallery</h1>
-            <p id="file-count">Court Green — 2 chế độ tính: Chia tỉ lệ (+½ buổi) · Sân theo giờ (mới) · Lịch sử · số dư ẩn 👁</p>
+            <p id="file-count">8 mockup — 6 đã chốt · 2 không chọn</p>
         </div>
         <div class="header-controls">
             <button class="theme-toggle" onclick="toggleTheme()">
@@ -182,10 +185,11 @@
         <div class="design-header">
           <div class="design-title">
             <h3>🆕 Chế độ 2: Sân theo giờ — Mobile</h3>
-            <span class="design-type">.HTML</span>
+            <span class="design-type">Đã chốt</span>
           </div>
           <div class="design-meta">
             <span class="design-size">Giờ thuê sân → tự áp cho mọi người · sửa ngoại lệ · kết quả tách sân + cầu</span>
+            <span class="design-date">main · mobile · 2026-08-13</span>
           </div>
         </div>
         <div class="design-preview" style="height: 560px;">
@@ -200,10 +204,11 @@
         <div class="design-header">
           <div class="design-title">
             <h3>🆕 Chế độ 2: Sân theo giờ — Desktop/Tablet</h3>
-            <span class="design-type">.HTML</span>
+            <span class="design-type">Đã chốt</span>
           </div>
           <div class="design-meta">
             <span class="design-size">2 cột · sửa giờ inline ngay trên hàng người chơi</span>
+            <span class="design-date">main · desktop · 2026-08-13</span>
           </div>
         </div>
         <div class="design-preview" style="height: 560px;">
@@ -218,10 +223,11 @@
         <div class="design-header">
           <div class="design-title">
             <h3>🆕 Trang Lịch sử — Mobile</h3>
-            <span class="design-type">.HTML</span>
+            <span class="design-type">Đã chốt</span>
           </div>
           <div class="design-meta">
             <span class="design-size">1 cột · buổi mới nhất mở sẵn · nút xếp dọc</span>
+            <span class="design-date">history · mobile · 2026-08-13</span>
           </div>
         </div>
         <div class="design-preview" style="height: 560px;">
@@ -236,10 +242,11 @@
         <div class="design-header">
           <div class="design-title">
             <h3>🆕 Trang Lịch sử — Desktop/Tablet</h3>
-            <span class="design-type">.HTML</span>
+            <span class="design-type">Đã chốt</span>
           </div>
           <div class="design-meta">
             <span class="design-size">Buổi mới nhất mở sẵn chi tiết · số dư ẩn 👁 · nút dùng lại danh sách</span>
+            <span class="design-date">history · desktop · 2026-08-13</span>
           </div>
         </div>
         <div class="design-preview" style="height: 560px;">
@@ -250,14 +257,34 @@
         </div>
       </div>
 
+      <div class="design-card" data-file="mobile_first_vietnam_1.html">
+        <div class="design-header">
+          <div class="design-title">
+            <h3>✅ Phương án 1 — Court Green (Mobile, đã chọn)</h3>
+            <span class="design-type">Đã chốt</span>
+          </div>
+          <div class="design-meta">
+            <span class="design-size">Sáng, sạch, accent xanh lá sân cầu</span>
+            <span class="design-date">main · mobile · 2026-08-13</span>
+          </div>
+        </div>
+        <div class="design-preview" style="height: 560px;">
+          <iframe src="./design_iterations/mobile_first_vietnam_1.html" loading="lazy"></iframe>
+        </div>
+        <div class="design-actions">
+          <button onclick="window.open('./design_iterations/mobile_first_vietnam_1.html','_blank')" class="btn-primary">Xem full</button>
+        </div>
+      </div>
+
       <div class="design-card" data-file="mobile_first_vietnam_1_1.html" style="grid-column: 1 / -1;">
         <div class="design-header">
           <div class="design-title">
-            <h3>✅ Court Green — bản Desktop/Tablet (mới)</h3>
-            <span class="design-type">.HTML</span>
+            <h3>✅ Court Green — bản Desktop/Tablet</h3>
+            <span class="design-type">Đã chốt</span>
           </div>
           <div class="design-meta">
             <span class="design-size">2 cột: nhập liệu trái · kết quả dính phải</span>
+            <span class="design-date">main · desktop · 2026-08-13</span>
           </div>
         </div>
         <div class="design-preview" style="height: 560px;">
@@ -268,35 +295,18 @@
         </div>
       </div>
 
-      <div class="design-card" data-file="mobile_first_vietnam_1.html">
-        <div class="design-header">
-          <div class="design-title">
-            <h3>✅ Phương án 1 — Court Green (Mobile, đã chọn)</h3>
-            <span class="design-type">.HTML</span>
-          </div>
-          <div class="design-meta">
-            <span class="design-size">Sáng, sạch, accent xanh lá sân cầu</span>
-          </div>
-        </div>
-        <div class="design-preview">
-          <iframe src="./design_iterations/mobile_first_vietnam_1.html" loading="lazy"></iframe>
-        </div>
-        <div class="design-actions">
-          <button onclick="window.open('./design_iterations/mobile_first_vietnam_1.html','_blank')" class="btn-primary">Xem full</button>
-        </div>
-      </div>
-
       <div class="design-card" data-file="mobile_first_vietnam_2.html">
         <div class="design-header">
           <div class="design-title">
-            <h3>Phương án 2 — Night Match</h3>
-            <span class="design-type">.HTML</span>
+            <h3>🗄️ Phương án 2 — Night Match</h3>
+            <span class="design-type">Không chọn</span>
           </div>
           <div class="design-meta">
             <span class="design-size">Nền tối thể thao, accent vàng chanh</span>
+            <span class="design-date">main · mobile · 2026-08-13</span>
           </div>
         </div>
-        <div class="design-preview">
+        <div class="design-preview" style="height: 560px;">
           <iframe src="./design_iterations/mobile_first_vietnam_2.html" loading="lazy"></iframe>
         </div>
         <div class="design-actions">
@@ -307,14 +317,15 @@
       <div class="design-card" data-file="mobile_first_vietnam_3.html">
         <div class="design-header">
           <div class="design-title">
-            <h3>Phương án 3 — Soft Sky</h3>
-            <span class="design-type">.HTML</span>
+            <h3>🗄️ Phương án 3 — Soft Sky</h3>
+            <span class="design-type">Không chọn</span>
           </div>
           <div class="design-meta">
             <span class="design-size">Gradient mềm, chip người chơi, thân thiện</span>
+            <span class="design-date">main · mobile · 2026-08-13</span>
           </div>
         </div>
-        <div class="design-preview">
+        <div class="design-preview" style="height: 560px;">
           <iframe src="./design_iterations/mobile_first_vietnam_3.html" loading="lazy"></iframe>
         </div>
         <div class="design-actions">

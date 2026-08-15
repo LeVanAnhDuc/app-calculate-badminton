@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+  Khung khởi đầu cho mockup Superdesign của app "Tính tiền cầu lông".
+  Copy file này thành design_iterations/{feature}_{n}.html rồi thay phần MAIN.
+  Token màu/bo góc/chiều cao: xem ./design-system.md — đừng chế thêm màu mới.
+  File này nằm ngoài design_iterations/ nên không hiện trong gallery.
+-->
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tính tiền cầu lông — {Tên màn hình}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+</style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<div class="max-w-[390px] mx-auto bg-gray-50 min-h-screen pb-8 md:max-w-none md:bg-gray-100 md:pb-0">
+
+  <!-- HEADER — giữ nguyên, đây là header thật của app -->
+  <header class="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl md:rounded-none md:px-0 md:py-5">
+    <div class="md:max-w-5xl md:mx-auto md:px-6 md:flex md:items-center md:justify-between">
+      <div>
+        <h1 class="text-white text-2xl font-bold">🏸 Tính tiền cầu lông</h1>
+        <p class="text-emerald-100 text-sm mt-1">Chia tiền nhanh sau buổi chơi</p>
+      </div>
+      <div class="hidden md:flex md:gap-2">
+        <button class="h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold">Lịch sử</button>
+        <button class="h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold">Người chơi</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN — thay phần này -->
+  <main class="px-4 -mt-2 space-y-4 md:max-w-5xl md:mx-auto md:px-6 md:mt-0 md:py-6 md:grid md:grid-cols-5 md:gap-6 md:space-y-0 md:items-start">
+
+    <!-- Cột nhập liệu -->
+    <div class="space-y-4 mt-4 md:mt-0 md:col-span-3">
+
+      <section class="bg-white rounded-2xl shadow-sm p-4">
+        <h2 class="text-sm font-semibold text-gray-900 mb-3">Tiêu đề mục</h2>
+
+        <label class="text-xs text-gray-500 block mb-1">Nhãn trường</label>
+        <input inputmode="numeric" value="0"
+               class="w-full h-11 rounded-xl border border-gray-300 px-3 text-base font-semibold text-gray-900 text-right">
+
+        <button class="w-full h-11 mt-3 rounded-xl border-2 border-dashed border-emerald-300 text-emerald-600 font-semibold text-sm">
+          + Thêm mục
+        </button>
+      </section>
+
+    </div>
+
+    <!-- Cột kết quả (dính khi cuộn trên desktop) -->
+    <div class="mt-4 md:mt-0 md:col-span-2 md:sticky md:top-6 space-y-4">
+
+      <section class="bg-white rounded-2xl shadow-sm p-4 border-2 border-emerald-100">
+        <h2 class="text-sm font-semibold text-gray-900 mb-3">Kết quả</h2>
+        <ul class="space-y-2">
+          <li class="flex justify-between items-center h-11 px-3 rounded-xl bg-gray-100">
+            <span class="text-sm font-medium text-gray-900">Tên người chơi</span>
+            <span class="text-base font-bold text-emerald-700">0đ</span>
+          </li>
+        </ul>
+      </section>
+
+      <button class="w-full h-12 rounded-xl bg-emerald-600 text-white text-sm font-semibold">
+        Hành động chính
+      </button>
+
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
