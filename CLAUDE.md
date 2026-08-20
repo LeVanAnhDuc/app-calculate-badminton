@@ -34,4 +34,4 @@ When merging a feature branch into `main`, make sure the merge/HEAD commit subje
 
 ## README (REQUIRED — keep in sync with features)
 
-Releases are automated, README is not. Every user-facing feature (`feat:` commit) MUST update the "Tính năng chính" section of `README.md` in the same branch, before merging into `main` — a short Vietnamese bullet in the existing style. While touching README, also refresh stale counts if noticed (e.g. the test-case number in Tech Stack). Docs-only README syncs use a `docs:` prefix and never a `[skip release]` marker (it would cancel the release of feature commits pushed together with it).
+Releases are automated, README is not. Every user-facing feature (`feat:` commit) MUST update the `## Features` section of `README.md` in the same branch, before merging into `main` — a short English bullet in the existing style. While touching README, also refresh stale counts if noticed (e.g. the test-case number in Tech Stack). Docs-only README syncs use a `docs:` prefix and never a `[skip release]` marker (it would cancel the release of feature commits pushed together with it).

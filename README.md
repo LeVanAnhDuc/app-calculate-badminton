@@ -1,88 +1,89 @@
-🏸 Tính tiền cầu lông — chia tiền sân & cầu cho nhóm sau mỗi buổi chơi
+🏸 Badminton cost split — divide court and shuttlecock costs across the group after every session
 
-Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từng thành viên trong nhóm chơi cầu lông. Không cần server, không cần đăng nhập — dữ liệu lưu trên máy của bạn.
+A mobile-first web app that works out what each member of a badminton group
+owes. No server, no sign-in — your data stays on your own device.
 
-## Tính năng chính
+## Features
 
-- **2 chế độ tính toán linh hoạt**
-  - **Chia theo tỉ lệ**: Cộng tiền cầu & sân, chia theo hệ số giới tính (Nam/Nữ), hỗ trợ nhập ½ buổi
-  - **Sân theo giờ**: Tiền sân chia theo giờ chơi thực tế từng người, tiền cầu vẫn chia theo hệ số (phù hợp khi nhóm có người đến muộn/về sớm)
+- **Two split modes**
+  - **Split by ratio**: add up shuttlecock and court costs, then divide by gender weight (Male/Female), with support for entering a half session
+  - **Court by the hour**: the court fee follows each person's actual playing time while shuttlecocks still split by weight (for groups where people arrive late or leave early)
 
-- **Nhiều loại cầu trong một buổi**
-  - Mỗi loại có tên, số lượng và giá riêng — tổng tiền cầu vẫn chia theo hệ số như cũ
-  - Chọn loại cầu bằng bottom sheet: chip loại hay dùng, gõ để lọc, chọn xong tự điền giá lần trước
-  - Hàng nhập chỉ còn 2 ô — đơn giá nằm cùng tên loại cầu trong bottom sheet, nút ngoài hiện sẵn "Hải Yến · 25.000đ" nên không phải mở ra mới biết giá
-  - Mỗi hàng hiện thành tiền riêng ("12 quả × 25.000đ = 300.000đ"), khỏi nhẩm khi kiểm tra
-  - Lịch sử liệt kê rõ từng loại cầu đã dùng trong buổi
+- **Several shuttlecock types in one session**
+  - Each type has its own name, quantity and price — the shuttlecock total still splits by weight as before
+  - Pick a type from a bottom sheet: chips for the types you use often, type to filter, and choosing one fills in last time's price
+  - The entry row is down to two fields — the unit price sits with the type name inside the bottom sheet, and the button outside already reads "Hải Yến · 25.000đ", so the price is visible without opening it
+  - Each row shows its own line total ("12 quả × 25.000đ = 300.000đ"), so checking it needs no mental arithmetic
+  - History spells out every shuttlecock type used in the session
 
-- **Làm tròn và quản lý số dư**
-  - Làm tròn lên 1.000đ (mặc định) hoặc giữ chính xác
-  - Hiển thị số dư tổng thu vs tổng chi (ẩn sau nút 👁 mỗi lần mở ứng dụng)
+- **Rounding and balance**
+  - Round up to 1,000₫ (the default) or keep exact amounts
+  - Shows the balance between what is collected and what is owed (hidden behind a 👁 button each time the app opens)
 
-- **Chi phí phát sinh khác**
-  - Nhập các khoản lặt vặt (nước, thuê vợt, quấn cán…) ngay trong mục Chi phí
-  - Chọn một người, một nhóm nhỏ hay cả nhóm cùng chịu — số tiền chia đều theo đầu người
-  - Kết quả liệt kê từng khoản dưới tên mỗi người, có cả trong ảnh PNG và bản copy text
-  - Xóa người chơi thì khoản chung vẫn giữ nguyên tổng, những người còn lại gánh phần đó
+- **Extra costs**
+  - Enter the odds and ends (water, racket rental, grip tape…) right in the Costs section
+  - Assign each one to a single person, a few of them, or the whole group — the amount divides evenly per head
+  - The result lists every item under each person's name, in the PNG image and in the copied text alike
+  - Delete a player and a shared item keeps its total — the remaining people carry that share
 
-- **Danh bạ & danh sách tự động nhớ**
-  - Trang danh bạ theo phong cách Danh bạ iPhone: nhóm theo chữ cái đầu, tiêu đề chữ cái dính lại khi cuộn, thanh A–Z mép phải để nhảy nhanh tới nhóm
-  - Tên tiếng Việt được bỏ dấu khi gom nhóm (Ánh nằm ở A, Đức nằm cùng D), tên bắt đầu bằng số hay ký tự lạ vào nhóm #
-  - Ô tìm kiếm không dấu, không phân biệt hoa/thường ("duc" ra "Đức"); nút + trên đầu trang mở bottom sheet để thêm người
-  - Gợi ý tên từ danh bạ khi gõ (không phân biệt hoa/thường)
-  - Chip "Hay chơi cùng" khi ô tên còn trống: bấm một phát là thêm người hay gặp nhất (xếp hạng theo số buổi đã lưu, tự bỏ ai đã có trong buổi)
-  - Danh sách buổi hiện tại được giữ nguyên giữa các lần dùng — lần sau chỉ cần sửa đổi
+- **Contacts and a session list that remembers itself**
+  - A contacts page in the style of the iPhone Contacts app: grouped by first letter, letter headers that stick while scrolling, and an A–Z bar down the right edge to jump between groups
+  - Vietnamese names group by their unaccented letter (Ánh under A, Đức with D); names starting with a digit or an unusual character go under #
+  - Search ignores accents and case ("duc" finds "Đức"); the + button at the top of the page opens a bottom sheet to add someone
+  - Name suggestions from contacts as you type (case-insensitive)
+  - A "Frequent players" chip row while the name box is empty: one tap adds the person you play with most (ranked by saved sessions, and anyone already in this session drops off the list)
+  - The current session's list survives between visits — next time you only need to amend it
 
-- **Thêm người chơi kiểu iOS trên điện thoại** (màn hình lớn giữ nguyên giao diện cũ)
-  - Ô nhập thành thanh tìm kiếm bo tròn có kính lúp, nút xóa chữ và nút "Hủy" như thanh tìm kiếm của iOS
-  - "Hay chơi cùng" thành dải avatar tròn cuộn ngang một hàng (chữ cái đầu của tên, màu theo giới tính) thay vì 3–4 hàng chip — gọn hơn khoảng 2/3 chiều cao
-  - Gợi ý từ danh bạ gom thành một khối bo góc, các dòng ngăn nhau bằng kẻ mảnh
-  - Gõ tên chưa có thì hiện luôn hai dòng "Thêm ... là người mới · Nam / Nữ" — một chạm là xong, không cần chọn giới tính trước rồi mới bấm thêm
-  - Gõ tên đã có trong buổi thì báo ngay thay vì để danh sách gợi ý trống trơn
+- **iOS-style player entry on phones** (large screens keep the old layout)
+  - The input becomes a rounded search bar with a magnifying glass, a clear button and a "Cancel" button, like the iOS search bar
+  - "Frequent players" becomes a single horizontally scrolling row of round avatars (first letter of the name, coloured by gender) instead of 3–4 rows of chips — about two thirds shorter
+  - Contact suggestions gather into one rounded block, its rows separated by hairlines
+  - Type a name that does not exist yet and two rows appear straight away — "Add … as a new player · Male / Female" — one tap and it is done, with no need to pick a gender first and then press add
+  - Type a name already in the session and it says so immediately instead of leaving the suggestion list blank
 
-- **Lịch sử chi tiết & tái sử dụng**
-  - Xem lại chi tiết từng buổi (chi phí, hệ số, kết quả tính)
-  - "Dùng lại danh sách này" để nạp người chơi của buổi cũ vào buổi mới
-  - Xóa buổi chỉ bằng một chạm, lỡ tay thì bấm "Hoàn tác"
+- **Detailed history, ready to reuse**
+  - Review any past session in full (costs, weights, computed result)
+  - "Reuse this list" loads an old session's players into a new one
+  - Delete a session with one tap, and press "Undo" if it was a slip
 
-- **Xóa an toàn với "Hoàn tác"**
-  - Xóa người chơi, buổi đã lưu hay người trong danh bạ không còn phải bấm xác nhận
-  - Thông báo "Hoàn tác" hiện 6 giây, khôi phục lại đúng vị trí cũ và giữ nguyên mọi thay đổi bạn làm trong lúc đó
-  - Bấm "Buổi mới" nhầm cũng lấy lại được toàn bộ buổi đang nhập
+- **Safe deletion, with "Undo"**
+  - Deleting a player, a saved session or a contact no longer asks for confirmation
+  - An "Undo" notice stays for 6 seconds, restores the item to its old position, and keeps every change you made in the meantime
+  - Press "New session" by mistake and the whole session you were entering comes back
 
-- **Theo dõi ai đã trả tiền**
-  - Đánh dấu ✓ đã trả cho từng người ngay trên bảng kết quả và trong lịch sử
-  - Trạng thái đã trả hiển thị cả trong ảnh kết quả tải về
+- **Track who has paid**
+  - Mark ✓ paid for each person right on the result table and in history
+  - Paid status shows in the downloaded result image too
 
-- **Chia sẻ kết quả**
-  - Bấm nút chia sẻ để gửi ảnh kết quả thẳng vào Zalo/Messenger qua share sheet của điện thoại (máy không hỗ trợ sẽ tự tải ảnh PNG về)
-  - Copy kết quả dạng text (tên + số tiền + dấu ✓ đã trả) để dán vào chat
-  - Chia sẻ lại ảnh/text của buổi cũ ngay trong lịch sử, giữ đúng ngày đã lưu
+- **Share the result**
+  - Press share to send the result image straight into Zalo/Messenger through the phone's share sheet (devices without support download the PNG instead)
+  - Copy the result as text (name + amount + a ✓ for paid) to paste into a chat
+  - Reshare an old session's image or text from history, keeping the date it was saved under
 
-- **Mã VietQR cho từng người chơi**
-  - Nhập tài khoản người thu một lần — app sẽ dùng cho mọi buổi sau
-  - Mỗi người quét QR riêng (kèm sẵn số tiền + nội dung chuyển khoản) để trả
-  - Mã VietQR hiển thị trong ảnh kết quả PNG chia sẻ
-  - Bấm "Chia sẻ QR" để gửi mã của một người thẳng vào Zalo/Messenger — ảnh thẻ kèm sẵn tên, số tiền, nội dung chuyển khoản và số tài khoản (máy không hỗ trợ sẽ tự tải ảnh về)
+- **A VietQR code per player**
+  - Enter the collector's bank account once and the app reuses it for every session after
+  - Each person scans their own QR code, with the amount and transfer note already filled in, to pay
+  - The VietQR code appears in the shared PNG result image
+  - Press "Share QR" to send one person's code straight into Zalo/Messenger — the card image already carries their name, the amount, the transfer note and the account number (devices without support download the image instead)
 
-- **Thao tác xóa đồng nhất ở mọi danh sách**
-  - Mobile: vuốt trái để xóa — người chơi, danh bạ, dòng loại cầu, khoản phát sinh và cả buổi trong lịch sử, không còn nút xóa chiếm chỗ trên hàng
-  - Desktop: một nút thùng rác đỏ duy nhất, cùng kích thước và canh giữa như nút sửa ở mọi màn hình
-  - Mỗi danh sách đều có dòng gợi ý cách xóa, tự đổi theo thiết bị đang dùng
-  - Vuốt có khóa trục: cuộn dọc hơi chéo tay không còn kéo hàng sang ngang
+- **The same delete gesture in every list**
+  - Mobile: swipe left to delete — players, contacts, shuttlecock rows, extra costs and sessions in history alike, with no delete button taking up space in the row
+  - Desktop: a single red trash button, the same size and alignment as the edit button on every screen
+  - Every list carries a hint about how to delete, worded for the device in use
+  - Swipes are axis-locked: scrolling vertically with a slightly crooked finger no longer drags the row sideways
 
-- **Giao diện linh hoạt**
-  - Sửa giờ chơi qua bottom sheet (vaul), chọn giờ với wheel picker 24h kiểu iOS
-  - Kéo tay nắm ⠿ để sắp xếp thứ tự người chơi (mobile & desktop)
-  - Responsive: mobile 1 cột, desktop 2 cột sticky với animation mượt (Motion)
+- **A flexible interface**
+  - Edit playing times through a bottom sheet (vaul), picking hours with an iOS-style 24-hour wheel picker
+  - Drag the ⠿ handle to reorder players (mobile and desktop)
+  - Responsive: one column on mobile, two sticky columns on desktop with smooth animation (Motion)
 
-- **Cài như app & chạy offline**
-  - Cài lên màn hình chính, mở thẳng như ứng dụng, không cần qua trình duyệt
-  - Dùng được đầy đủ khi mất mạng — hợp với sân cầu sóng yếu
+- **Install it as an app, use it offline**
+  - Add it to the home screen and open it like an app, without going through a browser
+  - Fully usable with no connection — which suits a court with weak signal
 
-- **Không cần đăng nhập hay server**
-  - Tất cả dữ liệu lưu localStorage trên máy của bạn
-  - Chia sẻ link ứng dụng với bạn bè, mỗi người dùng độc lập
+- **No sign-in, no server**
+  - All data lives in localStorage on your own device
+  - Share the app's link with friends and everyone uses their own copy
 
 ## Tech Stack
 
@@ -90,62 +91,62 @@ Một ứng dụng web mobile-first, tính toán nhanh chóng chi phí cho từn
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
 - **Testing**: Vitest + React Testing Library (441 test cases)
-- **Build & Deploy**: Vite, tương thích static hosting (Vercel, Netlify, GitHub Pages)
+- **Build & Deploy**: Vite, works on static hosting (Vercel, Netlify, GitHub Pages)
 
-## Chạy dự án
+## Running
 
-**Yêu cầu**: Node.js 18+
+**Requires**: Node.js 18+
 
 ```bash
-# Cài đặt các thư viện
+# Install dependencies
 npm install
 
-# Chạy development server (http://localhost:5173)
+# Start the development server (http://localhost:5173)
 npm run dev
 
-# Chạy test suite (Vitest)
+# Run the test suite (Vitest)
 npm test
 
-# Xây dựng production (output: dist/)
+# Build for production (output: dist/)
 npm run build
 ```
 
-## Cấu trúc thư mục
+## Project structure
 
 ```
 src/
 ├── lib/
-│   ├── calc.ts        # Logic tính toán thuần (2 chế độ, làm tròn, số dư)
-│   ├── time.ts        # Parse/format giờ, hỗ trợ qua đêm
-│   ├── format.ts      # Format/parse tiền VND
+│   ├── calc.ts        # Pure calculation logic (both modes, rounding, balance)
+│   ├── time.ts        # Parse/format times, including past midnight
+│   ├── format.ts      # Format/parse VND amounts
 │   ├── storage.ts     # localStorage wrapper (roster, session, history, settings)
 │   └── types.ts       # TypeScript types
 ├── components/        # React components (form, player list, history, etc.)
-└── App.tsx           # Routing & state chính
+└── App.tsx           # Routing and top-level state
 
 docs/
-└── superpowers/specs/2026-08-13-badminton-cost-split-design.md  # Design spec đầy đủ
+└── superpowers/specs/2026-08-13-badminton-cost-split-design.md  # Full design spec
 ```
 
-## Ví dụ tính toán
+## Calculation example
 
-**Chế độ "Chia theo tỉ lệ"**: Tổng chi 300.000đ, hệ số Nam 1.5 / Nữ 1.0
+**"Split by ratio" mode**: 300,000₫ total, weights Male 1.5 / Female 1.0
 
-Nhóm: Tuấn, Hùng, Minh (nam) + Lan, Hoa (nữ), Minh ½ buổi
+Group: Tuấn, Hùng, Minh (male) + Lan, Hoa (female), with Minh playing half the session
 
 ```
-Tổng phần = 1.5 + 1.5 + 0.75 + 1.0 + 1.0 = 5.75
+Total shares = 1.5 + 1.5 + 0.75 + 1.0 + 1.0 = 5.75
 
-Kết quả (làm tròn lên 1.000đ):
+Result (rounded up to 1,000₫):
   Tuấn:  78.261đ → 79.000đ
   Hùng:  78.261đ → 79.000đ
   Minh:  39.130đ → 40.000đ
   Lan:   52.174đ → 53.000đ
   Hoa:   52.174đ → 53.000đ
 
-Tổng thu: 304.000đ | Số dư: +4.000đ
+Collected: 304.000đ | Balance: +4.000đ
 ```
 
 ---
 
-**Khởi tạo**: 2026-08-13
+**Created**: 2026-08-13
