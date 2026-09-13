@@ -99,16 +99,16 @@ owes. No server, no sign-in — your data stays on your own device.
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start the development server (http://localhost:5173)
-npm run dev
+pnpm dev
 
 # Run the test suite (Vitest)
-npm test
+pnpm test
 
 # Build for production (output: dist/)
-npm run build
+pnpm build
 ```
 
 ## Project structure

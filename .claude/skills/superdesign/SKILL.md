@@ -91,7 +91,7 @@ Thêm một entry vào `superdesign/metadata.json`:
 Rồi chạy:
 
 ```
-npm run design:gallery
+pnpm design:gallery
 ```
 
 Script fail nếu metadata và thư mục lệch nhau — đó là chủ ý, đừng bỏ qua lỗi. Sau đó bảo
@@ -107,7 +107,7 @@ Giữ lại lịch sử phương án là điểm chính của thư mục này.
 Khi người dùng duyệt:
 
 1. Đổi `status` của bản được chọn thành `approved`, các bản còn lại thành `rejected`,
-   chạy lại `npm run design:gallery`.
+   chạy lại `pnpm design:gallery`.
 2. Lúc này mới sang code React — theo `superpowers:test-driven-development` như mọi
    tính năng khác của repo.
 3. Nếu lúc code phải lệch khỏi mockup (giới hạn kỹ thuật, dữ liệu thật dài hơn dự tính),
