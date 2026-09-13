@@ -17,7 +17,7 @@
 - The shared text and image never include tổng thu / số dư / tổng chi — per-player amounts only.
 - Convert canvas → File **synchronously** (`toDataURL` + `atob`), never `toBlob`, so iOS Safari keeps the user-activation needed by `navigator.share`.
 - jsdom implements neither canvas 2D, `navigator.share/canShare`, nor `navigator.clipboard` — every test touching them must stub (patterns given per task).
-- Run tests with `npx vitest run <file>`; full gate is `npx vitest run` + `npm run build`.
+- Run tests with `pnpm exec vitest run <file>`; full gate is `pnpm exec vitest run` + `pnpm build`.
 
 ---
 
@@ -91,7 +91,7 @@ Note: `formatVND` uses `Intl.NumberFormat('vi-VN')`, whose thousands separator i
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `npx vitest run src/lib/shareResult.test.ts`
+Run: `pnpm exec vitest run src/lib/shareResult.test.ts`
 Expected: FAIL — cannot resolve `./shareResult`.
 
 - [ ] **Step 3: Implement**
@@ -126,8 +126,8 @@ export function formatResultText(
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npx vitest run src/lib/shareResult.test.ts` — Expected: PASS.
-Also run `npx vitest run src/lib/exportImage.test.ts` — Expected: still PASS.
+Run: `pnpm exec vitest run src/lib/shareResult.test.ts` — Expected: PASS.
+Also run `pnpm exec vitest run src/lib/exportImage.test.ts` — Expected: still PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -278,7 +278,7 @@ describe('shareResultImage / copyResultText', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `npx vitest run src/lib/shareResult.test.ts`
+Run: `pnpm exec vitest run src/lib/shareResult.test.ts`
 Expected: FAIL — `canvasToPngFile` etc. not exported.
 
 - [ ] **Step 3: Implement**
@@ -350,7 +350,7 @@ export async function copyResultText(
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npx vitest run src/lib/shareResult.test.ts` — Expected: PASS (10 tests).
+Run: `pnpm exec vitest run src/lib/shareResult.test.ts` — Expected: PASS (10 tests).
 
 - [ ] **Step 5: Commit**
 
@@ -443,7 +443,7 @@ test('wide variant renders labelled buttons and forwards the date', async () => 
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `npx vitest run src/components/ShareButtons.test.tsx`
+Run: `pnpm exec vitest run src/components/ShareButtons.test.tsx`
 Expected: FAIL — cannot resolve `./ShareButtons`.
 
 - [ ] **Step 3: Implement**
@@ -536,7 +536,7 @@ Note: the wide share button's accessible name is "Chia sẻ ảnh" (visible labe
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npx vitest run src/components/ShareButtons.test.tsx` — Expected: PASS.
+Run: `pnpm exec vitest run src/components/ShareButtons.test.tsx` — Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -610,7 +610,7 @@ test('copy button writes the result text to the clipboard and toasts', async () 
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `npx vitest run src/components/ResultPanel.test.tsx`
+Run: `pnpm exec vitest run src/components/ResultPanel.test.tsx`
 Expected: FAIL — no button named 'Chia sẻ ảnh kết quả'.
 
 - [ ] **Step 3: Implement the wiring**
@@ -632,8 +632,8 @@ In `src/components/ResultPanel.tsx`:
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npx vitest run src/components/ResultPanel.test.tsx` — Expected: PASS.
-Also run `npx vitest run` — the smoke test renders the whole app; expect PASS.
+Run: `pnpm exec vitest run src/components/ResultPanel.test.tsx` — Expected: PASS.
+Also run `pnpm exec vitest run` — the smoke test renders the whole app; expect PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -698,7 +698,7 @@ test('collapsed card has no share/copy buttons', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `npx vitest run src/components/HistoryPage.test.tsx`
+Run: `pnpm exec vitest run src/components/HistoryPage.test.tsx`
 Expected: the two new tests FAIL — buttons not found.
 
 - [ ] **Step 3: Implement**
@@ -722,7 +722,7 @@ In `src/components/HistoryPage.tsx`, add `import { CopyTextButton, ShareImageBut
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npx vitest run src/components/HistoryPage.test.tsx` — Expected: PASS.
+Run: `pnpm exec vitest run src/components/HistoryPage.test.tsx` — Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
@@ -739,12 +739,12 @@ git commit -m "feat: share and copy past sessions from history"
 
 - [ ] **Step 1: Run the full test suite**
 
-Run: `npx vitest run`
+Run: `pnpm exec vitest run`
 Expected: all tests PASS. Fix regressions if any.
 
 - [ ] **Step 2: Typecheck + production build**
 
-Run: `npm run build`
+Run: `pnpm build`
 Expected: `tsc` clean, vite build succeeds. Common trap: TS complaining about `navigator.canShare` — it exists in the DOM lib for this TS version; if it doesn't, guard via `typeof navigator.canShare === 'function'` (already in the code) plus a local type assertion, never `any`.
 
 - [ ] **Step 3: Commit any fixes**

@@ -2,7 +2,7 @@
 
 Ngày rà soát: 2026-08-14. Ở commit `f966131`.
 
-Cách kiểm: chạy `npm run dev` rồi mở trong Chrome có emulate thiết bị
+Cách kiểm: chạy `pnpm dev` rồi mở trong Chrome có emulate thiết bị
 (390×844 và 430×932, bật `mobile` + `touch`), đo tap target và thử nhập liệu
 bằng script trong trang — không chỉ đọc code.
 

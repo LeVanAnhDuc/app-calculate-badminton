@@ -16,7 +16,7 @@
 - All UI copy is Vietnamese; new strings copied verbatim from this plan: drag-handle label `Sắp xếp {tên}`, handle title `Kéo để sắp xếp`, hint line `💡 Kéo ⠿ để sắp xếp thứ tự`.
 - Preserve every existing behavior: swipe-left to delete (mobile), tap avatar to toggle gender, tap name to open edit drawer, desktop pencil/× buttons, `data-testid="swipe-row-{id}"`.
 - Drag must start ONLY from the ⠿ handle; the handle gets `touch-action: none` (Tailwind class `touch-none`); the rest of the row must keep scrolling/swiping normally.
-- Run tests with `npm test -- <file>` (vitest run). Full suite: `npm test`. The suite is slow (~100s) — prefer single-file runs inside tasks.
+- Run tests with `pnpm test <file>` (vitest run). Full suite: `pnpm test`. The suite is slow (~100s) — prefer single-file runs inside tasks.
 - Commit after every green test run. Commit messages end with `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
 
 ---
@@ -62,7 +62,7 @@ import { GenderBadge } from './GenderBadge'
 
 - [ ] **Step 3: Run the PlayerList tests**
 
-Run: `npm test -- src/components/PlayerList.test.tsx`
+Run: `pnpm test src/components/PlayerList.test.tsx`
 Expected: all tests PASS (pure refactor).
 
 - [ ] **Step 4: Commit**
@@ -307,7 +307,7 @@ In `src/components/PlayerList.tsx`:
 
 - [ ] **Step 3: Run the PlayerList tests**
 
-Run: `npm test -- src/components/PlayerList.test.tsx`
+Run: `pnpm test src/components/PlayerList.test.tsx`
 Expected: all tests PASS (pure refactor — swipe, gender toggle, edit drawer, half-session all still work).
 
 - [ ] **Step 4: Commit**
@@ -372,7 +372,7 @@ test('players render as list items inside a list, in players-array order', () =>
 
 - [ ] **Step 2: Run tests to verify the new ones fail**
 
-Run: `npm test -- src/components/PlayerList.test.tsx`
+Run: `pnpm test src/components/PlayerList.test.tsx`
 Expected: first two new tests FAIL (`Unable to find an accessible element with the role "button" and name "Sắp xếp Tuấn"`, hint text not found); the listitem-order test may already pass. All pre-existing tests still PASS.
 
 - [ ] **Step 3: Convert PlayerRow to Reorder.Item with a handle**
@@ -512,7 +512,7 @@ and `</ul>` with `</Reorder.Group>` (it renders a `<ul>` by default). Pass the n
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `npm test -- src/components/PlayerList.test.tsx`
+Run: `pnpm test src/components/PlayerList.test.tsx`
 Expected: ALL tests PASS, including the three new ones and every pre-existing characterization test (swipe still works, `swipe-row-1` testid intact).
 
 - [ ] **Step 6: Commit**
@@ -599,7 +599,7 @@ test('does nothing while inactive', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npm test -- src/lib/useEdgeAutoScroll.test.ts`
+Run: `pnpm test src/lib/useEdgeAutoScroll.test.ts`
 Expected: FAIL — module `./useEdgeAutoScroll` not found.
 
 - [ ] **Step 3: Implement the hook**
@@ -651,7 +651,7 @@ export function useEdgeAutoScroll(active: boolean) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npm test -- src/lib/useEdgeAutoScroll.test.ts`
+Run: `pnpm test src/lib/useEdgeAutoScroll.test.ts`
 Expected: 3 tests PASS.
 
 - [ ] **Step 5: Wire into PlayerList**
@@ -668,7 +668,7 @@ import { useEdgeAutoScroll } from '../lib/useEdgeAutoScroll'
 
 - [ ] **Step 6: Run the component tests**
 
-Run: `npm test -- src/components/PlayerList.test.tsx src/lib/useEdgeAutoScroll.test.ts`
+Run: `pnpm test src/components/PlayerList.test.tsx src/lib/useEdgeAutoScroll.test.ts`
 Expected: ALL PASS.
 
 - [ ] **Step 7: Commit**
@@ -686,17 +686,17 @@ git commit -m "feat: auto-scroll window when dragging a player near the viewport
 
 - [ ] **Step 1: Full test suite**
 
-Run: `npm test`
+Run: `pnpm test`
 Expected: all files pass (109 pre-existing + new tests), 0 failures.
 
 - [ ] **Step 2: Type-check + production build**
 
-Run: `npm run build`
+Run: `pnpm build`
 Expected: tsc emits no errors; vite build succeeds.
 
 - [ ] **Step 3: Manual smoke check in a real browser**
 
-Start `npm run dev`, then verify (desktop viewport AND mobile emulation ~390px):
+Start `pnpm dev`, then verify (desktop viewport AND mobile emulation ~390px):
 - Dragging the ⠿ handle reorders rows with spring animation; other rows shift out of the way.
 - New order shows up in the results panel below.
 - Page scroll works when touching/dragging anywhere on a row EXCEPT the handle.

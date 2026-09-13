@@ -117,7 +117,7 @@ Mỗi thay đổi có test đi kèm, viết trước khi sửa (`superpowers:tes
   `jumpTo`, vuốt vẫn chạy.
 - Toàn bộ suite hiện có phải xanh — đây là ràng buộc "không đổi hành vi".
 
-Kiểm chứng cuối bằng `npx vitest run` và `npm run build` (tsc + vite) trước khi
+Kiểm chứng cuối bằng `pnpm exec vitest run` và `pnpm build` (tsc + vite) trước khi
 merge.
 
 ## Commit

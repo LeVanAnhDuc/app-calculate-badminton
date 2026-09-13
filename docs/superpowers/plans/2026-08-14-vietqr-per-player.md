@@ -17,7 +17,7 @@
 - Do NOT change the schema of `Player`, `SessionInput`, `SavedSession`, `Settings` — no migration allowed or needed.
 - New localStorage key is exactly `collectorAccount`.
 - Memo format is exactly `Cau long DD/MM <player name normalized>`, max 50 chars after normalization.
-- `npx vitest run` and `npm run build` must pass at the end of every task.
+- `pnpm exec vitest run` and `pnpm build` must pass at the end of every task.
 - jsdom has no canvas 2D context: never write a test that requires a real `getContext('2d')`; mock the `qrcode` module in component tests.
 
 ---
@@ -130,7 +130,7 @@ test('empty memo omits field 62 entirely', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/lib/vietqr.test.ts`
+Run: `pnpm exec vitest run src/lib/vietqr.test.ts`
 Expected: FAIL — cannot resolve `./vietqr`.
 
 - [ ] **Step 3: Write the implementation**
@@ -208,12 +208,12 @@ export function buildVietQRPayload({ bankBin, accountNo, amount, memo }: VietQRI
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/lib/vietqr.test.ts`
+Run: `pnpm exec vitest run src/lib/vietqr.test.ts`
 Expected: PASS (8 tests).
 
 - [ ] **Step 5: Run the whole suite and commit**
 
-Run: `npx vitest run`
+Run: `pnpm exec vitest run`
 Expected: all green.
 
 ```bash
@@ -259,7 +259,7 @@ test('findBank resolves well-known BINs', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/lib/banks.test.ts`
+Run: `pnpm exec vitest run src/lib/banks.test.ts`
 Expected: FAIL — cannot resolve `./banks`.
 
 - [ ] **Step 3: Write the implementation**
@@ -336,7 +336,7 @@ export function findBank(bin: string): Bank | undefined {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/lib/banks.test.ts`
+Run: `pnpm exec vitest run src/lib/banks.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -386,7 +386,7 @@ test('collectorAccount rejects corrupt or incomplete data', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/lib/storage.test.ts`
+Run: `pnpm exec vitest run src/lib/storage.test.ts`
 Expected: FAIL — no exported member `loadCollectorAccount`.
 
 - [ ] **Step 3: Write the implementation**
@@ -414,7 +414,7 @@ export const saveCollectorAccount = (a: CollectorAccount): boolean => save('coll
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/lib/storage.test.ts`
+Run: `pnpm exec vitest run src/lib/storage.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -429,7 +429,7 @@ git commit -m "feat: persist collector bank account in localStorage"
 ### Task 4: `qrcode` dependency + `QRImage` component
 
 **Files:**
-- Modify: `package.json` (via npm install)
+- Modify: `package.json` (via pnpm add)
 - Create: `src/components/QRImage.tsx`
 - Test: `src/components/QRImage.test.tsx`
 
@@ -439,7 +439,7 @@ git commit -m "feat: persist collector bank account in localStorage"
 
 - [ ] **Step 1: Install the dependency**
 
-Run: `npm install qrcode && npm install -D @types/qrcode`
+Run: `pnpm add qrcode && pnpm add -D @types/qrcode`
 Expected: both appear in `package.json`.
 
 - [ ] **Step 2: Write the failing test**
@@ -465,7 +465,7 @@ test('renders the QR as an img once the data URL resolves', async () => {
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `npx vitest run src/components/QRImage.test.tsx`
+Run: `pnpm exec vitest run src/components/QRImage.test.tsx`
 Expected: FAIL — cannot resolve `./QRImage`.
 
 - [ ] **Step 4: Write the implementation**
@@ -509,7 +509,7 @@ export function QRImage({ payload, size = 280, label }: Props) {
 
 - [ ] **Step 5: Run test to verify it passes, then commit**
 
-Run: `npx vitest run src/components/QRImage.test.tsx`
+Run: `pnpm exec vitest run src/components/QRImage.test.tsx`
 Expected: PASS.
 
 ```bash
@@ -635,7 +635,7 @@ test('paid player gets an un-mark button instead', async () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/components/QRSheet.test.tsx`
+Run: `pnpm exec vitest run src/components/QRSheet.test.tsx`
 Expected: FAIL — cannot resolve `./QRSheet`.
 
 - [ ] **Step 3: Write the implementation**
@@ -857,12 +857,12 @@ export function QRSheet({ open, onClose, playerName, amount, memoDate, paid, onT
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/components/QRSheet.test.tsx`
+Run: `pnpm exec vitest run src/components/QRSheet.test.tsx`
 Expected: PASS (5 tests). If vaul warns about missing description, it's already handled via `Drawer.Description`.
 
 - [ ] **Step 5: Run whole suite and commit**
 
-Run: `npx vitest run`
+Run: `pnpm exec vitest run`
 Expected: all green.
 
 ```bash
@@ -910,7 +910,7 @@ test('QR button opens the QR sheet; without a stored account the setup form appe
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/components/ResultPanel.test.tsx`
+Run: `pnpm exec vitest run src/components/ResultPanel.test.tsx`
 Expected: FAIL — no button named `Mã QR cho Tuấn`.
 
 - [ ] **Step 3: Implement**
@@ -995,12 +995,12 @@ const qrResult = result?.players.find((p) => p.playerId === qrPlayerId) ?? null
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/components/ResultPanel.test.tsx`
+Run: `pnpm exec vitest run src/components/ResultPanel.test.tsx`
 Expected: PASS (all existing + new).
 
 - [ ] **Step 5: Run whole suite and commit**
 
-Run: `npx vitest run`
+Run: `pnpm exec vitest run`
 Expected: all green.
 
 ```bash
@@ -1057,7 +1057,7 @@ test('QR button in expanded session opens the sheet with the session-date memo',
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/components/HistoryPage.test.tsx`
+Run: `pnpm exec vitest run src/components/HistoryPage.test.tsx`
 Expected: FAIL — no button named `Mã QR cho Tuấn`.
 
 - [ ] **Step 3: Implement**
@@ -1115,12 +1115,12 @@ const [qrTarget, setQrTarget] = useState<{ sessionId: string; playerId: string }
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/components/HistoryPage.test.tsx`
+Run: `pnpm exec vitest run src/components/HistoryPage.test.tsx`
 Expected: PASS.
 
 - [ ] **Step 5: Run whole suite and commit**
 
-Run: `npx vitest run`
+Run: `pnpm exec vitest run`
 Expected: all green.
 
 ```bash
@@ -1196,7 +1196,7 @@ test('qrSectionHeight: 0 items → 0; 1–3 items → one row; 4 → two rows', 
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/lib/exportImage.test.ts`
+Run: `pnpm exec vitest run src/lib/exportImage.test.ts`
 Expected: FAIL — no exported member `buildQRItems`.
 
 - [ ] **Step 3: Implement**
@@ -1352,12 +1352,12 @@ await waitFor(() => expect(toastSpy).toHaveBeenCalledWith('Đã tải ảnh kế
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/lib/exportImage.test.ts`
+Run: `pnpm exec vitest run src/lib/exportImage.test.ts`
 Expected: PASS (old date tests + 3 new).
 
 - [ ] **Step 5: Run whole suite and commit**
 
-Run: `npx vitest run`
+Run: `pnpm exec vitest run`
 Expected: all green (ResultPanel download test, if any, still passes — the toast now fires after the promise resolves; use `await waitFor(...)` if an existing assertion needs it).
 
 ```bash
@@ -1373,17 +1373,17 @@ git commit -m "feat: embed per-player VietQR codes in exported PNG"
 
 - [ ] **Step 1: Full test suite**
 
-Run: `npx vitest run`
+Run: `pnpm exec vitest run`
 Expected: all tests pass.
 
 - [ ] **Step 2: Typecheck + production build**
 
-Run: `npm run build`
+Run: `pnpm build`
 Expected: `tsc` clean, vite build succeeds.
 
 - [ ] **Step 3: Manual QA note (cannot be automated)**
 
-Run `npm run dev`, open the app, set up a real collector account, open a QR and scan it with a real Vietnamese banking app: the app must show the right beneficiary, amount, and memo. This validates the payload against real NAPAS parsing — record the result in the final report.
+Run `pnpm dev`, open the app, set up a real collector account, open a QR and scan it with a real Vietnamese banking app: the app must show the right beneficiary, amount, and memo. This validates the payload against real NAPAS parsing — record the result in the final report.
 
 - [ ] **Step 4: Commit any leftovers**
 
