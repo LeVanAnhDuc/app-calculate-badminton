@@ -105,7 +105,7 @@ Hai đặc điểm của `sharp-cli` quyết định cách tổ chức file (đ�
 Nhờ đó chỉ còn **một lệnh duy nhất, giống nhau cho cả 4 icon**:
 
 ```bash
-npx -y sharp-cli -i assets/icons/icon-192.svg -o public/ --format png flatten "#059669"
+pnpm dlx sharp-cli -i assets/icons/icon-192.svg -o public/ --format png flatten "#059669"
 ```
 
 Lệnh `flatten` kiêm hai việc: xoá kênh alpha (PNG ra có color type 2 = RGB, đã kiểm chứng) và tô nền `#059669`. Đây chính là ràng buộc "không nền trong suốt" của `apple-touch-icon` — áp cho tất cả icon luôn cho đồng nhất.
@@ -158,7 +158,7 @@ Tình huống này xảy ra đúng trong bối cảnh tính năng nhắm tới: 
 
 Đổi lại `registerType` thành `'autoUpdate'` là một **thay đổi hành vi**, không phải dọn dẹp — đừng làm mà không đọc phần này.
 
-**`devOptions.enabled: false`**: không đăng ký service worker khi `npm run dev`, tránh cảnh sửa code mà trình duyệt vẫn phục vụ bản cache cũ.
+**`devOptions.enabled: false`**: không đăng ký service worker khi `pnpm dev`, tránh cảnh sửa code mà trình duyệt vẫn phục vụ bản cache cũ.
 
 **`navigateFallback`**: app là một trang duy nhất, điều hướng nội bộ bằng state chứ không có router. Fallback về `index.html` để mọi đường dẫn con đều mở được khi offline.
 
@@ -252,7 +252,7 @@ jsdom không có service worker. Không giả vờ test Workbox — test phần 
 
 **Checklist thủ công** (không tự động hoá được, chạy trước khi merge):
 
-1. `npm run build && npm run preview` → DevTools ▸ Application ▸ Manifest: không lỗi, icon hiện đủ.
+1. `pnpm build && pnpm preview` → DevTools ▸ Application ▸ Manifest: không lỗi, icon hiện đủ.
 2. DevTools ▸ Application ▸ Service Workers: trạng thái activated.
 3. Bật DevTools ▸ Network ▸ Offline → tải lại trang → app vẫn mở và tính toán được.
 4. Sau khi deploy: cài thật trên một máy Android và một iPhone, kiểm tra icon, tên dưới icon không bị cắt, và app mở đúng vào `/app-calculate-badminton/` chứ không phải trang chủ github.io.

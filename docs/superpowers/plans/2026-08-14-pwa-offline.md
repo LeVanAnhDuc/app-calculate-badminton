@@ -6,7 +6,7 @@
 
 **Architecture:** Thêm `vite-plugin-pwa` ở chế độ `generateSW` — plugin sinh service worker Workbox precache toàn bộ output build, và sinh `manifest.webmanifest` từ một hằng số TypeScript. App vốn không gọi API, không tải webfont hay ảnh từ ngoài, dữ liệu đã nằm ở localStorage, nên precache bundle là đủ để chạy offline hoàn toàn. Phần logic mời cài đặt tách riêng khỏi UI: `installPrompt.ts` giữ toàn bộ việc dò sự kiện trình duyệt và phơi ra một hook trả về trạng thái đơn giản; `InstallBanner.tsx` chỉ render theo trạng thái đó.
 
-**Tech Stack:** React 19, TypeScript strict, Vite 8, Vitest + React Testing Library, `vite-plugin-pwa@^1.3.0` (Workbox 7), `sharp-cli` chạy qua `npx` để render icon (không thêm dependency).
+**Tech Stack:** React 19, TypeScript strict, Vite 8, Vitest + React Testing Library, `vite-plugin-pwa@^1.3.0` (Workbox 7), `sharp-cli` chạy qua `pnpm dlx` để render icon (không thêm dependency).
 
 **Spec:** `docs/superpowers/specs/2026-08-14-pwa-offline-design.md`
 
@@ -20,7 +20,7 @@
 - **`apple-touch-icon.png` không bo góc, không nền trong suốt.** iOS tự bo góc (ảnh bo sẵn sẽ bị bo hai lần) và tô đen vùng trong suốt.
 - **Quy ước test của repo**: dùng `test(...)` phẳng ở cấp cao nhất, không `describe`, không import gì từ `vitest` (đã bật `globals: true`). Xem `src/lib/format.test.ts`.
 - **Quy ước commit** (`CLAUDE.md`): mỗi push vào `main` tự tạo release. Task cuối dùng `feat:`; các task giữa dùng `feat:`/`test:`/`chore:` tuỳ nội dung.
-- **`npm run build` (tsc + vite build) phải pass** trước khi coi bất kỳ task nào là xong.
+- **`pnpm build` (tsc + vite build) phải pass** trước khi coi bất kỳ task nào là xong.
 
 ---
 
@@ -201,7 +201,7 @@ test('PNG sinh ra đúng kích thước và không có kênh alpha', () => {
 
 - [ ] **Step 6: Chạy test để xác nhận nó fail**
 
-Run: `npx vitest run src/lib/icons.test.ts`
+Run: `pnpm exec vitest run src/lib/icons.test.ts`
 Expected: FAIL — 2 test SVG pass, test PNG fail với `ENOENT ... public/icon-192.png` (chưa render).
 
 - [ ] **Step 7: Render 4 file PNG**
@@ -209,10 +209,10 @@ Expected: FAIL — 2 test SVG pass, test PNG fail với `ENOENT ... public/icon-
 Chạy lần lượt 4 lệnh (mỗi lệnh một file — `sharp-cli` **không ghép được** nhiều lệnh trong một lần gọi):
 
 ```bash
-npx -y sharp-cli -i assets/icons/icon-192.svg          -o public/ --format png flatten "#059669"
-npx -y sharp-cli -i assets/icons/icon-512.svg          -o public/ --format png flatten "#059669"
-npx -y sharp-cli -i assets/icons/icon-maskable-512.svg -o public/ --format png flatten "#059669"
-npx -y sharp-cli -i assets/icons/apple-touch-icon.svg  -o public/ --format png flatten "#059669"
+pnpm dlx sharp-cli -i assets/icons/icon-192.svg          -o public/ --format png flatten "#059669"
+pnpm dlx sharp-cli -i assets/icons/icon-512.svg          -o public/ --format png flatten "#059669"
+pnpm dlx sharp-cli -i assets/icons/icon-maskable-512.svg -o public/ --format png flatten "#059669"
+pnpm dlx sharp-cli -i assets/icons/apple-touch-icon.svg  -o public/ --format png flatten "#059669"
 ```
 
 Ba điều cần biết về các lệnh này:
@@ -222,7 +222,7 @@ Ba điều cần biết về các lệnh này:
 
 - [ ] **Step 8: Chạy lại test để xác nhận pass**
 
-Run: `npx vitest run src/lib/icons.test.ts`
+Run: `pnpm exec vitest run src/lib/icons.test.ts`
 Expected: PASS — cả 3 test.
 
 - [ ] **Step 9: Sửa `index.html`**
@@ -239,7 +239,7 @@ Không tự thêm `<link rel="manifest">` — plugin ở Task 2 tự chèn.
 
 - [ ] **Step 10: Chạy toàn bộ test + build**
 
-Run: `npx vitest run && npm run build`
+Run: `pnpm exec vitest run && pnpm build`
 Expected: tất cả PASS, build thành công.
 
 - [ ] **Step 11: Commit**
@@ -268,10 +268,10 @@ git commit -m "feat: bộ icon PWA (any + maskable) thay favicon emoji"
 - [ ] **Step 1: Cài plugin**
 
 ```bash
-npm install -D vite-plugin-pwa
+pnpm add -D vite-plugin-pwa
 ```
 
-Phiên bản `^1.3.0` khai peer `vite: ^3 || ^4 || ^5 || ^6 || ^7 || ^8` nên tương thích Vite 8 của project. Nếu npm báo lỗi peer, **dừng lại và báo** thay vì dùng `--force`.
+Phiên bản `^1.3.0` khai peer `vite: ^3 || ^4 || ^5 || ^6 || ^7 || ^8` nên tương thích Vite 8 của project. Nếu pnpm báo lỗi peer, **dừng lại và báo** thay vì dùng `--force`.
 
 - [ ] **Step 2: Viết test trước**
 
@@ -312,7 +312,7 @@ test('màu khớp với giao diện app', () => {
 
 - [ ] **Step 3: Chạy test để xác nhận fail**
 
-Run: `npx vitest run src/lib/pwaManifest.test.ts`
+Run: `pnpm exec vitest run src/lib/pwaManifest.test.ts`
 Expected: FAIL — `Failed to resolve import "./pwaManifest"`.
 
 - [ ] **Step 4: Viết `src/lib/pwaManifest.ts`**
@@ -346,7 +346,7 @@ export const PWA_MANIFEST: Partial<ManifestOptions> = {
 
 - [ ] **Step 5: Chạy test để xác nhận pass**
 
-Run: `npx vitest run src/lib/pwaManifest.test.ts`
+Run: `pnpm exec vitest run src/lib/pwaManifest.test.ts`
 Expected: PASS — cả 5 test.
 
 - [ ] **Step 6: Nạp plugin vào `vite.config.ts`**
@@ -371,7 +371,7 @@ import { PWA_MANIFEST } from './src/lib/pwaManifest'
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
         navigateFallback: 'index.html',
       },
-      // không đăng ký SW khi `npm run dev` — tránh sửa code mà trình duyệt
+      // không đăng ký SW khi `pnpm dev` — tránh sửa code mà trình duyệt
       // vẫn phục vụ bản cache cũ
       devOptions: { enabled: false },
     }),
@@ -382,7 +382,7 @@ Không cần viết code đăng ký service worker trong `main.tsx`: mặc đị
 
 - [ ] **Step 7: Build và kiểm tra output**
 
-Run: `npm run build`
+Run: `pnpm build`
 Expected: build thành công, và trong `dist/` có `manifest.webmanifest`, `sw.js`, `workbox-*.js`.
 
 Kiểm tra bằng lệnh:
@@ -398,13 +398,13 @@ Expected: `manifest.webmanifest` chứa `"start_url":"."` và `"short_name":"Ti�
 Run (PowerShell — shell chính của máy này):
 
 ```powershell
-$env:GITHUB_PAGES='true'; npm run build; Get-Content dist/manifest.webmanifest
+$env:GITHUB_PAGES='true'; pnpm build; Get-Content dist/manifest.webmanifest
 ```
 
 Run (bash):
 
 ```bash
-GITHUB_PAGES=true npm run build && cat dist/manifest.webmanifest
+GITHUB_PAGES=true pnpm build && cat dist/manifest.webmanifest
 ```
 
 Expected: `start_url` vẫn là `"."`, và `dist/index.html` tham chiếu tài sản qua `/app-calculate-badminton/`.
@@ -413,7 +413,7 @@ Nhớ `Remove-Item Env:GITHUB_PAGES` (PowerShell) sau khi kiểm xong, kẻo cá
 
 - [ ] **Step 9: Chạy toàn bộ test**
 
-Run: `npx vitest run`
+Run: `pnpm exec vitest run`
 Expected: tất cả PASS.
 
 - [ ] **Step 10: Commit**
@@ -468,7 +468,7 @@ Nhớ thêm `loadInstallDismissed, saveInstallDismissed` vào dòng import ở �
 
 - [ ] **Step 2: Chạy test để xác nhận fail**
 
-Run: `npx vitest run src/lib/storage.test.ts`
+Run: `pnpm exec vitest run src/lib/storage.test.ts`
 Expected: FAIL — `loadInstallDismissed is not a function` (hoặc lỗi import).
 
 - [ ] **Step 3: Thêm 2 hàm vào `src/lib/storage.ts`**
@@ -483,7 +483,7 @@ export const saveInstallDismissed = (v: boolean): boolean => save('installDismis
 
 - [ ] **Step 4: Chạy test để xác nhận pass**
 
-Run: `npx vitest run src/lib/storage.test.ts`
+Run: `pnpm exec vitest run src/lib/storage.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -654,7 +654,7 @@ test('gỡ listener khi unmount', () => {
 
 - [ ] **Step 2: Chạy test để xác nhận fail**
 
-Run: `npx vitest run src/lib/installPrompt.test.ts`
+Run: `pnpm exec vitest run src/lib/installPrompt.test.ts`
 Expected: FAIL — `Failed to resolve import "./installPrompt"`.
 
 - [ ] **Step 3: Viết `src/lib/installPrompt.ts`**
@@ -734,7 +734,7 @@ export function useInstallPrompt(): {
 
 - [ ] **Step 4: Chạy test để xác nhận pass**
 
-Run: `npx vitest run src/lib/installPrompt.test.ts`
+Run: `pnpm exec vitest run src/lib/installPrompt.test.ts`
 Expected: PASS — cả 11 test.
 
 - [ ] **Step 5: Commit**
@@ -809,7 +809,7 @@ test('bấm nút tắt gọi dismiss()', async () => {
 
 - [ ] **Step 2: Chạy test để xác nhận fail**
 
-Run: `npx vitest run src/components/InstallBanner.test.tsx`
+Run: `pnpm exec vitest run src/components/InstallBanner.test.tsx`
 Expected: FAIL — `Failed to resolve import "./InstallBanner"`.
 
 - [ ] **Step 3: Viết `src/components/InstallBanner.tsx`**
@@ -860,7 +860,7 @@ export function InstallBanner() {
 
 - [ ] **Step 4: Chạy test để xác nhận pass**
 
-Run: `npx vitest run src/components/InstallBanner.test.tsx`
+Run: `pnpm exec vitest run src/components/InstallBanner.test.tsx`
 Expected: PASS — cả 4 test.
 
 - [ ] **Step 5: Gắn vào `src/App.tsx`**
@@ -875,7 +875,7 @@ import { InstallBanner } from './components/InstallBanner'
 
 - [ ] **Step 6: Chạy toàn bộ test + build**
 
-Run: `npx vitest run && npm run build`
+Run: `pnpm exec vitest run && pnpm build`
 Expected: tất cả PASS, build thành công.
 
 Nếu `src/smoke.test.tsx` fail vì có thêm phần tử mới: đọc test đó rồi chỉnh cho khớp — **không** xoá `<InstallBanner />`. Trong môi trường jsdom mặc định (UA không phải iOS, không có `beforeinstallprompt`) banner trả `null` nên phần lớn khả năng không ảnh hưởng gì.
@@ -900,7 +900,7 @@ git commit -m "feat: dải mời cài app lên màn hình chính"
 
 - [ ] **Step 1: Đếm số test hiện tại**
 
-Run: `npx vitest run`
+Run: `pnpm exec vitest run`
 Ghi lại tổng số test ở dòng cuối (dạng `Tests  N passed (N)`).
 
 - [ ] **Step 2: Cập nhật `README.md`**
@@ -918,12 +918,12 @@ Thêm mục mới vào "Tính năng chính", đặt ngay **trước** mục "Kh�
 - [ ] **Step 3: Build bản production và chạy thử**
 
 ```bash
-npm run build && npm run preview
+pnpm build && pnpm preview
 ```
 
 - [ ] **Step 4: Kiểm tra thủ công trong trình duyệt**
 
-Mở địa chỉ `npm run preview` in ra, rồi kiểm 4 mục (dùng Chrome — Firefox không có tab Manifest):
+Mở địa chỉ `pnpm preview` in ra, rồi kiểm 4 mục (dùng Chrome — Firefox không có tab Manifest):
 
 1. DevTools ▸ Application ▸ Manifest — không có lỗi đỏ; tên hiện "Tính tiền cầu lông", short name "Tiền cầu lông"; đủ 3 icon, bản maskable xem ở chế độ preview không bị cắt mất chi tiết.
 2. DevTools ▸ Application ▸ Service Workers — trạng thái **activated and is running**.

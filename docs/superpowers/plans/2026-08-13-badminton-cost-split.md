@@ -28,20 +28,20 @@
 ### Task 1: Project scaffold (Vite + React + TS + Tailwind + Vitest)
 
 **Files:**
-- Create: `package.json` (via npm commands), `vite.config.ts`, `tsconfig.json`, `index.html`, `.gitignore`
+- Create: `package.json` (via pnpm commands), `vite.config.ts`, `tsconfig.json`, `index.html`, `.gitignore`
 - Create: `src/main.tsx`, `src/index.css`, `src/App.tsx` (placeholder), `src/test-setup.ts`, `src/smoke.test.tsx`
 
 **Interfaces:**
 - Consumes: nothing
-- Produces: working `npm run dev`, `npm test`, `npm run build`; Tailwind classes available; RTL configured. All later tasks assume these commands work.
+- Produces: working `pnpm dev`, `pnpm test`, `pnpm build`; Tailwind classes available; RTL configured. All later tasks assume these commands work.
 
-- [ ] **Step 1: Init npm and install dependencies**
+- [ ] **Step 1: Init pnpm and install dependencies**
 
 Run (project root `D:\DeleteByDuc\app-cal-badminton`):
 ```bash
-npm init -y
-npm install react react-dom
-npm install -D vite @vitejs/plugin-react typescript @types/react @types/react-dom tailwindcss @tailwindcss/vite vitest jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom
+pnpm init
+pnpm add react react-dom
+pnpm add -D vite @vitejs/plugin-react typescript @types/react @types/react-dom tailwindcss @tailwindcss/vite vitest jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom
 ```
 
 Then edit `package.json`: set `"private": true`, `"type": "module"`, and scripts:
@@ -173,10 +173,10 @@ test('renders app title', () => {
 
 - [ ] **Step 4: Verify test and build pass**
 
-Run: `npm test`
+Run: `pnpm test`
 Expected: 1 test PASS.
 
-Run: `npm run build`
+Run: `pnpm build`
 Expected: builds `dist/` with no TypeScript errors.
 
 - [ ] **Step 5: Commit**
@@ -229,7 +229,7 @@ test('parseMoney strips separators and junk', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/lib/format.test.ts`
+Run: `pnpm exec vitest run src/lib/format.test.ts`
 Expected: FAIL — cannot resolve `./format`.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -252,7 +252,7 @@ export function parseMoney(s: string): number {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/lib/format.test.ts`
+Run: `pnpm exec vitest run src/lib/format.test.ts`
 Expected: PASS (3 tests). Note: if `formatNumber` produces `,` instead of `.` the vi-VN locale data is missing — fix by using `n.toLocaleString('vi-VN')` equivalent manual implementation: `String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')`.
 
 - [ ] **Step 5: Commit**
@@ -304,7 +304,7 @@ test('formatHours renders Vietnamese hour label', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/lib/time.test.ts`
+Run: `pnpm exec vitest run src/lib/time.test.ts`
 Expected: FAIL — cannot resolve `./time`.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -330,7 +330,7 @@ export function formatHours(h: number): string {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/lib/time.test.ts`
+Run: `pnpm exec vitest run src/lib/time.test.ts`
 Expected: PASS (3 tests).
 
 - [ ] **Step 5: Commit**
@@ -473,7 +473,7 @@ test('mode 1: all-male group splits evenly', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/lib/calc.test.ts`
+Run: `pnpm exec vitest run src/lib/calc.test.ts`
 Expected: FAIL — cannot resolve `./calc`.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -537,7 +537,7 @@ export function calcRatioMode(input: SessionInput): CalcResult {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/lib/calc.test.ts`
+Run: `pnpm exec vitest run src/lib/calc.test.ts`
 Expected: PASS (4 tests).
 
 - [ ] **Step 5: Commit**
@@ -673,7 +673,7 @@ test('validateSession catches invalid input', () => {
 
 - [ ] **Step 2: Run tests to verify new ones fail**
 
-Run: `npx vitest run src/lib/calc.test.ts`
+Run: `pnpm exec vitest run src/lib/calc.test.ts`
 Expected: previous 4 PASS; new tests FAIL — `calcHourlyMode` not exported.
 
 - [ ] **Step 3: Append implementation to `src/lib/calc.ts`**
@@ -773,7 +773,7 @@ Note: `ratioOf`, `Share`, `buildResult`, `shuttleTotal` already exist in this fi
 
 - [ ] **Step 4: Run all lib tests to verify they pass**
 
-Run: `npx vitest run src/lib`
+Run: `pnpm exec vitest run src/lib`
 Expected: PASS (all format/time/calc tests).
 
 - [ ] **Step 5: Commit**
@@ -856,7 +856,7 @@ test('settings roundtrip', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/lib/storage.test.ts`
+Run: `pnpm exec vitest run src/lib/storage.test.ts`
 Expected: FAIL — cannot resolve `./storage`.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -959,7 +959,7 @@ export const saveHistory = (h: SavedSession[]): void => save('history', h)
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/lib/storage.test.ts`
+Run: `pnpm exec vitest run src/lib/storage.test.ts`
 Expected: PASS (4 tests).
 
 - [ ] **Step 5: Commit**
@@ -1041,7 +1041,7 @@ test('ratio mode hides court time range', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/components/CostForm.test.tsx`
+Run: `pnpm exec vitest run src/components/CostForm.test.tsx`
 Expected: FAIL — cannot resolve `./CostForm`.
 
 - [ ] **Step 3: Write the components**
@@ -1276,7 +1276,7 @@ export function CostForm({ input, onPatch }: Props) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/components/CostForm.test.tsx`
+Run: `pnpm exec vitest run src/components/CostForm.test.tsx`
 Expected: PASS (4 tests).
 
 - [ ] **Step 5: Commit**
@@ -1385,7 +1385,7 @@ test('hourly mode shows default time and expands editor', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/components/PlayerList.test.tsx`
+Run: `pnpm exec vitest run src/components/PlayerList.test.tsx`
 Expected: FAIL — cannot resolve `./PlayerList`.
 
 - [ ] **Step 3: Write the component**
@@ -1618,7 +1618,7 @@ export function PlayerList({ input, roster, onPatch, onAddPlayer }: Props) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/components/PlayerList.test.tsx`
+Run: `pnpm exec vitest run src/components/PlayerList.test.tsx`
 Expected: PASS (5 tests).
 
 - [ ] **Step 5: Commit**
@@ -1696,7 +1696,7 @@ test('shows errors and disables save when result is null', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/components/ResultPanel.test.tsx`
+Run: `pnpm exec vitest run src/components/ResultPanel.test.tsx`
 Expected: FAIL — cannot resolve `./ResultPanel`.
 
 - [ ] **Step 3: Write the components**
@@ -1842,7 +1842,7 @@ export function ResultPanel({ result, mode, errors, onSave }: Props) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/components/ResultPanel.test.tsx`
+Run: `pnpm exec vitest run src/components/ResultPanel.test.tsx`
 Expected: PASS (3 tests).
 
 - [ ] **Step 5: Commit**
@@ -1909,7 +1909,7 @@ test('session state is restored from localStorage', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/smoke.test.tsx`
+Run: `pnpm exec vitest run src/smoke.test.tsx`
 Expected: FAIL — App is still the placeholder header.
 
 - [ ] **Step 3: Write App**
@@ -2057,10 +2057,10 @@ Also add `id="shuttle-count"`-matching label association: `CostForm` already lin
 
 - [ ] **Step 4: Run full suite, then check in the browser**
 
-Run: `npm test`
+Run: `pnpm test`
 Expected: ALL PASS.
 
-Run: `npm run dev` and open the printed URL — verify visually against `superdesign/design_iterations/mobile_first_vietnam_1.html` (narrow window): mode switch, costs, ratios, players, rounding, results, hidden surplus.
+Run: `pnpm dev` and open the printed URL — verify visually against `superdesign/design_iterations/mobile_first_vietnam_1.html` (narrow window): mode switch, costs, ratios, players, rounding, results, hidden surplus.
 
 - [ ] **Step 5: Commit**
 
@@ -2155,7 +2155,7 @@ test('empty history shows hint', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/components/HistoryPage.test.tsx`
+Run: `pnpm exec vitest run src/components/HistoryPage.test.tsx`
 Expected: FAIL — cannot resolve `./HistoryPage`.
 
 - [ ] **Step 3: Write the component and wire App**
@@ -2383,10 +2383,10 @@ import { HistoryPage } from './components/HistoryPage'
 
 - [ ] **Step 4: Run full suite and check in the browser**
 
-Run: `npm test`
+Run: `pnpm test`
 Expected: ALL PASS.
 
-Run: `npm run dev` — save a session, open Lịch sử, expand/collapse, reuse list, delete with confirm. Compare with `history_1_1.html` (mobile width) and `history_1.html` (wide).
+Run: `pnpm dev` — save a session, open Lịch sử, expand/collapse, reuse list, delete with confirm. Compare with `history_1_1.html` (mobile width) and `history_1.html` (wide).
 
 - [ ] **Step 5: Commit**
 
@@ -2475,12 +2475,12 @@ Note: mobile spacing moves from the removed `space-y-4` behavior to explicit `mt
 
 - [ ] **Step 2: Run full suite**
 
-Run: `npm test`
+Run: `pnpm test`
 Expected: ALL PASS (layout change must not break behavior tests).
 
 - [ ] **Step 3: Manual verification checklist (dev server, both narrow ~390px and wide ≥1024px windows)**
 
-Run: `npm run dev`, then verify each item:
+Run: `pnpm dev`, then verify each item:
 1. Mode 1 spec example: 6 cầu × 25.000, sân 150.000, thêm Tuấn/Hùng/Minh (nam) + Lan/Hoa (nữ), bật ½ buổi cho Minh → 79k/79k/40k/53k/53k, tổng thu 304.000đ.
 2. Số dư hiện `•••••`, bấm mắt → `+4.000đ`, bấm lại → ẩn. Reload trang → ẩn lại.
 3. Chuyển "Giữ chính xác" → tổng thu 300.000đ.
@@ -2492,9 +2492,9 @@ Run: `npm run dev`, then verify each item:
 9. Reload trang → danh sách người chơi + chi phí còn nguyên (currentSession).
 10. Lưu buổi → vào Lịch sử: buổi hiện đúng ngày giờ vi-VN, mở chi tiết khớp số; "Dùng lại danh sách" → về trang chính với đúng người; Xóa có confirm.
 11. Desktop ≥768px: header bar full-width có nút Lịch sử, 2 cột, kết quả sticky khi cuộn; mobile: 1 cột, link lịch sử cuối trang.
-12. `npm run build` chạy sạch không lỗi TS.
+12. `pnpm build` chạy sạch không lỗi TS.
 
-- [ ] **Step 4: Fix anything found, re-run `npm test` + `npm run build`**
+- [ ] **Step 4: Fix anything found, re-run `pnpm test` + `pnpm build`**
 
 Expected: ALL PASS, clean build.
 

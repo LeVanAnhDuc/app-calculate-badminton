@@ -19,7 +19,7 @@
 - Dữ liệu cũ trong localStorage phải load được nguyên vẹn → đây là `feat:` (minor), KHÔNG phải breaking change.
 - Luật chia tiền cầu **không đổi**: tổng tiền cầu chia theo hệ số Nam/Nữ ở cả hai chế độ.
 - Comment trong code viết theo phong cách file xung quanh (giải thích *tại sao*, không mô tả lại code).
-- Chạy test: `npx vitest run`. Typecheck + build: `npm run build`.
+- Chạy test: `pnpm exec vitest run`. Typecheck + build: `pnpm build`.
 
 ---
 
@@ -55,7 +55,7 @@
   - `Settings.shuttleName: string`
   - `export const LEGACY_SHUTTLE_ID = 'shuttle-legacy'` (từ `./storage`)
 
-> **Lưu ý:** sau Task 1, `npm run build` sẽ **FAIL** vì `App.tsx`, `CostForm.tsx`, `HistoryPage.tsx` còn dùng trường cũ. Đó là dự kiến — Task 2 sửa nốt. Task 1 chỉ cần `npx vitest run src/lib/calc.test.ts src/lib/storage.test.ts` xanh.
+> **Lưu ý:** sau Task 1, `pnpm build` sẽ **FAIL** vì `App.tsx`, `CostForm.tsx`, `HistoryPage.tsx` còn dùng trường cũ. Đó là dự kiến — Task 2 sửa nốt. Task 1 chỉ cần `pnpm exec vitest run src/lib/calc.test.ts src/lib/storage.test.ts` xanh.
 
 - [ ] **Step 1: Viết test thất bại cho `shuttleTotal` nhiều dòng**
 
@@ -123,7 +123,7 @@ describe('nhiều loại cầu', () => {
 
 - [ ] **Step 2: Chạy test để xác nhận thất bại**
 
-Run: `npx vitest run src/lib/calc.test.ts`
+Run: `pnpm exec vitest run src/lib/calc.test.ts`
 Expected: FAIL — TypeScript/runtime báo `input.shuttles` là `undefined`.
 
 - [ ] **Step 3: Thêm `ShuttleLine` và đổi `SessionInput`**
@@ -176,7 +176,7 @@ Trong `validateSession`, thêm ngay trước khối kiểm tra `input.extras` (t
 
 - [ ] **Step 5: Chạy test calc**
 
-Run: `npx vitest run src/lib/calc.test.ts`
+Run: `pnpm exec vitest run src/lib/calc.test.ts`
 Expected: PASS toàn bộ.
 
 - [ ] **Step 6: Viết test thất bại cho di trú storage**
@@ -241,7 +241,7 @@ describe('di trú shuttles', () => {
 
 - [ ] **Step 7: Chạy test để xác nhận thất bại**
 
-Run: `npx vitest run src/lib/storage.test.ts`
+Run: `pnpm exec vitest run src/lib/storage.test.ts`
 Expected: FAIL — `s?.shuttles` là `undefined`.
 
 - [ ] **Step 8: Cài di trú trong `storage.ts`**
@@ -337,7 +337,7 @@ export function loadSettings(): Settings {
 
 - [ ] **Step 9: Chạy test storage**
 
-Run: `npx vitest run src/lib/storage.test.ts`
+Run: `pnpm exec vitest run src/lib/storage.test.ts`
 Expected: PASS toàn bộ.
 
 - [ ] **Step 10: Commit**
@@ -403,7 +403,7 @@ describe('nhiều loại cầu', () => {
 
 - [ ] **Step 2: Chạy test để xác nhận thất bại**
 
-Run: `npx vitest run src/components/CostForm.test.tsx`
+Run: `pnpm exec vitest run src/components/CostForm.test.tsx`
 Expected: FAIL — không tìm thấy nút `+ Thêm loại cầu`.
 
 - [ ] **Step 3: Đổi khối tiền cầu trong `CostForm.tsx`**
@@ -481,7 +481,7 @@ Thay toàn bộ khối JSX từ `<div className="flex gap-2 items-end">` đến 
 
 - [ ] **Step 4: Chạy test CostForm**
 
-Run: `npx vitest run src/components/CostForm.test.tsx`
+Run: `pnpm exec vitest run src/components/CostForm.test.tsx`
 Expected: PASS.
 
 - [ ] **Step 5: Viết test thất bại cho HistoryPage**
@@ -510,7 +510,7 @@ test('chi tiết liệt kê từng loại cầu', () => {
 
 - [ ] **Step 6: Chạy test để xác nhận thất bại**
 
-Run: `npx vitest run src/components/HistoryPage.test.tsx`
+Run: `pnpm exec vitest run src/components/HistoryPage.test.tsx`
 Expected: FAIL.
 
 - [ ] **Step 7: Sửa `HistoryPage.tsx`**
@@ -567,12 +567,12 @@ Effect lưu settings — thay khối `saveSettings({...})` bằng:
 Trong `src/components/PlayerList.test.tsx` và `src/lib/frequent.test.ts`, thay `shuttleCount: …, shuttlePrice: …` bằng `shuttles: [{ id: 's1', name: '', count: 6, price: 25000 }]`. Tìm sót bằng:
 
 ```bash
-npx tsc --noEmit
+pnpm exec tsc --noEmit
 ```
 
 - [ ] **Step 10: Chạy toàn bộ test và build**
 
-Run: `npx vitest run && npm run build`
+Run: `pnpm exec vitest run && pnpm build`
 Expected: PASS + build thành công.
 
 - [ ] **Step 11: Commit**
@@ -675,7 +675,7 @@ test('giới hạn số lượng trả về', () => {
 
 - [ ] **Step 2: Chạy test để xác nhận thất bại**
 
-Run: `npx vitest run src/lib/shuttleTypes.test.ts`
+Run: `pnpm exec vitest run src/lib/shuttleTypes.test.ts`
 Expected: FAIL — `Cannot find module './shuttleTypes'`.
 
 - [ ] **Step 3: Viết `src/lib/shuttleTypes.ts`**
@@ -765,7 +765,7 @@ export function frequentShuttleTypes(
 
 - [ ] **Step 4: Chạy test**
 
-Run: `npx vitest run src/lib/shuttleTypes.test.ts`
+Run: `pnpm exec vitest run src/lib/shuttleTypes.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -884,7 +884,7 @@ test('mở lại sheet thì ô tên bắt đầu từ giá trị hiện tại', 
 
 - [ ] **Step 2: Chạy test để xác nhận thất bại**
 
-Run: `npx vitest run src/components/ShuttleTypeSelect.test.tsx`
+Run: `pnpm exec vitest run src/components/ShuttleTypeSelect.test.tsx`
 Expected: FAIL — `Cannot find module './ShuttleTypeSelect'`.
 
 - [ ] **Step 3: Viết `src/components/ShuttleTypeSelect.tsx`**
@@ -1043,7 +1043,7 @@ export function ShuttleTypeSelect({
 
 - [ ] **Step 4: Chạy test**
 
-Run: `npx vitest run src/components/ShuttleTypeSelect.test.tsx`
+Run: `pnpm exec vitest run src/components/ShuttleTypeSelect.test.tsx`
 Expected: PASS. Nếu vaul không render nội dung trong jsdom, kiểm tra `src/test-setup.ts` và cách `TimeSelect.test.tsx` xử lý — dùng cùng cách đó, **không** mock `vaul` riêng cho file này.
 
 - [ ] **Step 5: Commit**
@@ -1137,7 +1137,7 @@ function Harness({ initial, shuttleTypes = [] }: { initial: SessionInput; shuttl
 
 - [ ] **Step 2: Chạy test để xác nhận thất bại**
 
-Run: `npx vitest run src/components/CostForm.test.tsx`
+Run: `pnpm exec vitest run src/components/CostForm.test.tsx`
 Expected: FAIL — không có nút `Loại cầu 1`.
 
 - [ ] **Step 3: Thay ô text bằng `ShuttleTypeSelect` trong `CostForm.tsx`**
@@ -1185,7 +1185,7 @@ rồi truyền `shuttleTypes={shuttleTypes}` vào `<CostForm …/>`. (Việc l�
 
 - [ ] **Step 5: Chạy toàn bộ test và build**
 
-Run: `npx vitest run && npm run build`
+Run: `pnpm exec vitest run && pnpm build`
 Expected: PASS + build thành công.
 
 - [ ] **Step 6: Commit**
@@ -1215,11 +1215,11 @@ Chèn ngay **trên** mục `- **Làm tròn và quản lý số dư**`:
 
 - [ ] **Step 2: Cập nhật số test case**
 
-Chạy `npx vitest run`, đọc số test ở dòng `Tests  N passed`, rồi sửa `(194 test cases)` trong mục **Testing** của "Tech Stack" thành con số mới.
+Chạy `pnpm exec vitest run`, đọc số test ở dòng `Tests  N passed`, rồi sửa `(194 test cases)` trong mục **Testing** của "Tech Stack" thành con số mới.
 
 - [ ] **Step 3: Kiểm tra cuối**
 
-Run: `npx vitest run && npm run build`
+Run: `pnpm exec vitest run && pnpm build`
 Expected: toàn bộ test PASS, build thành công, không có lỗi TypeScript.
 
 - [ ] **Step 4: Commit**
@@ -1233,7 +1233,7 @@ git commit -m "docs: cập nhật README cho tính năng nhiều loại cầu"
 
 ## Merge
 
-Sau khi cả 6 task xong và `npx vitest run && npm run build` xanh:
+Sau khi cả 6 task xong và `pnpm exec vitest run && pnpm build` xanh:
 
 ```bash
 git checkout main
