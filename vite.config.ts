@@ -24,7 +24,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
         navigateFallback: 'index.html',
       },
-      // không đăng ký SW khi `npm run dev` — tránh sửa code mà trình duyệt
+      // không đăng ký SW khi `pnpm dev` — tránh sửa code mà trình duyệt
       // vẫn phục vụ bản cache cũ
       devOptions: { enabled: false },
     }),
@@ -33,7 +33,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test-setup.ts',
     globals: true,
-    // Claude Code worktrees live inside the repo; without this, `npm test`
+    // Claude Code worktrees live inside the repo; without this, `pnpm test`
     // from the root also picks up every test file in each worktree copy
     exclude: ['**/node_modules/**', '.claude/worktrees/**'],
   },

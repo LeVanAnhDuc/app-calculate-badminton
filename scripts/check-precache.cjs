@@ -1,6 +1,6 @@
 // Canh danh sách precache trong dist/sw.js sau khi vite-plugin-pwa build xong.
 // Chạy sau `vite build` (xem package.json). Không phải test vitest vì lúc
-// `npm test` chạy trong CI, dist/ chưa tồn tại — xem
+// `pnpm test` chạy trong CI, dist/ chưa tồn tại — xem
 // .github/workflows/deploy.yml (test chạy trước build).
 'use strict'
 

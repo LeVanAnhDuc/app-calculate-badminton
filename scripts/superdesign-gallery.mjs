@@ -1,7 +1,7 @@
 /**
  * Sinh lại superdesign/gallery.html từ superdesign/metadata.json.
  *
- *   npm run design:gallery
+ *   pnpm design:gallery
  *
  * Gallery là file sinh ra — đừng sửa tay, sửa metadata.json rồi chạy lại script.
  * Script fail nếu metadata và thư mục design_iterations lệch nhau, để mockup mới
@@ -83,7 +83,7 @@ const counts = ORDER.map((s) => {
 }).filter(Boolean)
 
 const html = `<!DOCTYPE html>
-<!-- FILE SINH TỰ ĐỘNG bởi scripts/superdesign-gallery.mjs — sửa metadata.json rồi chạy \`npm run design:gallery\`. -->
+<!-- FILE SINH TỰ ĐỘNG bởi scripts/superdesign-gallery.mjs — sửa metadata.json rồi chạy \`pnpm design:gallery\`. -->
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
