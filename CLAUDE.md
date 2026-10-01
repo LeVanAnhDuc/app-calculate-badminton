@@ -21,13 +21,18 @@ New screens and significant layout changes go through an HTML mockup in `superde
 
 `src/` is layer-based, adapted from the Ducker ID client's `.claude/rules/` for a Vite SPA:
 
-- `views/<Page>Page/` — one folder per page. `index.tsx` composes `mains/` (sections it renders directly); `components/` holds pieces used only inside that page. `App.tsx` keeps the shared state and switches pages.
+- Routing (React Router v8, data router): `router.tsx` holds the route table (`/`, `/history`, `/roster`, everything else redirects to `/`); `layouts/RootLayout` renders the Toaster, `PersistStore` and `<Outlet/>`. `App.tsx` only provides the store and the router, and `main.tsx` calls `captureCallback()` **before** mounting so the router never sees `?code=`.
+- `pages/<Name>Route/` — thin route components: read the store, wire `useNavigate`/`useGoBack`, render a view. `views/` and `components/` never import from `react-router` (only `router.tsx`, `layouts/`, `pages/` and `hooks/useGoBack` do), so view tests need no router.
+- Shared state lives in a Zustand store: `stores/index.ts` (`createAppStore`, a factory) + `stores/slices/{session,roster,history}.ts`, typed in `types/stores/`. `contexts/AppStoreProvider` creates one store per `<App/>` mount — never a module-level singleton, or tests and remounts leak state. Read it with `useAppStore(selector)`; `ghosts/PersistStore` mirrors it into localStorage.
+- `views/<Page>Page/` — one folder per page. `index.tsx` composes `mains/` (sections it renders directly); `components/` holds pieces used only inside that page; `hooks/` holds view-local state hooks.
 - `components/<Name>/index.tsx` — UI used by 2+ pages. One component per folder, arrow function, a single `export default` named after the folder, props typed inline (no `interface Props`). `components/Icons/` is the one exception: a family of SVG icons with named exports.
 - `hooks/useX.ts` (default export, re-exported from `hooks/index.ts`), `utils/` (pure functions), `libs/` (side effects: localStorage, canvas, sharing, OIDC), `requests/` (network), `constants/`, `types/<Domain>/index.ts` (every shared type — never `export type` from utils/libs/components).
 - Imports use the `@/` alias (relative only inside the same view), grouped in this order with a comment per group: `// libs`, `// types` (all `import type`, enforced by `verbatimModuleSyntax`), `// components`, `// hooks`, `// requests`, `// others`.
 - Tests stay colocated (`index.test.tsx` next to the component). Run `pnpm format` (Prettier, Ducker ID config) before committing.
 
-Not adopted from Ducker ID: effects-in-ghost-components, the 200-line view limit, one-JSX-return-per-component, and the merged `CONSTANTS` object.
+GitHub Pages has no SPA fallback, so `pnpm build` copies `dist/index.html` to `dist/404.html` (`scripts/spa-fallback.cjs`); the router basename is Vite's `BASE_URL` **with** its trailing slash.
+
+Not adopted from Ducker ID: moving every effect into a ghost (only the persistence effect lives in `ghosts/`), the 200-line view limit, one-JSX-return-per-component, and the merged `CONSTANTS` object.
 
 ## Commit convention (REQUIRED — releases depend on it)
 

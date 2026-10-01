@@ -29,7 +29,8 @@ test("code hợp lệ trả về verifier đã cất và dọn sạch URL", () =
 
   expect(consumeCallback()).toEqual({
     code: "auth-code-1",
-    verifier: "verifier-abc"
+    verifier: "verifier-abc",
+    returnTo: "/"
   });
   // URL phải sạch — nếu còn ?code= thì một lần F5 sẽ đem code đã tiêu đi đổi lại
   expect(window.location.search).toBe("");

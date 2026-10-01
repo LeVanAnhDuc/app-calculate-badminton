@@ -15,6 +15,8 @@ export interface CallbackResult {
   code?: string;
   verifier?: string;
   error?: string;
+  /** pathname + search lúc bấm đăng nhập, chỉ có khi callback hợp lệ. */
+  returnTo?: string;
 }
 
 export type AuthStatus = "idle" | "loading" | "signed-in" | "signed-out";

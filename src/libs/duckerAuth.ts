@@ -129,5 +129,30 @@ export function consumeCallback(): CallbackResult | null {
   // vứt, đây chính là lớp chống CSRF của OAuth.
   if (!pending || pending.state !== state) return { error: "state_mismatch" };
 
-  return { code: code ?? undefined, verifier: pending.verifier };
+  return {
+    code: code ?? undefined,
+    verifier: pending.verifier,
+    returnTo: pending.returnTo
+  };
+}
+
+let captured: CallbackResult | null = null;
+
+/**
+ * Gọi MỘT lần trong main.tsx, trước khi tạo router.
+ *
+ * consumeCallback() sửa URL bằng replaceState — router tạo sau đó mới đọc được
+ * URL đã sạch. Đồng thời đưa người dùng về đúng trang lúc bấm "Đăng nhập":
+ * redirect_uri luôn là gốc app nên không thể tự quay về /history hay /roster.
+ */
+export function captureCallback(): void {
+  captured = consumeCallback();
+  if (captured?.returnTo) {
+    window.history.replaceState(null, "", captured.returnTo);
+  }
+}
+
+/** Callback đã bắt ở lúc khởi động, hoặc null nếu lần mở này không phải callback. */
+export function capturedCallback(): CallbackResult | null {
+  return captured;
 }

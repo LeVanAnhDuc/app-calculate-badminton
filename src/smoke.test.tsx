@@ -11,7 +11,11 @@ import {
 import App from "@/App";
 import { loadHistory } from "@/libs/storage";
 
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  localStorage.clear();
+  // the router reads the URL when App mounts — start every test on "/"
+  window.history.replaceState(null, "", "/");
+});
 
 /**
  * Names of the session's players, in list order. Scoped to the "Người chơi"
@@ -564,7 +568,7 @@ test("opening history pushes browser state; the in-app ← button navigates back
   );
 });
 
-test("browser back button (popstate) closes the history page", () => {
+test("browser back button closes the history page", async () => {
   render(<App />);
   fireEvent.click(
     screen.getByRole("button", { name: "Xem lịch sử các buổi →" })
@@ -573,10 +577,14 @@ test("browser back button (popstate) closes the history page", () => {
     screen.getByRole("heading", { name: "Lịch sử các buổi" })
   ).toBeInTheDocument();
 
-  fireEvent(window, new PopStateEvent("popstate"));
-  expect(
-    screen.queryByRole("heading", { name: "Lịch sử các buổi" })
-  ).not.toBeInTheDocument();
+  // a real history step: the router reads the URL, so a bare PopStateEvent
+  // without a location change would not move it
+  act(() => window.history.back());
+  await waitFor(() =>
+    expect(
+      screen.queryByRole("heading", { name: "Lịch sử các buổi" })
+    ).not.toBeInTheDocument()
+  );
 });
 
 test("deleting a roster entry toasts an undo that puts it back at its old index", async () => {
@@ -621,15 +629,73 @@ test("opening the roster pushes browser state; the in-app ← button navigates b
   );
 });
 
-test("browser back button (popstate) closes the roster page", () => {
+test("browser back button closes the roster page", async () => {
   render(<App />);
   fireEvent.click(screen.getByRole("button", { name: "Danh bạ người chơi →" }));
   expect(
     screen.getByRole("heading", { name: "Danh bạ người chơi" })
   ).toBeInTheDocument();
 
-  fireEvent(window, new PopStateEvent("popstate"));
+  // a real history step: the router reads the URL, so a bare PopStateEvent
+  // without a location change would not move it
+  act(() => window.history.back());
+  await waitFor(() =>
+    expect(
+      screen.queryByRole("heading", { name: "Danh bạ người chơi" })
+    ).not.toBeInTheDocument()
+  );
+});
+
+test("each page has its own URL", () => {
+  render(<App />);
+  fireEvent.click(
+    screen.getByRole("button", { name: "Xem lịch sử các buổi →" })
+  );
+  expect(window.location.pathname).toBe("/history");
+});
+
+test("opening /history directly renders it, and ← lands on the calculator instead of leaving the app", async () => {
+  window.history.replaceState(null, "", "/history");
+  render(<App />);
   expect(
-    screen.queryByRole("heading", { name: "Danh bạ người chơi" })
-  ).not.toBeInTheDocument();
+    screen.getByRole("heading", { name: "Lịch sử các buổi" })
+  ).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "Quay lại" }));
+  expect(
+    await screen.findByRole("heading", { name: "🏸 Tính tiền cầu lông" })
+  ).toBeInTheDocument();
+  expect(window.location.pathname).toBe("/");
+});
+
+test("an unknown path falls back to the calculator", () => {
+  window.history.replaceState(null, "", "/khong-ton-tai");
+  render(<App />);
+  expect(
+    screen.getByRole("heading", { name: "🏸 Tính tiền cầu lông" })
+  ).toBeInTheDocument();
+  expect(window.location.pathname).toBe("/");
+});
+
+test("reusing a saved session returns to the calculator with its players", async () => {
+  render(<App />);
+  addPlayer("An");
+  addPlayer("Bình");
+  fireEvent.change(screen.getByLabelText("Tiền sân"), {
+    target: { value: "100000" }
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Lưu buổi này" }));
+  fireEvent.click(screen.getByRole("button", { name: "Buổi mới" }));
+  expect(playerNames()).toEqual([]);
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Xem lịch sử các buổi →" })
+  );
+  fireEvent.click(screen.getByRole("button", { name: /2 người/ }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Dùng lại danh sách này cho buổi mới" })
+  );
+
+  await waitFor(() => expect(playerNames()).toEqual(["An", "Bình"]));
+  expect(window.location.pathname).toBe("/");
 });

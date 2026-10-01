@@ -81,6 +81,11 @@ owes. No server, no sign-in — your data stays on your own device.
   - Add it to the home screen and open it like an app, without going through a browser
   - Fully usable with no connection — which suits a court with weak signal
 
+- **A link for every page**
+  - History and Contacts have their own address (`/history`, `/roster`): refreshing keeps you on the page, and a link opens straight onto it
+  - The phone's Back button moves between pages as expected; opening a page from a link and pressing ← lands on the calculator instead of leaving the app
+  - Signing in brings you back to the page you started from
+
 - **No server, and sign-in is optional**
   - All data lives in localStorage on your own device — nothing is uploaded, signed in or not
   - Share the app's link with friends and everyone uses their own copy
@@ -96,8 +101,9 @@ owes. No server, no sign-in — your data stays on your own device.
 
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
+- **Routing & state**: React Router (data router), Zustand
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (453 test cases)
+- **Testing**: Vitest + React Testing Library (457 test cases)
 - **Build & Deploy**: Vite, works on static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Running
@@ -127,7 +133,14 @@ Layer-based, following the conventions of the Ducker ID client:
 
 ```
 src/
-├── App.tsx            # Top-level state and switching between the three pages
+├── main.tsx           # Reads the Ducker ID callback, then mounts <App/>
+├── App.tsx            # Store provider + router, nothing else
+├── router.tsx         # Route table: / · /history · /roster
+├── layouts/RootLayout/  # Toaster, motion config, scroll restoration, <Outlet/>
+├── pages/             # Thin routes: read the store, wire navigation, render a view
+├── stores/            # Zustand store (session, roster, history slices)
+├── contexts/          # AppStoreProvider — one store per <App/> mount
+├── ghosts/            # Render-nothing effects (PersistStore → localStorage)
 ├── views/             # One folder per page: index.tsx + mains/ + components/
 │   ├── CalculatorPage/  # Cost form, player list, result panel
 │   ├── HistoryPage/     # Saved sessions, paid tracking, reuse
