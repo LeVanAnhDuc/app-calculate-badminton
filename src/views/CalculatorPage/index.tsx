@@ -32,7 +32,8 @@ const CalculatorPage = ({
   onSave,
   onNewSession,
   onOpenHistory,
-  onOpenRoster
+  onOpenRoster,
+  onOpenAccount
 }: {
   session: SessionInput;
   roster: RosterEntry[];
@@ -50,6 +51,7 @@ const CalculatorPage = ({
   onNewSession: () => void;
   onOpenHistory: () => void;
   onOpenRoster: () => void;
+  onOpenAccount: () => void;
 }) => (
   <div className="min-h-dvh bg-gray-100">
     {/* pb gộp 2rem + safe-area để nút cuối trang không nằm dưới vạch home
@@ -57,8 +59,8 @@ const CalculatorPage = ({
             padding-bottom trên cùng element sẽ đè nhau theo thứ tự CSS */}
     <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-gray-50 pb-[calc(2rem+env(safe-area-inset-bottom))] md:max-w-none md:bg-gray-100 md:pb-0">
       <header className="rounded-b-3xl bg-emerald-600 px-4 pt-8 pb-6 md:rounded-none md:px-0 md:py-5">
-        <div className="md:mx-auto md:flex md:max-w-5xl md:items-center md:justify-between md:px-6">
-          <div>
+        <div className="flex items-start justify-between gap-3 md:mx-auto md:max-w-5xl md:items-center md:px-6">
+          <div className="min-w-0">
             <h1 className="text-2xl font-bold text-white">
               🏸 Tính tiền cầu lông
             </h1>
@@ -66,22 +68,23 @@ const CalculatorPage = ({
               Chia tiền nhanh sau buổi chơi
             </p>
           </div>
-          <div className="hidden md:flex md:items-center md:gap-2">
+          <div className="flex shrink-0 items-center gap-2">
+            {/* mobile reaches these through the links under the result panel */}
             <button
               type="button"
               onClick={onOpenHistory}
-              className="h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white"
+              className="hidden h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white md:block"
             >
               Lịch sử các buổi
             </button>
             <button
               type="button"
               onClick={onOpenRoster}
-              className="h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white"
+              className="hidden h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white md:block"
             >
               Danh bạ
             </button>
-            <AccountButton />
+            <AccountButton onOpenAccount={onOpenAccount} />
           </div>
         </div>
       </header>

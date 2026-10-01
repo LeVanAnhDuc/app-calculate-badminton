@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+  Popover tài khoản — Desktop.
+  Header desktop giữ hàng nút "Lịch sử các buổi" · "Danh bạ"; nút tài khoản
+  là chip avatar + tên (tên dài thì cắt). Popover neo dưới chip, mép phải
+  thẳng mép phải chip.
+-->
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tính tiền cầu lông — Popover tài khoản (desktop)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+</style>
+</head>
+<body class="bg-gray-100 min-h-dvh">
+
+<div class="w-full bg-gray-100 min-h-dvh">
+
+  <header class="bg-emerald-600 py-5">
+    <div class="max-w-5xl mx-auto px-6 flex items-center justify-between">
+      <div>
+        <h1 class="text-white text-2xl font-bold">🏸 Tính tiền cầu lông</h1>
+        <p class="text-emerald-100 text-sm mt-1">Chia tiền nhanh sau buổi chơi</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" class="h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold">Lịch sử các buổi</button>
+        <button type="button" class="h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold">Danh bạ</button>
+
+        <div class="relative">
+          <button type="button" aria-haspopup="menu" aria-expanded="true"
+                  class="h-11 pl-1.5 pr-3 rounded-xl bg-emerald-700 text-white text-sm font-semibold flex items-center gap-2 ring-2 ring-white">
+            <span class="h-8 w-8 rounded-full bg-emerald-600 text-xs flex items-center justify-center">LĐ</span>
+            <span class="max-w-32 truncate">Lê Văn Anh Đức</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-100 rotate-180" aria-hidden="true">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+
+          <div role="menu" aria-label="Tài khoản"
+               class="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-72 rounded-2xl bg-white shadow-lg border border-gray-100 overflow-hidden text-left">
+            <div class="flex items-center gap-3 p-4">
+              <span class="h-10 w-10 shrink-0 rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold flex items-center justify-center">LĐ</span>
+              <div class="min-w-0">
+                <p class="font-semibold text-gray-900 truncate">Lê Văn Anh Đức</p>
+                <p class="text-sm text-gray-500 truncate">levananhduc@ducker.vn</p>
+              </div>
+            </div>
+            <div class="border-t border-gray-100 p-1.5">
+              <a role="menuitem" href="account_page_1.html"
+                 class="h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-medium text-gray-900 bg-gray-100">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500" aria-hidden="true">
+                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+                </svg>
+                <span class="flex-1">Thông tin tài khoản</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300" aria-hidden="true">
+                  <path d="m9 18 6-6-6-6"/>
+                </svg>
+              </a>
+              <button role="menuitem" type="button"
+                      class="w-full h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-medium text-red-500 hover:bg-red-50">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>
+                </svg>
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN — lưới 5 cột của màn chính, chỉ để làm nền (mục "Thông tin tài khoản" đang hover) -->
+  <main class="max-w-5xl mx-auto px-6 py-6 grid grid-cols-5 gap-6 items-start opacity-60">
+    <div class="col-span-3 space-y-4">
+      <section class="bg-white rounded-2xl shadow-sm p-4">
+        <h2 class="text-sm font-semibold text-gray-900 mb-3">Chi phí</h2>
+        <div class="flex justify-between text-sm"><span class="text-gray-500">Tiền sân</span><span class="font-semibold text-gray-900">200.000đ</span></div>
+        <div class="flex justify-between text-sm mt-2"><span class="text-gray-500">Tiền cầu</span><span class="font-semibold text-gray-900">150.000đ</span></div>
+      </section>
+      <section class="bg-white rounded-2xl shadow-sm p-4">
+        <h2 class="text-sm font-semibold text-gray-900 mb-3">Người chơi</h2>
+        <p class="text-sm text-gray-500">Tuấn · Hùng · Minh · Lan · Hoa</p>
+      </section>
+    </div>
+    <div class="col-span-2">
+      <section class="bg-white rounded-2xl shadow-sm p-4 border-2 border-emerald-100">
+        <h2 class="text-sm font-semibold text-gray-900 mb-3">Kết quả</h2>
+        <div class="flex justify-between text-sm"><span class="text-gray-900">Tuấn</span><span class="font-bold">79.000đ</span></div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

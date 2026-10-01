@@ -1,7 +1,8 @@
 export const ROUTES = {
   CALCULATOR: "/",
   HISTORY: "/history",
-  ROSTER: "/roster"
+  ROSTER: "/roster",
+  ACCOUNT: "/account"
 } as const;
 
 // Vite's BASE_URL as is — "/" locally, "/app-calculate-badminton/" on GitHub

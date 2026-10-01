@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate } from "react-router";
 import type { RouteObject } from "react-router";
 // components
 import RootLayout from "@/layouts/RootLayout";
+import AccountRoute from "@/pages/AccountRoute";
 import CalculatorRoute from "@/pages/CalculatorRoute";
 import HistoryRoute from "@/pages/HistoryRoute";
 import RosterRoute from "@/pages/RosterRoute";
@@ -17,6 +18,7 @@ export const routes: RouteObject[] = [
       { path: ROUTES.CALCULATOR, element: <CalculatorRoute /> },
       { path: ROUTES.HISTORY, element: <HistoryRoute /> },
       { path: ROUTES.ROSTER, element: <RosterRoute /> },
+      { path: ROUTES.ACCOUNT, element: <AccountRoute /> },
       { path: "*", element: <Navigate to={ROUTES.CALCULATOR} replace /> }
     ]
   }

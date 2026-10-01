@@ -18,18 +18,29 @@ import { capturedCallback, isConfigured, startLogin } from "@/libs/duckerAuth";
  * `undefined` = chưa bắt đầu, `null` = lần mở này không có gì để đổi.
  */
 let login: Promise<DuckerProfile> | null | undefined;
+// profile đã đổi xong — mount sau đọc thẳng, không nháy trạng thái "loading"
+let resolved: DuckerProfile | null = null;
 
 function pendingLogin(): Promise<DuckerProfile> | null {
   if (login === undefined) {
     const callback = capturedCallback();
     login =
       callback && !callback.error && callback.code && callback.verifier
-        ? exchangeCode(callback.code, callback.verifier).then((tokens) =>
-            fetchProfile(tokens.accessToken)
-          )
+        ? exchangeCode(callback.code, callback.verifier)
+            .then((tokens) => fetchProfile(tokens.accessToken))
+            .then((me) => {
+              resolved = me;
+              return me;
+            })
         : null;
   }
   return login;
+}
+
+function initialStatus(): AuthStatus {
+  if (!isConfigured()) return "signed-out";
+  if (resolved) return "signed-in";
+  return pendingLogin() ? "loading" : "signed-out";
 }
 
 /**
@@ -45,19 +56,17 @@ const useDuckerAuth = (): {
   signIn: () => void;
   signOut: () => void;
 } => {
-  const [status, setStatus] = useState<AuthStatus>("idle");
-  const [profile, setProfile] = useState<DuckerProfile | null>(null);
+  // decided on the first render, so a signed-out header never flashes a
+  // spinner and a remount after sign-in shows the name straight away
+  const [status, setStatus] = useState<AuthStatus>(initialStatus);
+  const [profile, setProfile] = useState<DuckerProfile | null>(() => resolved);
 
   useEffect(() => {
-    const pending = isConfigured() ? pendingLogin() : null;
-
-    if (!pending) {
-      setStatus("signed-out");
-      return;
-    }
+    if (status !== "loading") return;
+    const pending = pendingLogin();
+    if (!pending) return;
 
     let cancelled = false;
-    setStatus("loading");
 
     pending
       .then((me) => {
@@ -73,6 +82,7 @@ const useDuckerAuth = (): {
     return () => {
       cancelled = true;
     };
+    // runs for the first render only: later status changes come from here
   }, []);
 
   const signIn = useCallback(() => {
@@ -84,6 +94,7 @@ const useDuckerAuth = (): {
     // riêng badminton — quên profile trong bộ nhớ là đủ để đăng xuất khỏi app
     // này. Phiên ở Ducker ID vẫn còn, đó là đúng ý nghĩa của SSO.
     login = null;
+    resolved = null;
     setProfile(null);
     setStatus("signed-out");
   }, []);

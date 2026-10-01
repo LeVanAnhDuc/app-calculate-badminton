@@ -75,6 +75,7 @@ const CalculatorRoute = () => {
       onNewSession={newSession}
       onOpenHistory={() => navigate(ROUTES.HISTORY)}
       onOpenRoster={() => navigate(ROUTES.ROSTER)}
+      onOpenAccount={() => navigate(ROUTES.ACCOUNT)}
     />
   );
 };

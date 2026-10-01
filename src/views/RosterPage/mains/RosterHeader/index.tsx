@@ -25,7 +25,7 @@ const RosterHeader = ({
         type="button"
         aria-label="Quay lại"
         onClick={onBack}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white"
       >
         <ArrowLeftIcon />
       </button>

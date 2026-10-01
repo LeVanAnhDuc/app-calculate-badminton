@@ -38,3 +38,8 @@ export function caretPositionForDigitCount(
   }
   return formatted.length;
 }
+
+/** "6705a1f3e8b2c41d9a7c9f2e" → "6705a1f3…7c9f2e"; id ngắn thì giữ nguyên. */
+export function shortenId(id: string): string {
+  return id.length > 16 ? `${id.slice(0, 8)}…${id.slice(-6)}` : id;
+}

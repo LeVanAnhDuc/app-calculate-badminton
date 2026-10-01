@@ -82,7 +82,7 @@ owes. No server, no sign-in — your data stays on your own device.
   - Fully usable with no connection — which suits a court with weak signal
 
 - **A link for every page**
-  - History and Contacts have their own address (`/history`, `/roster`): refreshing keeps you on the page, and a link opens straight onto it
+  - History, Contacts and the account page have their own address (`/history`, `/roster`, `/account`): refreshing keeps you on the page, and a link opens straight onto it
   - The phone's Back button moves between pages as expected; opening a page from a link and pressing ← lands on the calculator instead of leaving the app
   - Signing in brings you back to the page you started from
 
@@ -96,6 +96,8 @@ owes. No server, no sign-in — your data stays on your own device.
   - Registered as a public client, so the app holds no client secret: a browser cannot keep one, and PKCE protects the exchange instead
   - Already signed in at Ducker ID means two redirects and you are back, with no screen in between
   - Works offline and signed out; losing the session never blocks the calculator
+  - The account button sits in the header on phones too; tapping it opens a menu instead of signing you out on the spot
+  - An account page (`/account`) shows your Ducker ID profile and account ID (one tap to copy) and links to Ducker ID to change your name, picture or password
 
 ## Tech Stack
 
@@ -103,7 +105,7 @@ owes. No server, no sign-in — your data stays on your own device.
 - **Styling**: Tailwind CSS v4
 - **Routing & state**: React Router (data router), Zustand
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (457 test cases)
+- **Testing**: Vitest + React Testing Library (473 test cases)
 - **Build & Deploy**: Vite, works on static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Running

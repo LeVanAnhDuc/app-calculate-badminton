@@ -3,7 +3,8 @@ import {
   formatNumber,
   formatVND,
   parseMoney,
-  parseRatio
+  parseRatio,
+  shortenId
 } from "@/utils/format";
 
 test("formatNumber groups thousands with dots", () => {
@@ -50,4 +51,9 @@ test("parseRatio trả null với hệ số không dương", () => {
   expect(parseRatio("0,0")).toBeNull();
   // dấu trừ bị loại như parseMoney nên '-1' đọc thành 1, không phải số âm
   expect(parseRatio("-1")).toBe(1);
+});
+
+test("shortenId keeps both ends of a long id and leaves short ones alone", () => {
+  expect(shortenId("6705a1f3e8b2c41d9a7c9f2e")).toBe("6705a1f3…7c9f2e");
+  expect(shortenId("abc123")).toBe("abc123");
 });

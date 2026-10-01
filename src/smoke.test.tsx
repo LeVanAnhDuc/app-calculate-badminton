@@ -699,3 +699,13 @@ test("reusing a saved session returns to the calculator with its players", async
   await waitFor(() => expect(playerNames()).toEqual(["An", "Bình"]));
   expect(window.location.pathname).toBe("/");
 });
+
+test("the account page needs a signed-in user — signed out it falls back to the calculator", async () => {
+  window.history.replaceState(null, "", "/account");
+  render(<App />);
+
+  expect(
+    await screen.findByRole("heading", { name: "🏸 Tính tiền cầu lông" })
+  ).toBeInTheDocument();
+  expect(window.location.pathname).toBe("/");
+});
