@@ -1,14 +1,14 @@
 export function formatNumber(n: number): string {
-  return new Intl.NumberFormat('vi-VN').format(Math.round(n))
+  return new Intl.NumberFormat("vi-VN").format(Math.round(n));
 }
 
 export function formatVND(n: number): string {
-  return `${formatNumber(n)}đ`
+  return `${formatNumber(n)}đ`;
 }
 
 export function parseMoney(s: string): number {
-  const digits = s.replace(/\D/g, '')
-  return digits ? Number(digits) : 0
+  const digits = s.replace(/\D/g, "");
+  return digits ? Number(digits) : 0;
 }
 
 /**
@@ -17,8 +17,8 @@ export function parseMoney(s: string): number {
  * hợp lệ (rỗng, `1,`, `abc`, `1,5,5`, `0`) để nơi gọi biết mà chưa cập nhật.
  */
 export function parseRatio(s: string): number | null {
-  const cleaned = s.replace(/,/g, '.').replace(/[^\d.]/g, '')
-  if (!/^(\d+(\.\d+)?|\.\d+)$/.test(cleaned)) return null
-  const n = Number(cleaned)
-  return n > 0 ? n : null
+  const cleaned = s.replace(/,/g, ".").replace(/[^\d.]/g, "");
+  if (!/^(\d+(\.\d+)?|\.\d+)$/.test(cleaned)) return null;
+  const n = Number(cleaned);
+  return n > 0 ? n : null;
 }

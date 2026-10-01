@@ -1,15 +1,15 @@
-import { useState } from 'react'
-import { Drawer } from 'vaul'
-import type { Player } from '../lib/types'
-import { GenderBadge } from './GenderBadge'
-import { CheckIcon } from './icons'
+import { useState } from "react";
+import { Drawer } from "vaul";
+import type { Player } from "../lib/types";
+import { GenderBadge } from "./GenderBadge";
+import { CheckIcon } from "./icons";
 
 interface Props {
-  players: Player[]
-  value: string[] // = extra.playerIds
-  onChange: (playerIds: string[]) => void
-  'aria-label': string
-  className?: string
+  players: Player[];
+  value: string[]; // = extra.playerIds
+  onChange: (playerIds: string[]) => void;
+  "aria-label": string;
+  className?: string;
 }
 
 /**
@@ -20,13 +20,13 @@ interface Props {
 export function payerSummary(
   players: Player[],
   value: string[],
-  emptyLabel = 'Chọn người trả',
+  emptyLabel = "Chọn người trả"
 ): string {
-  const chosen = players.filter((p) => value.includes(p.id))
-  if (chosen.length === 0) return emptyLabel
-  if (chosen.length === players.length) return 'Cả nhóm'
-  if (chosen.length === 1) return chosen[0].name
-  return `${chosen[0].name} +${chosen.length - 1}`
+  const chosen = players.filter((p) => value.includes(p.id));
+  if (chosen.length === 0) return emptyLabel;
+  if (chosen.length === players.length) return "Cả nhóm";
+  if (chosen.length === 1) return chosen[0].name;
+  return `${chosen[0].name} +${chosen.length - 1}`;
 }
 
 /**
@@ -45,13 +45,14 @@ export function PayerSelect({
   players,
   value,
   onChange,
-  'aria-label': label,
-  className = '',
+  "aria-label": label,
+  className = ""
 }: Props) {
-  const [open, setOpen] = useState(false)
-  const allSelected = players.length > 0 && players.every((p) => value.includes(p.id))
-  const summary = payerSummary(players, value)
-  const isEmpty = players.filter((p) => value.includes(p.id)).length === 0
+  const [open, setOpen] = useState(false);
+  const allSelected =
+    players.length > 0 && players.every((p) => value.includes(p.id));
+  const summary = payerSummary(players, value);
+  const isEmpty = players.filter((p) => value.includes(p.id)).length === 0;
 
   return (
     <>
@@ -59,12 +60,12 @@ export function PayerSelect({
         type="button"
         aria-label={label}
         onClick={() => setOpen(true)}
-        className={`h-11 rounded-xl border border-gray-300 px-3 text-sm text-left flex items-center justify-between gap-1 ${
-          isEmpty ? 'text-gray-400' : 'text-gray-900'
+        className={`flex h-11 items-center justify-between gap-1 rounded-xl border border-gray-300 px-3 text-left text-sm ${
+          isEmpty ? "text-gray-400" : "text-gray-900"
         } ${className}`}
       >
         <span className="truncate">{summary}</span>
-        <span className="text-gray-400 shrink-0">▾</span>
+        <span className="shrink-0 text-gray-400">▾</span>
       </button>
 
       <Drawer.Root
@@ -72,79 +73,86 @@ export function PayerSelect({
         onOpenChange={(o: boolean) => {
           // drag-down / overlay tap / Esc all land here with o=false; the ticks
           // are already committed, so this only closes the sheet
-          if (!o) setOpen(false)
+          if (!o) setOpen(false);
         }}
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-[60] bg-black/40" />
-          <Drawer.Content className="fixed bottom-0 inset-x-0 z-[70] rounded-t-3xl bg-white outline-none">
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mt-3" />
-            <div className="max-w-lg mx-auto p-4 pb-6">
-              <Drawer.Title className="font-bold text-gray-900 mb-2 text-center">
+          <Drawer.Content className="fixed inset-x-0 bottom-0 z-[70] rounded-t-3xl bg-white outline-none">
+            <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-gray-300" />
+            <div className="mx-auto max-w-lg p-4 pb-6">
+              <Drawer.Title className="mb-2 text-center font-bold text-gray-900">
                 {label}
               </Drawer.Title>
               <Drawer.Description className="sr-only">
-                Chọn một hoặc nhiều người cùng chịu khoản này — số tiền chia đều theo đầu người
+                Chọn một hoặc nhiều người cùng chịu khoản này — số tiền chia đều
+                theo đầu người
               </Drawer.Description>
               {/* data-vaul-no-drag: scrolling a 12-player list must not drag the sheet down */}
               <div data-vaul-no-drag>
-                <div className="border-b border-gray-100 mb-2 pb-2">
+                <div className="mb-2 border-b border-gray-100 pb-2">
                   <button
                     type="button"
                     role="checkbox"
                     aria-checked={allSelected}
                     aria-label="Cả nhóm"
-                    onClick={() => onChange(allSelected ? [] : players.map((p) => p.id))}
-                    className={`w-full h-12 rounded-xl px-3 flex items-center justify-between gap-2 ${
-                      allSelected ? 'bg-emerald-50' : 'bg-gray-50'
+                    onClick={() =>
+                      onChange(allSelected ? [] : players.map((p) => p.id))
+                    }
+                    className={`flex h-12 w-full items-center justify-between gap-2 rounded-xl px-3 ${
+                      allSelected ? "bg-emerald-50" : "bg-gray-50"
                     }`}
                   >
                     <span className="font-semibold text-gray-900">
-                      Cả nhóm{' '}
-                      <span className="text-xs text-gray-400 font-normal">
+                      Cả nhóm{" "}
+                      <span className="text-xs font-normal text-gray-400">
                         {players.length} người
                       </span>
                     </span>
                     {allSelected && (
-                      <span className="text-emerald-600 shrink-0">
+                      <span className="shrink-0 text-emerald-600">
                         <CheckIcon size={18} />
                       </span>
                     )}
                   </button>
                 </div>
-                <div className="max-h-[50vh] overflow-y-auto space-y-1.5">
+                <div className="max-h-[50vh] space-y-1.5 overflow-y-auto">
                   {players.map((p) => {
-                    const checked = value.includes(p.id)
+                    const checked = value.includes(p.id);
                     return (
                       <button
                         key={p.id}
                         type="button"
                         role="checkbox"
                         aria-checked={checked}
-                        aria-label={`${p.name} · ${p.gender === 'male' ? 'Nam' : 'Nữ'}`}
+                        aria-label={`${p.name} · ${p.gender === "male" ? "Nam" : "Nữ"}`}
                         onClick={() =>
-                          onChange(checked ? value.filter((id) => id !== p.id) : [...value, p.id])
+                          onChange(
+                            checked
+                              ? value.filter((id) => id !== p.id)
+                              : [...value, p.id]
+                          )
                         }
-                        className={`w-full h-12 rounded-xl px-3 flex items-center gap-2 ${
-                          checked ? 'bg-emerald-50' : 'bg-gray-50'
+                        className={`flex h-12 w-full items-center gap-2 rounded-xl px-3 ${
+                          checked ? "bg-emerald-50" : "bg-gray-50"
                         }`}
                       >
                         <GenderBadge gender={p.gender} />
-                        <span className="text-gray-900 truncate">{p.name}</span>
+                        <span className="truncate text-gray-900">{p.name}</span>
                         {checked && (
-                          <span className="ml-auto text-emerald-600 shrink-0">
+                          <span className="ml-auto shrink-0 text-emerald-600">
                             <CheckIcon size={18} />
                           </span>
                         )}
                       </button>
-                    )
+                    );
                   })}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="w-full h-12 mt-4 rounded-xl bg-emerald-600 text-white text-base font-bold"
+                className="mt-4 h-12 w-full rounded-xl bg-emerald-600 text-base font-bold text-white"
               >
                 Xong
               </button>
@@ -153,5 +161,5 @@ export function PayerSelect({
         </Drawer.Portal>
       </Drawer.Root>
     </>
-  )
+  );
 }

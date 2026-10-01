@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
 /**
  * Chữ đóng vai icon (chữ cái trong avatar) canh giữa theo chiều cao chữ hoa.
@@ -17,5 +17,5 @@ import type { ReactNode } from 'react'
  * Phải là hộp khối vì transform không có tác dụng lên hộp inline.
  */
 export function CapCentred({ children }: { children: ReactNode }) {
-  return <span className="block -translate-y-[0.0625em]">{children}</span>
+  return <span className="block -translate-y-[0.0625em]">{children}</span>;
 }

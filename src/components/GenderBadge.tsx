@@ -1,14 +1,16 @@
-import type { Gender } from '../lib/types'
-import { CapCentred } from './CapCentred'
+import type { Gender } from "../lib/types";
+import { CapCentred } from "./CapCentred";
 
 export function GenderBadge({ gender }: { gender: Gender }) {
   return (
     <span
-      className={`w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
-        gender === 'male' ? 'bg-emerald-100 text-emerald-700' : 'bg-pink-100 text-pink-700'
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+        gender === "male"
+          ? "bg-emerald-100 text-emerald-700"
+          : "bg-pink-100 text-pink-700"
       }`}
     >
-      <CapCentred>{gender === 'male' ? 'N' : 'Nữ'}</CapCentred>
+      <CapCentred>{gender === "male" ? "N" : "Nữ"}</CapCentred>
     </span>
-  )
+  );
 }

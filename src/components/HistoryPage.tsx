@@ -1,16 +1,16 @@
-import { Fragment, useEffect, useState } from 'react'
-import { formatVND } from '../lib/format'
-import { paidCount } from '../lib/settlement'
-import type { SavedSession } from '../lib/storage'
-import { formatHours } from '../lib/time'
-import { durationHours } from '../lib/time'
-import { ArrowLeftIcon, TrashIcon } from './icons'
-import { PaidToggle } from './PaidToggle'
-import { payerSummary } from './PayerSelect'
-import { QRSheet } from './QRSheet'
-import { PaidSummaryLine, SurplusRow, TotalCollectedRow } from './ResultPanel'
-import { CopyTextButton, ShareImageButton } from './ShareButtons'
-import { SwipeToDelete } from './SwipeToDelete'
+import { Fragment, useEffect, useState } from "react";
+import { formatVND } from "../lib/format";
+import { paidCount } from "../lib/settlement";
+import type { SavedSession } from "../lib/storage";
+import { formatHours } from "../lib/time";
+import { durationHours } from "../lib/time";
+import { ArrowLeftIcon, TrashIcon } from "./icons";
+import { PaidToggle } from "./PaidToggle";
+import { payerSummary } from "./PayerSelect";
+import { QRSheet } from "./QRSheet";
+import { PaidSummaryLine, SurplusRow, TotalCollectedRow } from "./ResultPanel";
+import { CopyTextButton, ShareImageButton } from "./ShareButtons";
+import { SwipeToDelete } from "./SwipeToDelete";
 
 function QRIcon() {
   return (
@@ -38,85 +38,97 @@ function QRIcon() {
       <path d="M21 12v.01" />
       <path d="M12 21v-1" />
     </svg>
-  )
+  );
 }
 
 interface Props {
-  history: SavedSession[]
-  onBack: () => void
-  onDelete: (id: string) => void
-  onTogglePaid: (sessionId: string, playerId: string) => void
-  onReuse: (s: SavedSession) => void
+  history: SavedSession[];
+  onBack: () => void;
+  onDelete: (id: string) => void;
+  onTogglePaid: (sessionId: string, playerId: string) => void;
+  onReuse: (s: SavedSession) => void;
 }
 
 function sessionDate(iso: string): string {
-  return new Date(iso).toLocaleString('vi-VN', {
-    weekday: 'long',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return new Date(iso).toLocaleString("vi-VN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 function monthKey(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getFullYear()}-${d.getMonth()}`
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()}`;
 }
 
 function monthLabel(iso: string): string {
-  const d = new Date(iso)
-  return `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
+  const d = new Date(iso);
+  return `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`;
 }
 
-export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }: Props) {
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
-  const [qrTarget, setQrTarget] = useState<{ sessionId: string; playerId: string } | null>(null)
+export function HistoryPage({
+  history,
+  onBack,
+  onDelete,
+  onTogglePaid,
+  onReuse
+}: Props) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
+  const [qrTarget, setQrTarget] = useState<{
+    sessionId: string;
+    playerId: string;
+  } | null>(null);
 
   // cards never auto-expand; this only guards against a deleted card
   // staying "expanded" once it no longer exists in history
   useEffect(() => {
     if (expandedId !== null && !history.some((s) => s.id === expandedId)) {
-      setExpandedId(null)
+      setExpandedId(null);
     }
-  }, [history, expandedId])
+  }, [history, expandedId]);
 
-  const now = new Date()
+  const now = new Date();
   const thisMonth = history.filter((s) => {
-    const d = new Date(s.savedAt)
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-  }).length
+    const d = new Date(s.savedAt);
+    return (
+      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    );
+  }).length;
 
   return (
-    <div className="bg-gray-100 min-h-dvh flex justify-center">
+    <div className="flex min-h-dvh justify-center bg-gray-100">
       {/* pb gộp 2rem + safe-area: hai utility padding-bottom trên cùng element
           sẽ đè nhau theo thứ tự CSS nên gộp thành một class */}
-      <div className="w-full max-w-[430px] md:max-w-5xl bg-gray-50 min-h-dvh pb-[calc(2rem+env(safe-area-inset-bottom))]">
-        <header className="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl md:rounded-none">
-          <div className="flex items-center gap-3 md:max-w-5xl md:mx-auto">
+      <div className="min-h-dvh w-full max-w-[430px] bg-gray-50 pb-[calc(2rem+env(safe-area-inset-bottom))] md:max-w-5xl">
+        <header className="rounded-b-3xl bg-emerald-600 px-4 pt-8 pb-6 md:rounded-none">
+          <div className="flex items-center gap-3 md:mx-auto md:max-w-5xl">
             <button
               type="button"
               aria-label="Quay lại"
               onClick={onBack}
-              className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white"
             >
               <ArrowLeftIcon />
             </button>
             <div>
-              <h1 className="text-white text-xl font-bold">Lịch sử các buổi</h1>
-              <p className="text-emerald-100 text-sm">
+              <h1 className="text-xl font-bold text-white">Lịch sử các buổi</h1>
+              <p className="text-sm text-emerald-100">
                 {history.length} buổi đã lưu · tháng này: {thisMonth} buổi
               </p>
             </div>
           </div>
         </header>
 
-        <main className="px-4 mt-4 space-y-3 md:max-w-5xl md:mx-auto md:grid md:grid-cols-2 md:gap-3 md:space-y-0 md:items-start">
+        <main className="mt-4 space-y-3 px-4 md:mx-auto md:grid md:max-w-5xl md:grid-cols-2 md:items-start md:gap-3 md:space-y-0">
           {history.length === 0 && (
-            <p className="text-center text-sm text-gray-400 py-8 md:col-span-2">
-              Chưa có buổi nào được lưu — quay lại màn hình chính và bấm "Lưu buổi này".
+            <p className="py-8 text-center text-sm text-gray-400 md:col-span-2">
+              Chưa có buổi nào được lưu — quay lại màn hình chính và bấm "Lưu
+              buổi này".
             </p>
           )}
           {history.length > 0 && (
@@ -128,234 +140,308 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
             </p>
           )}
           {history.map((s, i) => {
-            const males = s.input.players.filter((p) => p.gender === 'male').length
-            const females = s.input.players.length - males
-            const unpaidPlayerCount = s.input.players.length - paidCount(s.input.players)
-            const expanded = expandedId === s.id
-            const showMonthHeader = i === 0 || monthKey(s.savedAt) !== monthKey(history[i - 1].savedAt)
+            const males = s.input.players.filter(
+              (p) => p.gender === "male"
+            ).length;
+            const females = s.input.players.length - males;
+            const unpaidPlayerCount =
+              s.input.players.length - paidCount(s.input.players);
+            const expanded = expandedId === s.id;
+            const showMonthHeader =
+              i === 0 ||
+              monthKey(s.savedAt) !== monthKey(history[i - 1].savedAt);
             return (
               <Fragment key={s.id}>
                 {showMonthHeader && (
-                  <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide mt-2 first:mt-0 md:col-span-2">
+                  <h2 className="mt-2 text-sm font-bold tracking-wide text-gray-500 uppercase first:mt-0 md:col-span-2">
                     {monthLabel(s.savedAt)}
                   </h2>
                 )}
-                <section className={expanded ? 'md:col-span-2' : ''}>
-                <SwipeToDelete
-                  testId={`history-swipe-row-${s.id}`}
-                  label={`Xóa nhanh buổi ${sessionDate(s.savedAt)}`}
-                  isOpen={openSwipeId === s.id}
-                  onOpenChange={(open) => setOpenSwipeId(open ? s.id : null)}
-                  onDelete={() => onDelete(s.id)}
-                  className="rounded-2xl"
-                  surfaceClassName={`bg-white rounded-2xl shadow-sm ${
-                    expanded ? 'border-2 border-emerald-200' : ''
-                  }`}
-                >
-                <button
-                  type="button"
-                  className="w-full p-4 flex items-center justify-between text-left"
-                  onClick={() => setExpandedId(expanded ? null : s.id)}
-                >
-                  <div>
-                    <h2 className="font-bold text-gray-900 text-sm">{sessionDate(s.savedAt)}</h2>
-                    <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-2">
-                      <span>
-                        {s.input.players.length} người · {males} nam, {females} nữ
-                      </span>
-                      {unpaidPlayerCount > 0 && (
-                        <span className="text-xs text-amber-600 bg-amber-50 rounded-full px-2 py-0.5">
-                          ⚠ {unpaidPlayerCount} chưa trả
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-base font-bold text-emerald-600">
-                      {formatVND(s.result.totalCost)}
-                    </div>
-                    <div className="text-xs text-gray-400">{expanded ? '▲ thu gọn' : '▼ chi tiết'}</div>
-                  </div>
-                </button>
-
-                {expanded && (
-                  <>
-                    <div className="border-t border-gray-100 p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <section className={expanded ? "md:col-span-2" : ""}>
+                  <SwipeToDelete
+                    testId={`history-swipe-row-${s.id}`}
+                    label={`Xóa nhanh buổi ${sessionDate(s.savedAt)}`}
+                    isOpen={openSwipeId === s.id}
+                    onOpenChange={(open) => setOpenSwipeId(open ? s.id : null)}
+                    onDelete={() => onDelete(s.id)}
+                    className="rounded-2xl"
+                    surfaceClassName={`bg-white rounded-2xl shadow-sm ${
+                      expanded ? "border-2 border-emerald-200" : ""
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between p-4 text-left"
+                      onClick={() => setExpandedId(expanded ? null : s.id)}
+                    >
                       <div>
-                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Chi phí</h3>
-                        <div className="space-y-1.5 text-sm">
-                          {s.input.shuttles
-                            .filter((l) => l.count > 0)
-                            .map((l) => (
-                              <div key={l.id} className="flex justify-between">
-                                <span className="text-gray-500">
-                                  {l.name.trim() || 'Tiền cầu'} ({l.count} quả ×{' '}
-                                  {formatVND(l.price)})
-                                </span>
+                        <h2 className="text-sm font-bold text-gray-900">
+                          {sessionDate(s.savedAt)}
+                        </h2>
+                        <p className="mt-0.5 flex items-center gap-2 text-sm text-gray-500">
+                          <span>
+                            {s.input.players.length} người · {males} nam,{" "}
+                            {females} nữ
+                          </span>
+                          {unpaidPlayerCount > 0 && (
+                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-600">
+                              ⚠ {unpaidPlayerCount} chưa trả
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-base font-bold text-emerald-600">
+                          {formatVND(s.result.totalCost)}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {expanded ? "▲ thu gọn" : "▼ chi tiết"}
+                        </div>
+                      </div>
+                    </button>
+
+                    {expanded && (
+                      <>
+                        <div className="grid grid-cols-1 gap-4 border-t border-gray-100 p-4 md:grid-cols-2">
+                          <div>
+                            <h3 className="mb-2 text-xs font-bold text-gray-400 uppercase">
+                              Chi phí
+                            </h3>
+                            <div className="space-y-1.5 text-sm">
+                              {s.input.shuttles
+                                .filter((l) => l.count > 0)
+                                .map((l) => (
+                                  <div
+                                    key={l.id}
+                                    className="flex justify-between"
+                                  >
+                                    <span className="text-gray-500">
+                                      {l.name.trim() || "Tiền cầu"} ({l.count}{" "}
+                                      quả × {formatVND(l.price)})
+                                    </span>
+                                    <span className="font-semibold text-gray-900">
+                                      {formatVND(l.count * l.price)}
+                                    </span>
+                                  </div>
+                                ))}
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Tiền sân</span>
                                 <span className="font-semibold text-gray-900">
-                                  {formatVND(l.count * l.price)}
+                                  {formatVND(s.input.courtFee)}
                                 </span>
                               </div>
-                            ))}
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Tiền sân</span>
-                            <span className="font-semibold text-gray-900">{formatVND(s.input.courtFee)}</span>
-                          </div>
-                          {s.input.extras.map((e) => (
-                            <div key={e.id} className="flex justify-between text-sm">
-                              {/* the amount on the right is the WHOLE `amount`,
+                              {s.input.extras.map((e) => (
+                                <div
+                                  key={e.id}
+                                  className="flex justify-between text-sm"
+                                >
+                                  {/* the amount on the right is the WHOLE `amount`,
                                   not one share — this is the "Chi phí" block */}
-                              <span className="text-gray-500">
-                                {e.label.trim() || 'Khoản khác'} ·{' '}
-                                {payerSummary(s.input.players, e.playerIds, '?')}
-                              </span>
-                              <span className="font-semibold text-gray-900">
-                                {formatVND(e.amount)}
-                              </span>
-                            </div>
-                          ))}
-                          {s.input.mode === 'hourly' && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Giờ thuê sân</span>
-                              <span className="font-semibold text-gray-900">
-                                {s.input.courtStart}–{s.input.courtEnd} (
-                                {formatHours(durationHours(s.input.courtStart, s.input.courtEnd))})
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Chế độ tính</span>
-                            <span className="font-semibold text-gray-900">
-                              {s.input.mode === 'ratio' ? 'Chia theo tỉ lệ' : 'Sân theo giờ'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Hệ số nam / nữ</span>
-                            <span className="font-semibold text-gray-900">
-                              {s.input.maleRatio} / {s.input.femaleRatio}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Làm tròn</span>
-                            <span className="font-semibold text-gray-900">
-                              {s.input.rounding === 'up1000' ? 'Tròn lên 1.000đ' : 'Giữ chính xác'}
-                            </span>
-                          </div>
-                          <TotalCollectedRow total={s.result.totalCollected} />
-                          <SurplusRow surplus={s.result.surplus} />
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Mỗi người trả</h3>
-                        <div className="mb-2">
-                          <PaidSummaryLine players={s.input.players} results={s.result.players} />
-                        </div>
-                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-sm">
-                          {s.result.players.map((p) => {
-                            const paid = s.input.players.find((pl) => pl.id === p.playerId)?.paid ?? false
-                            return (
-                              <li
-                                key={p.playerId}
-                                className={`flex justify-between items-center rounded-lg px-3 py-2 transition-colors duration-200 ${
-                                  paid ? 'bg-emerald-50' : 'bg-gray-50'
-                                }`}
-                              >
-                                <span className="flex items-center gap-2 text-gray-900">
-                                  <PaidToggle
-                                    paid={paid}
-                                    name={p.name}
-                                    onToggle={() => onTogglePaid(s.id, p.playerId)}
-                                  />
-                                  <span>
-                                    {p.name}{' '}
-                                    <span className="text-xs text-gray-400">
-                                      ({p.gender === 'male' ? 'Nam' : 'Nữ'}
-                                      {s.input.mode === 'ratio' && p.halfSession ? ' · ½ buổi' : ''}
-                                      {p.hours !== null ? ` · ${formatHours(p.hours)}` : ''}
-                                      {/* itemised extras get their own lines below, so
-                                          the suffix is kept only for v1.4.0 sessions */}
-                                      {p.extras.length === 0 && p.extrasTotal > 0
-                                        ? ` · +${formatVND(p.extrasTotal)} phát sinh`
-                                        : ''}
-                                      )
-                                    </span>
-                                    {p.extras.map((x, k) => (
-                                      <span key={k} className="text-xs text-gray-400 block pl-3">
-                                        · {x.label}
-                                        {x.sharedCount > 1 ? ` (chung, ${x.sharedCount} người)` : ''}{' '}
-                                        {formatVND(x.share)}
-                                      </span>
-                                    ))}
+                                  <span className="text-gray-500">
+                                    {e.label.trim() || "Khoản khác"} ·{" "}
+                                    {payerSummary(
+                                      s.input.players,
+                                      e.playerIds,
+                                      "?"
+                                    )}
                                   </span>
+                                  <span className="font-semibold text-gray-900">
+                                    {formatVND(e.amount)}
+                                  </span>
+                                </div>
+                              ))}
+                              {s.input.mode === "hourly" && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">
+                                    Giờ thuê sân
+                                  </span>
+                                  <span className="font-semibold text-gray-900">
+                                    {s.input.courtStart}–{s.input.courtEnd} (
+                                    {formatHours(
+                                      durationHours(
+                                        s.input.courtStart,
+                                        s.input.courtEnd
+                                      )
+                                    )}
+                                    )
+                                  </span>
+                                </div>
+                              )}
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">
+                                  Chế độ tính
                                 </span>
-                                <span className="flex items-center gap-2">
-                                  <button
-                                    type="button"
-                                    aria-label={`Mã QR cho ${p.name}`}
-                                    title={`Mã QR cho ${p.name}`}
-                                    onClick={() => setQrTarget({ sessionId: s.id, playerId: p.playerId })}
-                                    className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+                                <span className="font-semibold text-gray-900">
+                                  {s.input.mode === "ratio"
+                                    ? "Chia theo tỉ lệ"
+                                    : "Sân theo giờ"}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">
+                                  Hệ số nam / nữ
+                                </span>
+                                <span className="font-semibold text-gray-900">
+                                  {s.input.maleRatio} / {s.input.femaleRatio}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Làm tròn</span>
+                                <span className="font-semibold text-gray-900">
+                                  {s.input.rounding === "up1000"
+                                    ? "Tròn lên 1.000đ"
+                                    : "Giữ chính xác"}
+                                </span>
+                              </div>
+                              <TotalCollectedRow
+                                total={s.result.totalCollected}
+                              />
+                              <SurplusRow surplus={s.result.surplus} />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="mb-2 text-xs font-bold text-gray-400 uppercase">
+                              Mỗi người trả
+                            </h3>
+                            <div className="mb-2">
+                              <PaidSummaryLine
+                                players={s.input.players}
+                                results={s.result.players}
+                              />
+                            </div>
+                            <ul className="grid grid-cols-1 gap-1.5 text-sm md:grid-cols-2">
+                              {s.result.players.map((p) => {
+                                const paid =
+                                  s.input.players.find(
+                                    (pl) => pl.id === p.playerId
+                                  )?.paid ?? false;
+                                return (
+                                  <li
+                                    key={p.playerId}
+                                    className={`flex items-center justify-between rounded-lg px-3 py-2 transition-colors duration-200 ${
+                                      paid ? "bg-emerald-50" : "bg-gray-50"
+                                    }`}
                                   >
-                                    <QRIcon />
-                                  </button>
-                                  <span className="font-bold">{formatVND(p.amount)}</span>
-                                </span>
-                              </li>
-                            )
-                          })}
-                        </ul>
-                      </div>
-                    </div>
-                    <div className="border-t border-gray-100 p-4 space-y-2">
-                      <div className="flex gap-2">
-                        <ShareImageButton
-                          result={s.result}
-                          mode={s.input.mode}
-                          players={s.input.players}
-                          date={new Date(s.savedAt)}
-                          variant="wide"
-                        />
-                        <CopyTextButton
-                          result={s.result}
-                          mode={s.input.mode}
-                          players={s.input.players}
-                          date={new Date(s.savedAt)}
-                          variant="wide"
-                        />
-                      </div>
-                      <div className="space-y-2 md:space-y-0 md:flex md:gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onReuse(s)}
-                          className="w-full md:flex-1 h-12 rounded-xl bg-emerald-600 text-white text-sm font-semibold"
-                        >
-                          Dùng lại danh sách này cho buổi mới
-                        </button>
-                        {/* trên mobile thao tác xóa là vuốt trái cả thẻ, nên
+                                    <span className="flex items-center gap-2 text-gray-900">
+                                      <PaidToggle
+                                        paid={paid}
+                                        name={p.name}
+                                        onToggle={() =>
+                                          onTogglePaid(s.id, p.playerId)
+                                        }
+                                      />
+                                      <span>
+                                        {p.name}{" "}
+                                        <span className="text-xs text-gray-400">
+                                          ({p.gender === "male" ? "Nam" : "Nữ"}
+                                          {s.input.mode === "ratio" &&
+                                          p.halfSession
+                                            ? " · ½ buổi"
+                                            : ""}
+                                          {p.hours !== null
+                                            ? ` · ${formatHours(p.hours)}`
+                                            : ""}
+                                          {/* itemised extras get their own lines below, so
+                                          the suffix is kept only for v1.4.0 sessions */}
+                                          {p.extras.length === 0 &&
+                                          p.extrasTotal > 0
+                                            ? ` · +${formatVND(p.extrasTotal)} phát sinh`
+                                            : ""}
+                                          )
+                                        </span>
+                                        {p.extras.map((x, k) => (
+                                          <span
+                                            key={k}
+                                            className="block pl-3 text-xs text-gray-400"
+                                          >
+                                            · {x.label}
+                                            {x.sharedCount > 1
+                                              ? ` (chung, ${x.sharedCount} người)`
+                                              : ""}{" "}
+                                            {formatVND(x.share)}
+                                          </span>
+                                        ))}
+                                      </span>
+                                    </span>
+                                    <span className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        aria-label={`Mã QR cho ${p.name}`}
+                                        title={`Mã QR cho ${p.name}`}
+                                        onClick={() =>
+                                          setQrTarget({
+                                            sessionId: s.id,
+                                            playerId: p.playerId
+                                          })
+                                        }
+                                        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+                                      >
+                                        <QRIcon />
+                                      </button>
+                                      <span className="font-bold">
+                                        {formatVND(p.amount)}
+                                      </span>
+                                    </span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        </div>
+                        <div className="space-y-2 border-t border-gray-100 p-4">
+                          <div className="flex gap-2">
+                            <ShareImageButton
+                              result={s.result}
+                              mode={s.input.mode}
+                              players={s.input.players}
+                              date={new Date(s.savedAt)}
+                              variant="wide"
+                            />
+                            <CopyTextButton
+                              result={s.result}
+                              mode={s.input.mode}
+                              players={s.input.players}
+                              date={new Date(s.savedAt)}
+                              variant="wide"
+                            />
+                          </div>
+                          <div className="space-y-2 md:flex md:gap-2 md:space-y-0">
+                            <button
+                              type="button"
+                              onClick={() => onReuse(s)}
+                              className="h-12 w-full rounded-xl bg-emerald-600 text-sm font-semibold text-white md:flex-1"
+                            >
+                              Dùng lại danh sách này cho buổi mới
+                            </button>
+                            {/* trên mobile thao tác xóa là vuốt trái cả thẻ, nên
                             hàng nút không còn nút xóa nào */}
-                        <button
-                          type="button"
-                          onClick={() => onDelete(s.id)}
-                          className="hidden md:flex md:w-auto md:px-4 h-12 rounded-xl border border-red-200 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors text-sm font-semibold items-center justify-center gap-2"
-                        >
-                          <TrashIcon />
-                          Xóa buổi này
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-                </SwipeToDelete>
-              </section>
+                            <button
+                              type="button"
+                              onClick={() => onDelete(s.id)}
+                              className="hidden h-12 items-center justify-center gap-2 rounded-xl border border-red-200 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 md:flex md:w-auto md:px-4"
+                            >
+                              <TrashIcon />
+                              Xóa buổi này
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </SwipeToDelete>
+                </section>
               </Fragment>
-            )
+            );
           })}
           {(() => {
-            if (qrTarget === null) return null
-            const s = history.find((x) => x.id === qrTarget.sessionId)
-            const pr = s?.result.players.find((p) => p.playerId === qrTarget.playerId)
-            if (!s || !pr) return null
-            const paid = s.input.players.find((pl) => pl.id === pr.playerId)?.paid ?? false
+            if (qrTarget === null) return null;
+            const s = history.find((x) => x.id === qrTarget.sessionId);
+            const pr = s?.result.players.find(
+              (p) => p.playerId === qrTarget.playerId
+            );
+            if (!s || !pr) return null;
+            const paid =
+              s.input.players.find((pl) => pl.id === pr.playerId)?.paid ??
+              false;
             return (
               <QRSheet
                 open
@@ -366,9 +452,9 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
                 paid={paid}
                 onTogglePaid={() => onTogglePaid(s.id, pr.playerId)}
               />
-            )
+            );
           })()}
-          <p className="text-center text-xs text-gray-400 pt-3 md:col-span-2">
+          <p className="pt-3 text-center text-xs text-gray-400 md:col-span-2">
             Dữ liệu lưu trên máy của bạn (localStorage)
             <br />
             Tự động giữ tối đa 500 buổi gần nhất — buổi cũ hơn sẽ được xóa dần
@@ -376,5 +462,5 @@ export function HistoryPage({ history, onBack, onDelete, onTogglePaid, onReuse }
         </main>
       </div>
     </div>
-  )
+  );
 }

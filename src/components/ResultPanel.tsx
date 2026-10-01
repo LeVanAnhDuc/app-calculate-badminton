@@ -1,32 +1,44 @@
-import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { AnimatePresence, motion } from 'motion/react'
-import { formatNumber, formatVND } from '../lib/format'
-import { paidCount, unpaidAmount } from '../lib/settlement'
-import { formatHours } from '../lib/time'
-import type { CalcResult, Mode, Player, PlayerResult, SessionInput } from '../lib/types'
-import { EyeButton } from './EyeButton'
-import { CloseIcon } from './icons'
-import { PaidToggle } from './PaidToggle'
-import { QRSheet } from './QRSheet'
-import { CopyTextButton, ShareImageButton } from './ShareButtons'
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "motion/react";
+import { formatNumber, formatVND } from "../lib/format";
+import { paidCount, unpaidAmount } from "../lib/settlement";
+import { formatHours } from "../lib/time";
+import type {
+  CalcResult,
+  Mode,
+  Player,
+  PlayerResult,
+  SessionInput
+} from "../lib/types";
+import { EyeButton } from "./EyeButton";
+import { CloseIcon } from "./icons";
+import { PaidToggle } from "./PaidToggle";
+import { QRSheet } from "./QRSheet";
+import { CopyTextButton, ShareImageButton } from "./ShareButtons";
 
 interface HiddenAmountRowProps {
-  label: string
-  text: string
-  valueClassName: string
-  shownLabel: string
-  hiddenLabel: string
+  label: string;
+  text: string;
+  valueClassName: string;
+  shownLabel: string;
+  hiddenLabel: string;
 }
 
-function HiddenAmountRow({ label, text, valueClassName, shownLabel, hiddenLabel }: HiddenAmountRowProps) {
-  const [shown, setShown] = useState(false)
+function HiddenAmountRow({
+  label,
+  text,
+  valueClassName,
+  shownLabel,
+  hiddenLabel
+}: HiddenAmountRowProps) {
+  const [shown, setShown] = useState(false);
   return (
-    <div className="flex justify-between items-center text-sm">
+    <div className="flex items-center justify-between text-sm">
       <span className="text-gray-500">{label}</span>
       <span className="flex items-center gap-1">
         <span className={`font-semibold tracking-wider ${valueClassName}`}>
-          {shown ? text : '•••••'}
+          {shown ? text : "•••••"}
         </span>
         <EyeButton
           shown={shown}
@@ -36,12 +48,12 @@ function HiddenAmountRow({ label, text, valueClassName, shownLabel, hiddenLabel 
         />
       </span>
     </div>
-  )
+  );
 }
 
 export function SurplusRow({ surplus }: { surplus: number }) {
-  const sign = surplus >= 0 ? '+' : '−'
-  const colorClass = surplus >= 0 ? 'text-emerald-600' : 'text-red-500'
+  const sign = surplus >= 0 ? "+" : "−";
+  const colorClass = surplus >= 0 ? "text-emerald-600" : "text-red-500";
   return (
     <HiddenAmountRow
       label="Số dư (để dành mua cầu)"
@@ -50,7 +62,7 @@ export function SurplusRow({ surplus }: { surplus: number }) {
       shownLabel="Ẩn số dư"
       hiddenLabel="Hiện số dư"
     />
-  )
+  );
 }
 
 export function TotalCollectedRow({ total }: { total: number }) {
@@ -62,32 +74,32 @@ export function TotalCollectedRow({ total }: { total: number }) {
       shownLabel="Ẩn tổng thu"
       hiddenLabel="Hiện tổng thu"
     />
-  )
+  );
 }
 
 export function PaidSummaryLine({
   players,
-  results,
+  results
 }: {
-  players: Player[]
-  results: PlayerResult[]
+  players: Player[];
+  results: PlayerResult[];
 }) {
-  const [shown, setShown] = useState(false)
-  const n = players.length
-  const x = paidCount(players)
+  const [shown, setShown] = useState(false);
+  const n = players.length;
+  const x = paidCount(players);
   if (n > 0 && x === n) {
-    return <p className="text-sm text-emerald-600">✓ Đã thu đủ</p>
+    return <p className="text-sm text-emerald-600">✓ Đã thu đủ</p>;
   }
-  const unpaid = unpaidAmount(players, results)
+  const unpaid = unpaidAmount(players, results);
   // The count stays visible — it is not money, and hiding it would empty the
   // line of meaning. Only the amount is masked, like TotalCollectedRow above.
   // Kept as one inline sentence (no wrapper span around the whole text) so that
   // getByText(/còn thiếu/) still resolves to a single element.
   return (
     <p className="text-sm text-gray-500">
-      Đã thu {x}/{n} · còn thiếu{' '}
+      Đã thu {x}/{n} · còn thiếu{" "}
       <span className="font-semibold tracking-wider text-amber-600">
-        {shown ? formatVND(unpaid) : '•••••'}
+        {shown ? formatVND(unpaid) : "•••••"}
       </span>
       <span className="inline-flex align-middle">
         <EyeButton
@@ -98,7 +110,7 @@ export function PaidSummaryLine({
         />
       </span>
     </p>
-  )
+  );
 }
 
 function QRIcon() {
@@ -127,7 +139,7 @@ function QRIcon() {
       <path d="M21 12v.01" />
       <path d="M12 21v-1" />
     </svg>
-  )
+  );
 }
 
 function PlayerRow({
@@ -136,46 +148,53 @@ function PlayerRow({
   large,
   paid,
   onTogglePaid,
-  onShowQR,
+  onShowQR
 }: {
-  p: PlayerResult
-  mode: Mode
-  large?: boolean
-  paid: boolean
-  onTogglePaid: () => void
-  onShowQR: () => void
+  p: PlayerResult;
+  mode: Mode;
+  large?: boolean;
+  paid: boolean;
+  onTogglePaid: () => void;
+  onShowQR: () => void;
 }) {
   return (
     <li
-      className={`flex justify-between items-center rounded-xl px-3 py-2.5 transition-colors duration-200 ${
-        paid ? 'bg-emerald-50' : 'bg-gray-50'
+      className={`flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors duration-200 ${
+        paid ? "bg-emerald-50" : "bg-gray-50"
       }`}
     >
       <div>
-        <span className={`font-medium text-gray-900 block ${large ? 'text-lg' : ''}`}>
-          {p.name}{' '}
+        <span
+          className={`block font-medium text-gray-900 ${large ? "text-lg" : ""}`}
+        >
+          {p.name}{" "}
           <span className="text-xs text-gray-400">
-            ({p.gender === 'male' ? 'Nam' : 'Nữ'}
-            {mode === 'ratio' && p.halfSession ? ' · ½ buổi' : ''}
-            {mode === 'hourly' && p.hours !== null ? ` · ${formatHours(p.hours)}` : ''})
+            ({p.gender === "male" ? "Nam" : "Nữ"}
+            {mode === "ratio" && p.halfSession ? " · ½ buổi" : ""}
+            {mode === "hourly" && p.hours !== null
+              ? ` · ${formatHours(p.hours)}`
+              : ""}
+            )
           </span>
         </span>
-        {mode === 'hourly' && (
-          <span className="text-xs text-gray-400 block">
-            sân {formatNumber(p.courtShare)} + cầu {formatNumber(p.shuttleShare)}
+        {mode === "hourly" && (
+          <span className="block text-xs text-gray-400">
+            sân {formatNumber(p.courtShare)} + cầu{" "}
+            {formatNumber(p.shuttleShare)}
           </span>
         )}
         {/* extras listed one line each; a session saved by v1.4.0 has only the
             total, so it falls back to the single "+ phát sinh N" line */}
         {p.extras.length > 0 ? (
           p.extras.map((x, i) => (
-            <span key={i} className="text-xs text-amber-600 block pl-3">
+            <span key={i} className="block pl-3 text-xs text-amber-600">
               · {x.label}
-              {x.sharedCount > 1 ? ` (chung, ${x.sharedCount} người)` : ''} {formatNumber(x.share)}
+              {x.sharedCount > 1 ? ` (chung, ${x.sharedCount} người)` : ""}{" "}
+              {formatNumber(x.share)}
             </span>
           ))
         ) : p.extrasTotal > 0 ? (
-          <span className="text-xs text-amber-600 block">
+          <span className="block text-xs text-amber-600">
             + phát sinh {formatNumber(p.extrasTotal)}
           </span>
         ) : null}
@@ -186,15 +205,17 @@ function PlayerRow({
           aria-label={`Mã QR cho ${p.name}`}
           title={`Mã QR cho ${p.name}`}
           onClick={onShowQR}
-          className="w-11 h-11 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
         >
           <QRIcon />
         </button>
         <PaidToggle paid={paid} name={p.name} onToggle={onTogglePaid} />
-        <span className={`font-bold text-gray-900 ${large ? 'text-xl' : ''}`}>{formatVND(p.amount)}</span>
+        <span className={`font-bold text-gray-900 ${large ? "text-xl" : ""}`}>
+          {formatVND(p.amount)}
+        </span>
       </div>
     </li>
-  )
+  );
 }
 
 function MaximizeIcon() {
@@ -215,7 +236,7 @@ function MaximizeIcon() {
       <path d="M3 16v3a2 2 0 0 0 2 2h3" />
       <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
     </svg>
-  )
+  );
 }
 
 function FullscreenResult({
@@ -225,23 +246,23 @@ function FullscreenResult({
   onTogglePaid,
   onShowQR,
   onClose,
-  escDisabled,
+  escDisabled
 }: {
-  result: CalcResult
-  mode: Mode
-  players: Player[]
-  onTogglePaid: (playerId: string) => void
-  onShowQR: (playerId: string) => void
-  onClose: () => void
-  escDisabled: boolean
+  result: CalcResult;
+  mode: Mode;
+  players: Player[];
+  onTogglePaid: (playerId: string) => void;
+  onShowQR: (playerId: string) => void;
+  onClose: () => void;
+  escDisabled: boolean;
 }) {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !escDisabled) onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onClose, escDisabled])
+      if (e.key === "Escape" && !escDisabled) onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose, escDisabled]);
 
   // Portaled to <body>: the panel lives inside an md:sticky column whose
   // stacking context would otherwise let z-10 elements elsewhere paint on top.
@@ -252,7 +273,7 @@ function FullscreenResult({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto"
+      className="fixed inset-0 z-50 overflow-y-auto bg-gray-50"
     >
       <motion.div
         initial={{ scale: 0.97 }}
@@ -260,7 +281,7 @@ function FullscreenResult({
         exit={{ scale: 0.97 }}
         transition={{ duration: 0.2 }}
       >
-        <div className="sticky top-0 bg-gray-50 border-b border-gray-100 flex items-center justify-between px-4 py-4">
+        <div className="sticky top-0 flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-4">
           <h2 className="text-lg font-bold text-gray-900">Kết quả</h2>
           <div className="flex items-center gap-2">
             <ShareImageButton result={result} mode={mode} players={players} />
@@ -270,22 +291,26 @@ function FullscreenResult({
               aria-label="Đóng"
               title="Đóng"
               onClick={onClose}
-              className="w-11 h-11 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
             >
               <CloseIcon size={18} />
             </button>
           </div>
         </div>
-        <div className="max-w-lg md:max-w-3xl mx-auto py-6 px-4">
-          {mode === 'hourly' && result.emptyHours > 0 && (
-            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mb-2">
-              Có {formatHours(result.emptyHours)} sân thuê không ai chơi — phần này được chia đều.
+        <div className="mx-auto max-w-lg px-4 py-6 md:max-w-3xl">
+          {mode === "hourly" && result.emptyHours > 0 && (
+            <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-600">
+              Có {formatHours(result.emptyHours)} sân thuê không ai chơi — phần
+              này được chia đều.
             </p>
           )}
           <div className="mb-2">
             <PaidSummaryLine players={players} results={result.players} />
           </div>
-          <ul data-testid="fullscreen-player-grid" className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <ul
+            data-testid="fullscreen-player-grid"
+            className="grid grid-cols-1 gap-2 md:grid-cols-2"
+          >
             {result.players.map((p) => (
               <PlayerRow
                 key={p.playerId}
@@ -298,29 +323,29 @@ function FullscreenResult({
               />
             ))}
           </ul>
-          <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
+          <div className="mt-4 space-y-1.5 border-t border-gray-100 pt-3">
             <TotalCollectedRow total={result.totalCollected} />
             <SurplusRow surplus={result.surplus} />
           </div>
         </div>
       </motion.div>
     </motion.div>,
-    document.body,
-  )
+    document.body
+  );
 }
 
 interface Props {
-  result: CalcResult | null
-  mode: Mode
-  errors: string[]
-  players: Player[]
-  onSave: () => void
-  onNewSession: () => void
-  onPatch: (patch: Partial<SessionInput>) => void
-  saveDisabled?: boolean
+  result: CalcResult | null;
+  mode: Mode;
+  errors: string[];
+  players: Player[];
+  onSave: () => void;
+  onNewSession: () => void;
+  onPatch: (patch: Partial<SessionInput>) => void;
+  saveDisabled?: boolean;
 }
 
-const NO_PLAYERS_ERROR = 'Cần ít nhất 1 người chơi'
+const NO_PLAYERS_ERROR = "Cần ít nhất 1 người chơi";
 
 export function ResultPanel({
   result,
@@ -330,19 +355,24 @@ export function ResultPanel({
   onSave,
   onNewSession,
   onPatch,
-  saveDisabled,
+  saveDisabled
 }: Props) {
-  const [fullscreen, setFullscreen] = useState(false)
-  const [qrPlayerId, setQrPlayerId] = useState<string | null>(null)
-  const isEmptyPlayers = errors.length === 1 && errors[0] === NO_PLAYERS_ERROR
+  const [fullscreen, setFullscreen] = useState(false);
+  const [qrPlayerId, setQrPlayerId] = useState<string | null>(null);
+  const isEmptyPlayers = errors.length === 1 && errors[0] === NO_PLAYERS_ERROR;
   const handleTogglePaid = (playerId: string) => {
-    onPatch({ players: players.map((pl) => (pl.id === playerId ? { ...pl, paid: !pl.paid } : pl)) })
-  }
-  const qrResult = result?.players.find((p) => p.playerId === qrPlayerId) ?? null
+    onPatch({
+      players: players.map((pl) =>
+        pl.id === playerId ? { ...pl, paid: !pl.paid } : pl
+      )
+    });
+  };
+  const qrResult =
+    result?.players.find((p) => p.playerId === qrPlayerId) ?? null;
 
   return (
-    <section className="bg-white rounded-2xl shadow-sm p-4 border-2 border-emerald-100">
-      <div className="flex justify-between items-center mb-3">
+    <section className="rounded-2xl border-2 border-emerald-100 bg-white p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
         <h2 className="text-base font-bold text-gray-900">Kết quả</h2>
         {result !== null && (
           <div className="flex items-center gap-2">
@@ -353,7 +383,7 @@ export function ResultPanel({
               aria-label="Xem toàn màn hình"
               title="Xem toàn màn hình"
               onClick={() => setFullscreen(true)}
-              className="w-11 h-11 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100"
             >
               <MaximizeIcon />
             </button>
@@ -373,13 +403,15 @@ export function ResultPanel({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="flex flex-col items-center text-center py-8"
+            className="flex flex-col items-center py-8 text-center"
           >
-            <span className="text-5xl mb-2" role="img" aria-label="Cầu lông">
+            <span className="mb-2 text-5xl" role="img" aria-label="Cầu lông">
               🏸
             </span>
-            <p className="font-semibold text-gray-700">Chưa có ai trong buổi này</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="font-semibold text-gray-700">
+              Chưa có ai trong buổi này
+            </p>
+            <p className="mt-1 text-sm text-gray-400">
               Thêm người chơi ở mục bên trên để bắt đầu chia tiền
             </p>
           </motion.div>
@@ -394,9 +426,10 @@ export function ResultPanel({
         )
       ) : (
         <>
-          {mode === 'hourly' && result.emptyHours > 0 && (
-            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mb-2">
-              Có {formatHours(result.emptyHours)} sân thuê không ai chơi — phần này được chia đều.
+          {mode === "hourly" && result.emptyHours > 0 && (
+            <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-600">
+              Có {formatHours(result.emptyHours)} sân thuê không ai chơi — phần
+              này được chia đều.
             </p>
           )}
           <ul className="space-y-2">
@@ -411,7 +444,7 @@ export function ResultPanel({
               />
             ))}
           </ul>
-          <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
+          <div className="mt-4 space-y-1.5 border-t border-gray-100 pt-3">
             <TotalCollectedRow total={result.totalCollected} />
             <SurplusRow surplus={result.surplus} />
           </div>
@@ -422,7 +455,7 @@ export function ResultPanel({
         type="button"
         disabled={result === null || saveDisabled}
         onClick={onSave}
-        className="w-full h-14 mt-4 rounded-2xl bg-emerald-600 text-white text-base font-bold shadow-md disabled:bg-gray-300"
+        className="mt-4 h-14 w-full rounded-2xl bg-emerald-600 text-base font-bold text-white shadow-md disabled:bg-gray-300"
       >
         Lưu buổi này
       </button>
@@ -430,7 +463,7 @@ export function ResultPanel({
       <button
         type="button"
         onClick={onNewSession}
-        className="w-full h-12 mt-2 rounded-xl border border-gray-300 text-gray-600 font-semibold"
+        className="mt-2 h-12 w-full rounded-xl border border-gray-300 font-semibold text-gray-600"
       >
         Buổi mới
       </button>
@@ -456,10 +489,12 @@ export function ResultPanel({
           playerName={qrResult.name}
           amount={qrResult.amount}
           memoDate={new Date()}
-          paid={players.find((pl) => pl.id === qrResult.playerId)?.paid ?? false}
+          paid={
+            players.find((pl) => pl.id === qrResult.playerId)?.paid ?? false
+          }
           onTogglePaid={() => handleTogglePaid(qrResult.playerId)}
         />
       )}
     </section>
-  )
+  );
 }

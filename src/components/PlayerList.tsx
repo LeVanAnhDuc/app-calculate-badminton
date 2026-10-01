@@ -1,34 +1,34 @@
-import { useRef, useState } from 'react'
-import { AnimatePresence, motion, Reorder } from 'motion/react'
-import { Drawer } from 'vaul'
-import type { RosterEntry } from '../lib/storage'
-import { durationHours, formatHours } from '../lib/time'
-import type { Gender, Player, SessionInput } from '../lib/types'
-import { useEdgeAutoScroll } from '../lib/useEdgeAutoScroll'
-import { Avatar } from './Avatar'
-import { GenderBadge } from './GenderBadge'
-import { CloseIcon, PlusIcon, SearchIcon } from './icons'
-import { PlayerRow } from './PlayerRow'
-import { TimeSelect } from './TimeSelect'
+import { useRef, useState } from "react";
+import { AnimatePresence, motion, Reorder } from "motion/react";
+import { Drawer } from "vaul";
+import type { RosterEntry } from "../lib/storage";
+import { durationHours, formatHours } from "../lib/time";
+import type { Gender, Player, SessionInput } from "../lib/types";
+import { useEdgeAutoScroll } from "../lib/useEdgeAutoScroll";
+import { Avatar } from "./Avatar";
+import { GenderBadge } from "./GenderBadge";
+import { CloseIcon, PlusIcon, SearchIcon } from "./icons";
+import { PlayerRow } from "./PlayerRow";
+import { TimeSelect } from "./TimeSelect";
 
 interface Props {
-  input: SessionInput
-  roster: RosterEntry[]
+  input: SessionInput;
+  roster: RosterEntry[];
   /**
    * Những người hay gặp, đã xếp hạng & lọc sẵn bởi App (suy ra từ lịch sử).
    * Component này chỉ hiển thị — không nhận `history` thô.
    */
-  frequent: RosterEntry[]
-  onPatch: (p: Partial<SessionInput>) => void
-  onAddPlayer: (name: string, gender: Gender) => void
+  frequent: RosterEntry[];
+  onPatch: (p: Partial<SessionInput>) => void;
+  onAddPlayer: (name: string, gender: Gender) => void;
   /**
    * Only reports which player to drop — the removal itself (and the "Hoàn
    * tác" toast that can put it back) is owned by App, so undo can re-insert
    * into the freshest list instead of a snapshot captured here.
    */
-  onRemovePlayer: (playerId: string) => void
-  onChangeGender: (playerId: string, gender: Gender) => void
-  onRenamePlayer: (playerId: string, newName: string) => void
+  onRemovePlayer: (playerId: string) => void;
+  onChangeGender: (playerId: string, gender: Gender) => void;
+  onRenamePlayer: (playerId: string, newName: string) => void;
 }
 
 export function PlayerList({
@@ -39,48 +39,52 @@ export function PlayerList({
   onAddPlayer,
   onRemovePlayer,
   onChangeGender,
-  onRenamePlayer,
+  onRenamePlayer
 }: Props) {
-  const [name, setName] = useState('')
-  const [gender, setGender] = useState<Gender>('male')
-  const [error, setError] = useState('')
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editName, setEditName] = useState('')
-  const [editError, setEditError] = useState('')
-  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [focused, setFocused] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-  useEdgeAutoScroll(isDragging)
+  const [name, setName] = useState("");
+  const [gender, setGender] = useState<Gender>("male");
+  const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editError, setEditError] = useState("");
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEdgeAutoScroll(isDragging);
 
-  const males = input.players.filter((p) => p.gender === 'male').length
-  const females = input.players.length - males
+  const males = input.players.filter((p) => p.gender === "male").length;
+  const females = input.players.length - males;
 
   const inSession = (n: string) =>
-    input.players.some((p) => p.name.toLowerCase() === n.trim().toLowerCase())
+    input.players.some((p) => p.name.toLowerCase() === n.trim().toLowerCase());
 
-  const trimmedName = name.trim()
+  const trimmedName = name.trim();
 
   const suggestions = trimmedName
     ? roster.filter(
-        (r) => r.name.toLowerCase().startsWith(trimmedName.toLowerCase()) && !inSession(r.name),
+        (r) =>
+          r.name.toLowerCase().startsWith(trimmedName.toLowerCase()) &&
+          !inSession(r.name)
       )
-    : []
+    : [];
 
   // Chip chỉ hiện khi chưa gõ gì — gõ vào thì gợi ý "Từ danh bạ" tiếp quản.
-  const showFrequent = trimmedName === '' && frequent.length > 0
+  const showFrequent = trimmedName === "" && frequent.length > 0;
 
   const rosterMatch = trimmedName
-    ? (roster.find((r) => r.name.toLowerCase() === trimmedName.toLowerCase()) ?? null)
-    : null
-  const showNewHint = trimmedName !== '' && rosterMatch === null && !inSession(trimmedName)
-  const showRosterHint = rosterMatch !== null
-  const alreadyInSession = trimmedName !== '' && inSession(trimmedName)
+    ? (roster.find((r) => r.name.toLowerCase() === trimmedName.toLowerCase()) ??
+      null)
+    : null;
+  const showNewHint =
+    trimmedName !== "" && rosterMatch === null && !inSession(trimmedName);
+  const showRosterHint = rosterMatch !== null;
+  const alreadyInSession = trimmedName !== "" && inSession(trimmedName);
 
   // Nút "Hủy" kiểu iOS: hiện khi ô đang được dùng, kể cả lúc mới focus mà chưa gõ.
-  const showCancel = focused || trimmedName !== ''
+  const showCancel = focused || trimmedName !== "";
 
-  const genderLabel = (g: Gender) => (g === 'male' ? 'Nam' : 'Nữ')
+  const genderLabel = (g: Gender) => (g === "male" ? "Nam" : "Nữ");
 
   /**
    * Gợi ý từ danh bạ và hai hàng "thêm người mới" nằm chung một khối bo góc
@@ -96,90 +100,92 @@ export function PlayerList({
       name: r.name,
       gender: r.gender,
       isNew: false,
-      label: `${r.name} · ${genderLabel(r.gender)}`,
+      label: `${r.name} · ${genderLabel(r.gender)}`
     })),
     ...(showNewHint
-      ? (['male', 'female'] as Gender[]).map((g) => ({
+      ? (["male", "female"] as Gender[]).map((g) => ({
           key: `new-${g}`,
           name: trimmedName,
           gender: g,
           isNew: true,
-          label: `Thêm "${trimmedName}" là người mới · ${genderLabel(g)}`,
+          label: `Thêm "${trimmedName}" là người mới · ${genderLabel(g)}`
         }))
-      : []),
-  ]
+      : [])
+  ];
 
   const resetSearch = () => {
-    setName('')
-    setError('')
-  }
+    setName("");
+    setError("");
+  };
 
   const add = (n: string, g: Gender) => {
-    const trimmed = n.trim()
-    if (!trimmed) return
+    const trimmed = n.trim();
+    if (!trimmed) return;
     if (inSession(trimmed)) {
-      setError(`"${trimmed}" đã có trong buổi`)
-      return
+      setError(`"${trimmed}" đã có trong buổi`);
+      return;
     }
-    setError('')
-    setName('')
-    onAddPlayer(trimmed, g)
-  }
+    setError("");
+    setName("");
+    onAddPlayer(trimmed, g);
+  };
 
   const updatePlayer = (id: string, patch: Partial<Player>) =>
-    onPatch({ players: input.players.map((p) => (p.id === id ? { ...p, ...patch } : p)) })
+    onPatch({
+      players: input.players.map((p) => (p.id === id ? { ...p, ...patch } : p))
+    });
 
   const removePlayer = (id: string) => {
-    setOpenSwipeId(null)
-    onRemovePlayer(id)
-  }
+    setOpenSwipeId(null);
+    onRemovePlayer(id);
+  };
 
   const openEdit = (p: Player) => {
-    setOpenSwipeId(null)
-    setEditingId(p.id)
-    setEditName(p.name)
-    setEditError('')
-  }
+    setOpenSwipeId(null);
+    setEditingId(p.id);
+    setEditName(p.name);
+    setEditError("");
+  };
 
   const commitRename = (p: Player) => {
-    const trimmed = editName.trim()
+    const trimmed = editName.trim();
     if (!trimmed) {
-      setEditName(p.name)
-      setEditError('')
-      return
+      setEditName(p.name);
+      setEditError("");
+      return;
     }
     const isDuplicate = input.players.some(
-      (o) => o.id !== p.id && o.name.toLowerCase() === trimmed.toLowerCase(),
-    )
+      (o) => o.id !== p.id && o.name.toLowerCase() === trimmed.toLowerCase()
+    );
     if (isDuplicate) {
-      setEditError(`"${trimmed}" đã có trong buổi`)
-      return
+      setEditError(`"${trimmed}" đã có trong buổi`);
+      return;
     }
-    setEditError('')
+    setEditError("");
     if (trimmed !== p.name) {
-      onRenamePlayer(p.id, trimmed)
+      onRenamePlayer(p.id, trimmed);
     }
-  }
+  };
 
-  const editingPlayer = input.players.find((p) => p.id === editingId) ?? null
+  const editingPlayer = input.players.find((p) => p.id === editingId) ?? null;
 
   const closeEdit = () => {
-    if (editingPlayer) commitRename(editingPlayer)
-    setEditingId(null)
-  }
+    if (editingPlayer) commitRename(editingPlayer);
+    setEditingId(null);
+  };
 
   const timeLabel = (p: Player) => {
-    const s = p.startTime ?? input.courtStart
-    const e = p.endTime ?? input.courtEnd
-    const full = p.startTime === null && p.endTime === null
-    return `${s}–${e} · ${full ? 'cả buổi' : formatHours(durationHours(s, e))}`
-  }
+    const s = p.startTime ?? input.courtStart;
+    const e = p.endTime ?? input.courtEnd;
+    const full = p.startTime === null && p.endTime === null;
+    return `${s}–${e} · ${full ? "cả buổi" : formatHours(durationHours(s, e))}`;
+  };
 
   return (
-    <section className="bg-white rounded-2xl shadow-sm p-4">
-      <div className="flex justify-between items-center mb-3">
+    <section className="rounded-2xl bg-white p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
         <h2 className="text-base font-bold text-gray-900">Người chơi</h2>
-        <span className="text-xs font-semibold text-white bg-emerald-600 rounded-full px-2.5 py-1">
+        <span className="rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white">
           {males} nam · {females} nữ
         </span>
       </div>
@@ -188,21 +194,23 @@ export function PlayerList({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
-        className="bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 text-xs text-emerald-800 space-y-1 mb-3"
+        className="mb-3 space-y-1 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800"
       >
         <p>💡 Bấm avatar để đổi giới tính</p>
         <p>💡 Bấm tên để sửa thông tin người chơi</p>
         <p>💡 Kéo ⠿ để sắp xếp thứ tự</p>
         <p>
           <span className="md:hidden">💡 Vuốt trái để xóa</span>
-          <span className="hidden md:inline">💡 Bấm nút thùng rác đỏ để xóa</span>
+          <span className="hidden md:inline">
+            💡 Bấm nút thùng rác đỏ để xóa
+          </span>
         </p>
       </motion.div>
 
-      <div className="flex gap-2 items-center">
-        <div className="relative flex-1 min-w-0">
+      <div className="flex items-center gap-2">
+        <div className="relative min-w-0 flex-1">
           {/* Kính lúp chỉ có ở mobile — desktop vẫn là ô nhập kèm [Nam][Nữ] như cũ. */}
-          <span className="md:hidden absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+          <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-gray-400 md:hidden">
             <SearchIcon />
           </span>
           <input
@@ -210,15 +218,15 @@ export function PlayerList({
             placeholder="Tìm hoặc thêm tên"
             value={name}
             onChange={(e) => {
-              setName(e.target.value)
-              setError('')
+              setName(e.target.value);
+              setError("");
             }}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            onKeyDown={(e) => e.key === 'Enter' && add(name, gender)}
-            className="w-full h-12 rounded-full border border-transparent bg-gray-100 pl-10 pr-11 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40 md:rounded-xl md:border-gray-300 md:bg-white md:px-3"
+            onKeyDown={(e) => e.key === "Enter" && add(name, gender)}
+            className="h-12 w-full rounded-full border border-transparent bg-gray-100 pr-11 pl-10 text-base focus:ring-2 focus:ring-emerald-500/40 focus:outline-none md:rounded-xl md:border-gray-300 md:bg-white md:px-3"
           />
-          {trimmedName !== '' && (
+          {trimmedName !== "" && (
             <button
               type="button"
               aria-label="Xóa chữ đã gõ"
@@ -226,7 +234,7 @@ export function PlayerList({
               // xuống rồi lại bật lên, và nút "Hủy" nhấp nháy theo
               onMouseDown={(e) => e.preventDefault()}
               onClick={resetSearch}
-              className="md:hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-gray-400 text-white flex items-center justify-center"
+              className="absolute top-1/2 right-2.5 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-gray-400 text-white md:hidden"
             >
               <CloseIcon size={14} />
             </button>
@@ -244,20 +252,20 @@ export function PlayerList({
               transition={{ duration: 0.15 }}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
-                resetSearch()
-                setFocused(false)
-                inputRef.current?.blur()
+                resetSearch();
+                setFocused(false);
+                inputRef.current?.blur();
               }}
-              className="md:hidden shrink-0 h-12 px-1 text-sm font-semibold text-emerald-600 whitespace-nowrap"
+              className="h-12 shrink-0 px-1 text-sm font-semibold whitespace-nowrap text-emerald-600 md:hidden"
             >
               Hủy
             </motion.button>
           )}
         </AnimatePresence>
 
-        <div className="hidden md:flex rounded-xl border border-gray-300 overflow-hidden shrink-0">
-          {(['male', 'female'] as Gender[]).map((g) => {
-            const active = gender === g
+        <div className="hidden shrink-0 overflow-hidden rounded-xl border border-gray-300 md:flex">
+          {(["male", "female"] as Gender[]).map((g) => {
+            const active = gender === g;
             return (
               <button
                 key={g}
@@ -265,36 +273,38 @@ export function PlayerList({
                 aria-pressed={active}
                 onClick={() => setGender(g)}
                 className={`relative h-12 px-3 text-sm font-semibold ${
-                  active ? 'text-white' : 'bg-white text-gray-500'
+                  active ? "text-white" : "bg-white text-gray-500"
                 }`}
               >
                 {active && (
                   <motion.div
                     layoutId="gender-add-pill"
-                    className={`absolute inset-0 ${g === 'male' ? 'bg-emerald-600' : 'bg-pink-500'}`}
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.3 }}
+                    className={`absolute inset-0 ${g === "male" ? "bg-emerald-600" : "bg-pink-500"}`}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.3 }}
                   />
                 )}
-                <span className="relative z-10">{g === 'male' ? 'Nam' : 'Nữ'}</span>
+                <span className="relative z-10">
+                  {g === "male" ? "Nam" : "Nữ"}
+                </span>
               </button>
-            )
+            );
           })}
         </div>
       </div>
 
       {/* Mobile đã có hai hàng "Thêm ... là người mới" nói đúng điều này rồi. */}
       {showNewHint && (
-        <p className="hidden md:block text-xs text-emerald-700 mt-1.5 px-1">
+        <p className="mt-1.5 hidden px-1 text-xs text-emerald-700 md:block">
           ✨ Người mới — sẽ được thêm vào danh bạ
         </p>
       )}
       {showRosterHint && (
-        <p className="text-xs text-gray-400 mt-1.5 px-1">
+        <p className="mt-1.5 px-1 text-xs text-gray-400">
           📇 Có trong danh bạ — bấm thẻ gợi ý để thêm đúng giới tính
         </p>
       )}
       {alreadyInSession && (
-        <p className="md:hidden text-xs text-gray-400 mt-1.5 px-1">
+        <p className="mt-1.5 px-1 text-xs text-gray-400 md:hidden">
           👥 "{trimmedName}" đang có trong buổi rồi
         </p>
       )}
@@ -307,10 +317,10 @@ export function PlayerList({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="flex flex-col gap-2 mt-2"
+            className="mt-2 flex flex-col gap-2"
           >
             {suggestions.length > 0 && (
-              <p className="text-xs font-semibold text-gray-400 px-1 uppercase tracking-wide md:normal-case md:tracking-normal">
+              <p className="px-1 text-xs font-semibold tracking-wide text-gray-400 uppercase md:tracking-normal md:normal-case">
                 Từ danh bạ
               </p>
             )}
@@ -323,18 +333,18 @@ export function PlayerList({
                   type="button"
                   aria-label={row.label}
                   onClick={() => add(row.name, row.gender)}
-                  className={`w-full h-12 flex items-center gap-3 pl-3 text-left bg-white hover:bg-gray-50 md:gap-2 md:rounded-xl md:border md:border-gray-200 ${
-                    row.isNew ? 'md:hidden' : ''
+                  className={`flex h-12 w-full items-center gap-3 bg-white pl-3 text-left hover:bg-gray-50 md:gap-2 md:rounded-xl md:border md:border-gray-200 ${
+                    row.isNew ? "md:hidden" : ""
                   }`}
                 >
                   {row.isNew ? (
                     // Tô theo giới tính chứ không dùng một màu "thêm" chung: hai
                     // hàng chỉ khác nhau ở giới tính nên phải nhìn là thấy ngay.
                     <span
-                      className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-                        row.gender === 'male'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-pink-100 text-pink-700'
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                        row.gender === "male"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-pink-100 text-pink-700"
                       }`}
                     >
                       <PlusIcon size={18} />
@@ -350,22 +360,24 @@ export function PlayerList({
                     </>
                   )}
                   <span
-                    className={`flex-1 min-w-0 h-full flex items-center gap-2 pr-3 md:border-b-0 ${
-                      i === resultRows.length - 1 ? '' : 'border-b border-gray-100'
+                    className={`flex h-full min-w-0 flex-1 items-center gap-2 pr-3 md:border-b-0 ${
+                      i === resultRows.length - 1
+                        ? ""
+                        : "border-b border-gray-100"
                     }`}
                   >
                     <span
-                      className={`flex-1 min-w-0 truncate font-medium ${
-                        row.isNew ? 'text-emerald-700' : 'text-gray-900'
+                      className={`min-w-0 flex-1 truncate font-medium ${
+                        row.isNew ? "text-emerald-700" : "text-gray-900"
                       }`}
                     >
                       {row.isNew ? `Thêm "${row.name}" là người mới` : row.name}
                     </span>
                     <span
-                      className={`text-xs shrink-0 ${
+                      className={`shrink-0 text-xs ${
                         row.isNew
-                          ? `font-semibold ${row.gender === 'male' ? 'text-emerald-600' : 'text-pink-500'}`
-                          : 'text-gray-400'
+                          ? `font-semibold ${row.gender === "male" ? "text-emerald-600" : "text-pink-500"}`
+                          : "text-gray-400"
                       }`}
                     >
                       {genderLabel(row.gender)}
@@ -386,26 +398,30 @@ export function PlayerList({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="flex flex-col gap-2 mt-2"
+            className="mt-2 flex flex-col gap-2"
           >
-            <p className="text-xs font-semibold text-gray-400 px-1 uppercase tracking-wide md:normal-case md:tracking-normal">
+            <p className="px-1 text-xs font-semibold tracking-wide text-gray-400 uppercase md:tracking-normal md:normal-case">
               Hay chơi cùng
             </p>
             {/* Mobile: rail cuộn ngang kiểu Share Sheet — avatar tròn, tên ở dưới,
                 một hàng cố định thay vì 3–4 hàng chip xuống dòng. `-mx-4 px-4` cho
                 dải chạy sát mép thẻ, chip bị cắt ở mép phải là tín hiệu còn nữa.
                 Desktop: vẫn là chip chữ xuống dòng như cũ. */}
-            <div className="flex gap-1 overflow-x-auto no-scrollbar snap-x -mx-4 px-4 pb-1 md:flex-wrap md:gap-2 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
+            <div className="no-scrollbar -mx-4 flex snap-x gap-1 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:gap-2 md:overflow-visible md:px-0 md:pb-0">
               {frequent.map((r) => (
                 <button
                   key={r.name}
                   type="button"
                   aria-label={`Thêm ${r.name} · ${genderLabel(r.gender)}`}
                   onClick={() => add(r.name, r.gender)}
-                  className="shrink-0 snap-start w-[72px] py-1 rounded-2xl flex flex-col items-center gap-1.5 active:bg-gray-100 md:w-auto md:h-12 md:py-0 md:rounded-full md:flex-row md:gap-2 md:border md:border-gray-200 md:bg-white md:hover:bg-gray-50 md:pl-2 md:pr-4"
+                  className="flex w-[72px] shrink-0 snap-start flex-col items-center gap-1.5 rounded-2xl py-1 active:bg-gray-100 md:h-12 md:w-auto md:flex-row md:gap-2 md:rounded-full md:border md:border-gray-200 md:bg-white md:py-0 md:pr-4 md:pl-2 md:hover:bg-gray-50"
                 >
                   <span className="md:hidden">
-                    <Avatar name={r.name} gender={r.gender} className="w-12 h-12 text-sm" />
+                    <Avatar
+                      name={r.name}
+                      gender={r.gender}
+                      className="h-12 w-12 text-sm"
+                    />
                   </span>
                   <span className="hidden md:inline-flex">
                     <GenderBadge gender={r.gender} />
@@ -420,14 +436,14 @@ export function PlayerList({
         )}
       </AnimatePresence>
 
-      {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
 
       {/* Mobile thêm người ngay từ hàng gợi ý (kể cả tên mới), nên nút này chỉ
           còn cần cho desktop — nơi giới tính chọn ở cặp [Nam][Nữ] bên cạnh ô nhập. */}
       <button
         type="button"
         onClick={() => add(name, gender)}
-        className="hidden md:block w-full h-12 mt-2 rounded-xl border-2 border-dashed border-emerald-300 text-emerald-600 font-semibold text-sm"
+        className="mt-2 hidden h-12 w-full rounded-xl border-2 border-dashed border-emerald-300 text-sm font-semibold text-emerald-600 md:block"
       >
         + Thêm người chơi
       </button>
@@ -437,7 +453,7 @@ export function PlayerList({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
-          className="text-center text-sm text-gray-400 py-4"
+          className="py-4 text-center text-sm text-gray-400"
         >
           Chưa có người chơi nào
         </motion.p>
@@ -460,7 +476,9 @@ export function PlayerList({
                 onRemove={removePlayer}
                 onChangeGender={onChangeGender}
                 onEdit={openEdit}
-                onToggleHalf={(pl) => updatePlayer(pl.id, { halfSession: !pl.halfSession })}
+                onToggleHalf={(pl) =>
+                  updatePlayer(pl.id, { halfSession: !pl.halfSession })
+                }
                 onDraggingChange={setIsDragging}
               />
             ))}
@@ -468,25 +486,25 @@ export function PlayerList({
         </Reorder.Group>
       )}
       {input.players.length > 0 && (
-        <p className="text-xs text-gray-400 mt-2">
-          {input.mode === 'hourly'
-            ? 'Bấm vào tên để sửa thông tin người chơi (kể cả giờ chơi)'
-            : 'Bấm vào tên để sửa thông tin người chơi'}
+        <p className="mt-2 text-xs text-gray-400">
+          {input.mode === "hourly"
+            ? "Bấm vào tên để sửa thông tin người chơi (kể cả giờ chơi)"
+            : "Bấm vào tên để sửa thông tin người chơi"}
         </p>
       )}
 
       <Drawer.Root
         open={editingId !== null}
         onOpenChange={(open) => {
-          if (!open) closeEdit()
+          if (!open) closeEdit();
         }}
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
-          <Drawer.Content className="fixed bottom-0 inset-x-0 z-50 rounded-t-3xl bg-white outline-none">
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mt-3" />
-            <div className="max-w-lg mx-auto p-4 pb-8">
-              <Drawer.Title className="font-bold text-gray-900 mb-3">
+          <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-white outline-none">
+            <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-gray-300" />
+            <div className="mx-auto max-w-lg p-4 pb-8">
+              <Drawer.Title className="mb-3 font-bold text-gray-900">
                 Sửa người chơi
               </Drawer.Title>
               <Drawer.Description className="sr-only">
@@ -499,57 +517,72 @@ export function PlayerList({
                       aria-label={`Tên của ${editingPlayer.name}`}
                       value={editName}
                       onChange={(e) => {
-                        setEditName(e.target.value)
-                        setEditError('')
+                        setEditName(e.target.value);
+                        setEditError("");
                       }}
                       onBlur={() => commitRename(editingPlayer)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                        if (e.key === "Enter")
+                          (e.target as HTMLInputElement).blur();
                       }}
-                      className="w-full h-11 rounded-xl border border-gray-300 px-3 text-base"
+                      className="h-11 w-full rounded-xl border border-gray-300 px-3 text-base"
                     />
-                    {editError && <p className="text-sm text-red-500 mt-1">{editError}</p>}
+                    {editError && (
+                      <p className="mt-1 text-sm text-red-500">{editError}</p>
+                    )}
                   </div>
-                  <div className="flex rounded-xl border border-gray-300 overflow-hidden">
+                  <div className="flex overflow-hidden rounded-xl border border-gray-300">
                     <button
                       type="button"
-                      aria-pressed={editingPlayer.gender === 'male'}
+                      aria-pressed={editingPlayer.gender === "male"}
                       aria-label={`Đặt Nam cho ${editingPlayer.name}`}
-                      onClick={() => onChangeGender(editingPlayer.id, 'male')}
-                      className={`relative flex-1 h-11 text-sm font-semibold ${
-                        editingPlayer.gender === 'male' ? 'text-white' : 'bg-white text-gray-500'
+                      onClick={() => onChangeGender(editingPlayer.id, "male")}
+                      className={`relative h-11 flex-1 text-sm font-semibold ${
+                        editingPlayer.gender === "male"
+                          ? "text-white"
+                          : "bg-white text-gray-500"
                       }`}
                     >
-                      {editingPlayer.gender === 'male' && (
+                      {editingPlayer.gender === "male" && (
                         <motion.div
                           layoutId="gender-edit-pill"
                           className="absolute inset-0 bg-emerald-600"
-                          transition={{ type: 'spring', bounce: 0.2, duration: 0.3 }}
+                          transition={{
+                            type: "spring",
+                            bounce: 0.2,
+                            duration: 0.3
+                          }}
                         />
                       )}
                       <span className="relative z-10">Nam</span>
                     </button>
                     <button
                       type="button"
-                      aria-pressed={editingPlayer.gender === 'female'}
+                      aria-pressed={editingPlayer.gender === "female"}
                       aria-label={`Đặt Nữ cho ${editingPlayer.name}`}
-                      onClick={() => onChangeGender(editingPlayer.id, 'female')}
-                      className={`relative flex-1 h-11 text-sm font-semibold ${
-                        editingPlayer.gender === 'female' ? 'text-white' : 'bg-white text-gray-500'
+                      onClick={() => onChangeGender(editingPlayer.id, "female")}
+                      className={`relative h-11 flex-1 text-sm font-semibold ${
+                        editingPlayer.gender === "female"
+                          ? "text-white"
+                          : "bg-white text-gray-500"
                       }`}
                     >
-                      {editingPlayer.gender === 'female' && (
+                      {editingPlayer.gender === "female" && (
                         <motion.div
                           layoutId="gender-edit-pill"
                           className="absolute inset-0 bg-pink-500"
-                          transition={{ type: 'spring', bounce: 0.2, duration: 0.3 }}
+                          transition={{
+                            type: "spring",
+                            bounce: 0.2,
+                            duration: 0.3
+                          }}
                         />
                       )}
                       <span className="relative z-10">Nữ</span>
                     </button>
                   </div>
-                  {input.mode === 'hourly' && (
-                    <div className="flex gap-2 items-center">
+                  {input.mode === "hourly" && (
+                    <div className="flex items-center gap-2">
                       <TimeSelect
                         nested
                         aria-label={`Giờ vào của ${editingPlayer.name}`}
@@ -557,7 +590,7 @@ export function PlayerList({
                         onChange={(v) =>
                           updatePlayer(editingPlayer.id, {
                             startTime: v,
-                            endTime: editingPlayer.endTime ?? input.courtEnd,
+                            endTime: editingPlayer.endTime ?? input.courtEnd
                           })
                         }
                         className="flex-1"
@@ -570,7 +603,8 @@ export function PlayerList({
                         onChange={(v) =>
                           updatePlayer(editingPlayer.id, {
                             endTime: v,
-                            startTime: editingPlayer.startTime ?? input.courtStart,
+                            startTime:
+                              editingPlayer.startTime ?? input.courtStart
                           })
                         }
                         className="flex-1"
@@ -578,9 +612,12 @@ export function PlayerList({
                       <button
                         type="button"
                         onClick={() =>
-                          updatePlayer(editingPlayer.id, { startTime: null, endTime: null })
+                          updatePlayer(editingPlayer.id, {
+                            startTime: null,
+                            endTime: null
+                          })
                         }
-                        className="h-11 px-3 rounded-xl bg-white border border-emerald-300 text-emerald-700 text-xs font-semibold whitespace-nowrap"
+                        className="h-11 rounded-xl border border-emerald-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-emerald-700"
                       >
                         Cả buổi
                       </button>
@@ -589,7 +626,7 @@ export function PlayerList({
                   <button
                     type="button"
                     onClick={closeEdit}
-                    className="w-full h-11 mt-1 rounded-xl bg-emerald-600 text-white text-sm font-bold"
+                    className="mt-1 h-11 w-full rounded-xl bg-emerald-600 text-sm font-bold text-white"
                   >
                     Xong
                   </button>
@@ -600,5 +637,5 @@ export function PlayerList({
         </Drawer.Portal>
       </Drawer.Root>
     </section>
-  )
+  );
 }

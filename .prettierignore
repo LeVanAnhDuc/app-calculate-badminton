@@ -1,0 +1,14 @@
+dist
+dev-dist
+coverage
+node_modules
+pnpm-lock.yaml
+public
+superdesign/gallery.html
+docs
+.claude
+superdesign
+*.md
+*.html
+.github
+scripts

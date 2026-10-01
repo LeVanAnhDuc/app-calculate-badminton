@@ -1,9 +1,9 @@
-import { TrashIcon } from './icons'
+import { TrashIcon } from "./icons";
 
 interface Props {
   /** Nhãn cho screen reader, ví dụ `Xóa Tuấn`. */
-  label: string
-  onClick: () => void
+  label: string;
+  onClick: () => void;
 }
 
 /**
@@ -17,9 +17,9 @@ export function DeleteButton({ label, onClick }: Props) {
       aria-label={label}
       title="Xóa"
       onClick={onClick}
-      className="hidden md:flex md:w-10 md:h-10 shrink-0 items-center justify-center rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+      className="hidden shrink-0 items-center justify-center rounded-lg text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 md:flex md:h-10 md:w-10"
     >
       <TrashIcon />
     </button>
-  )
+  );
 }

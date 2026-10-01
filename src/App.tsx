@@ -1,20 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { MotionConfig } from 'motion/react'
-import { Toaster, toast } from 'sonner'
-import { AccountButton } from './components/AccountButton'
-import { CostForm } from './components/CostForm'
-import { HistoryPage } from './components/HistoryPage'
-import { InstallBanner } from './components/InstallBanner'
-import { ModeSwitch } from './components/ModeSwitch'
-import { PlayerList } from './components/PlayerList'
-import { RatioInputs } from './components/RatioInputs'
-import { ResultPanel } from './components/ResultPanel'
-import { RosterPage } from './components/RosterPage'
-import { RoundingToggle } from './components/RoundingToggle'
-import { calcSession, validateSession } from './lib/calc'
-import { frequentPlayers } from './lib/frequent'
-import { frequentShuttleTypes } from './lib/shuttleTypes'
-import { insertAt, toastUndo } from './lib/undo'
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MotionConfig } from "motion/react";
+import { Toaster, toast } from "sonner";
+import { AccountButton } from "./components/AccountButton";
+import { CostForm } from "./components/CostForm";
+import { HistoryPage } from "./components/HistoryPage";
+import { InstallBanner } from "./components/InstallBanner";
+import { ModeSwitch } from "./components/ModeSwitch";
+import { PlayerList } from "./components/PlayerList";
+import { RatioInputs } from "./components/RatioInputs";
+import { ResultPanel } from "./components/ResultPanel";
+import { RosterPage } from "./components/RosterPage";
+import { RoundingToggle } from "./components/RoundingToggle";
+import { calcSession, validateSession } from "./lib/calc";
+import { frequentPlayers } from "./lib/frequent";
+import { frequentShuttleTypes } from "./lib/shuttleTypes";
+import { insertAt, toastUndo } from "./lib/undo";
 import {
   addToRoster,
   HISTORY_LIMIT,
@@ -28,76 +28,79 @@ import {
   saveSettings,
   type RosterEntry,
   type SavedSession,
-  type Settings,
-} from './lib/storage'
-import type { ExtraCost, Gender, Player, SessionInput } from './lib/types'
-import { uid } from './lib/uid'
+  type Settings
+} from "./lib/storage";
+import type { ExtraCost, Gender, Player, SessionInput } from "./lib/types";
+import { uid } from "./lib/uid";
 
 function defaultSession(s: Settings): SessionInput {
   return {
     mode: s.mode,
-    shuttles: [{ id: uid(), name: s.shuttleName, count: 0, price: s.shuttlePrice }],
+    shuttles: [
+      { id: uid(), name: s.shuttleName, count: 0, price: s.shuttlePrice }
+    ],
     courtFee: 0,
-    courtStart: '19:00',
-    courtEnd: '21:00',
+    courtStart: "19:00",
+    courtEnd: "21:00",
     maleRatio: s.maleRatio,
     femaleRatio: s.femaleRatio,
     rounding: s.rounding,
     players: [],
-    extras: [],
-  }
+    extras: []
+  };
 }
 
 export default function App() {
-  const [page, setPage] = useState<'main' | 'history' | 'roster'>('main')
-  const [roster, setRoster] = useState<RosterEntry[]>(() => loadRoster())
-  const [history, setHistory] = useState<SavedSession[]>(() => loadHistory())
+  const [page, setPage] = useState<"main" | "history" | "roster">("main");
+  const [roster, setRoster] = useState<RosterEntry[]>(() => loadRoster());
+  const [history, setHistory] = useState<SavedSession[]>(() => loadHistory());
   const [session, setSession] = useState<SessionInput>(
-    () => loadCurrentSession() ?? defaultSession(loadSettings()),
-  )
+    () => loadCurrentSession() ?? defaultSession(loadSettings())
+  );
 
   useEffect(() => {
-    const onPopState = () => setPage('main')
-    window.addEventListener('popstate', onPopState)
-    return () => window.removeEventListener('popstate', onPopState)
-  }, [])
+    const onPopState = () => setPage("main");
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   const openHistory = () => {
-    window.history.pushState({ page: 'history' }, '')
-    setPage('history')
-  }
+    window.history.pushState({ page: "history" }, "");
+    setPage("history");
+  };
 
   const openRoster = () => {
-    window.history.pushState({ page: 'roster' }, '')
-    setPage('roster')
-  }
+    window.history.pushState({ page: "roster" }, "");
+    setPage("roster");
+  };
 
   useEffect(() => {
-    saveCurrentSession(session)
+    saveCurrentSession(session);
     // Tên & giá cầu được nhớ từ DÒNG ĐẦU TIÊN; buổi không có dòng nào thì giữ giá trị cũ.
-    const first = session.shuttles[0]
+    const first = session.shuttles[0];
     saveSettings({
       ...loadSettings(),
       mode: session.mode,
       maleRatio: session.maleRatio,
       femaleRatio: session.femaleRatio,
       rounding: session.rounding,
-      ...(first ? { shuttlePrice: first.price, shuttleName: first.name } : {}),
-    })
-  }, [session])
+      ...(first ? { shuttlePrice: first.price, shuttleName: first.name } : {})
+    });
+  }, [session]);
   useEffect(() => {
-    saveRoster(roster)
-  }, [roster])
-  const historySaveOkRef = useRef(true)
+    saveRoster(roster);
+  }, [roster]);
+  const historySaveOkRef = useRef(true);
   useEffect(() => {
-    const ok = saveHistory(history)
+    const ok = saveHistory(history);
     if (!ok && historySaveOkRef.current) {
-      toast.error('Không lưu được lịch sử — bộ nhớ trình duyệt đầy')
+      toast.error("Không lưu được lịch sử — bộ nhớ trình duyệt đầy");
     }
-    historySaveOkRef.current = ok
-  }, [history])
+    historySaveOkRef.current = ok;
+  }, [history]);
 
-  const onPatch = (p: Partial<SessionInput>) => setSession((s) => ({ ...s, ...p }))
+  const onPatch = (p: Partial<SessionInput>) =>
+    setSession((s) => ({ ...s, ...p }));
 
   const handleAddPlayer = (name: string, gender: Gender) => {
     const player: Player = {
@@ -107,30 +110,30 @@ export default function App() {
       halfSession: false,
       startTime: null,
       endTime: null,
-      paid: false,
-    }
-    setSession((s) => ({ ...s, players: [...s.players, player] }))
-    setRoster((r) => addToRoster(r, name, gender))
-  }
+      paid: false
+    };
+    setSession((s) => ({ ...s, players: [...s.players, player] }));
+    setRoster((r) => addToRoster(r, name, gender));
+  };
 
   const handleChangeGender = (playerId: string, gender: Gender) => {
-    const player = session.players.find((p) => p.id === playerId)
-    if (!player) return
+    const player = session.players.find((p) => p.id === playerId);
+    if (!player) return;
     setSession((s) => ({
       ...s,
-      players: s.players.map((p) => (p.id === playerId ? { ...p, gender } : p)),
-    }))
-    setRoster((r) => addToRoster(r, player.name, gender))
-  }
+      players: s.players.map((p) => (p.id === playerId ? { ...p, gender } : p))
+    }));
+    setRoster((r) => addToRoster(r, player.name, gender));
+  };
 
   // Deletes are undoable rather than confirmed up front. The undo callbacks
   // always go through the functional updater form so that anything changed
   // while the toast is on screen survives — undo re-inserts the one removed
   // item, it never restores a stale snapshot of the whole list.
   const handleRemovePlayer = (playerId: string) => {
-    const index = session.players.findIndex((p) => p.id === playerId)
-    if (index === -1) return
-    const removed = session.players[index]
+    const index = session.players.findIndex((p) => p.id === playerId);
+    if (index === -1) return;
+    const removed = session.players[index];
 
     // A shared extra keeps its full amount when one of its bearers leaves — the
     // remaining bearers cover that share, so TỔNG CHI does not move. An extra
@@ -139,13 +142,13 @@ export default function App() {
     //
     // Snapshot BEFORE updating: the extras dropped outright (with their old
     // index) and the ids of the extras merely trimmed by one bearer.
-    const dropped: { index: number; item: ExtraCost }[] = []
-    const trimmedIds: string[] = []
+    const dropped: { index: number; item: ExtraCost }[] = [];
+    const trimmedIds: string[] = [];
     session.extras.forEach((e, i) => {
-      if (!e.playerIds.includes(playerId)) return
-      if (e.playerIds.length === 1) dropped.push({ index: i, item: e })
-      else trimmedIds.push(e.id)
-    })
+      if (!e.playerIds.includes(playerId)) return;
+      if (e.playerIds.length === 1) dropped.push({ index: i, item: e });
+      else trimmedIds.push(e.id);
+    });
 
     setSession((s) => ({
       ...s,
@@ -154,10 +157,10 @@ export default function App() {
         .map((e) =>
           e.playerIds.includes(playerId)
             ? { ...e, playerIds: e.playerIds.filter((id) => id !== playerId) }
-            : e,
+            : e
         )
-        .filter((e) => e.playerIds.length > 0),
-    }))
+        .filter((e) => e.playerIds.length > 0)
+    }));
 
     toastUndo(`Đã xóa "${removed.name}"`, () =>
       setSession((s) => {
@@ -166,102 +169,119 @@ export default function App() {
         let extras = s.extras.map((e) =>
           trimmedIds.includes(e.id) && !e.playerIds.includes(playerId)
             ? { ...e, playerIds: [...e.playerIds, playerId] }
-            : e,
-        )
+            : e
+        );
         // (b) put the dropped extras back at their old index; ascending order
         //     (forEach above already produced it) keeps the inserts from
         //     shifting each other
-        for (const d of dropped) extras = insertAt(extras, d.index, d.item)
+        for (const d of dropped) extras = insertAt(extras, d.index, d.item);
         // (c) put the player back at their old index
-        return { ...s, players: insertAt(s.players, index, removed), extras }
-      }),
-    )
-  }
+        return { ...s, players: insertAt(s.players, index, removed), extras };
+      })
+    );
+  };
 
   const handleDeleteSavedSession = (id: string) => {
-    const index = history.findIndex((s) => s.id === id)
-    if (index === -1) return
-    const removed = history[index]
-    setHistory((h) => h.filter((s) => s.id !== id))
-    toastUndo('Đã xóa buổi này', () => setHistory((h) => insertAt(h, index, removed)))
-  }
+    const index = history.findIndex((s) => s.id === id);
+    if (index === -1) return;
+    const removed = history[index];
+    setHistory((h) => h.filter((s) => s.id !== id));
+    toastUndo("Đã xóa buổi này", () =>
+      setHistory((h) => insertAt(h, index, removed))
+    );
+  };
 
   const handleRenamePlayer = (playerId: string, newName: string) => {
-    const player = session.players.find((p) => p.id === playerId)
-    if (!player) return
+    const player = session.players.find((p) => p.id === playerId);
+    if (!player) return;
     setSession((s) => ({
       ...s,
-      players: s.players.map((p) => (p.id === playerId ? { ...p, name: newName } : p)),
-    }))
-    setRoster((r) => addToRoster(r, newName, player.gender))
-  }
+      players: s.players.map((p) =>
+        p.id === playerId ? { ...p, name: newName } : p
+      )
+    }));
+    setRoster((r) => addToRoster(r, newName, player.gender));
+  };
 
   // Tần suất suy ra từ lịch sử đã lưu (không lưu thêm trường nào vào danh bạ).
   const frequent = useMemo(
     () => frequentPlayers(history, roster, session.players),
-    [history, roster, session.players],
-  )
+    [history, roster, session.players]
+  );
   // Lọc theo dòng cầu khác trong buổi do CostForm tự làm — App không cần biết.
-  const shuttleTypes = useMemo(() => frequentShuttleTypes(history, []), [history])
+  const shuttleTypes = useMemo(
+    () => frequentShuttleTypes(history, []),
+    [history]
+  );
 
-  const errors = validateSession(session)
-  const result = errors.length === 0 ? calcSession(session) : null
+  const errors = validateSession(session);
+  const result = errors.length === 0 ? calcSession(session) : null;
 
-  const [saveDisabled, setSaveDisabled] = useState(false)
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [saveDisabled, setSaveDisabled] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
     () => () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     },
-    [],
-  )
+    []
+  );
 
   const handleNewSession = () => {
-    const previous = session
-    setSession(defaultSession(loadSettings()))
+    const previous = session;
+    setSession(defaultSession(loadSettings()));
     // Nothing was entered yet — there is nothing worth offering to undo.
     const isEmpty =
       previous.players.length === 0 &&
       previous.courtFee === 0 &&
       previous.shuttles.every((l) => l.count === 0) &&
-      previous.extras.length === 0
-    if (isEmpty) return
+      previous.extras.length === 0;
+    if (isEmpty) return;
     // The only site that restores a whole snapshot: a reset has no single
     // removed element to put back.
-    toastUndo('Đã bắt đầu buổi mới', () => setSession(previous))
-  }
+    toastUndo("Đã bắt đầu buổi mới", () => setSession(previous));
+  };
 
   const handleSave = () => {
-    if (!result) return
+    if (!result) return;
     const isFiniteResult =
-      Number.isFinite(result.surplus) && result.players.every((p) => Number.isFinite(p.amount))
-    if (!isFiniteResult) return
+      Number.isFinite(result.surplus) &&
+      result.players.every((p) => Number.isFinite(p.amount));
+    if (!isFiniteResult) return;
     setHistory((h) =>
-      [{ id: uid(), savedAt: new Date().toISOString(), input: session, result }, ...h].slice(
-        0,
-        HISTORY_LIMIT,
-      ),
-    )
+      [
+        {
+          id: uid(),
+          savedAt: new Date().toISOString(),
+          input: session,
+          result
+        },
+        ...h
+      ].slice(0, HISTORY_LIMIT)
+    );
     setRoster((r) =>
-      session.players.reduce((acc, p) => addToRoster(acc, p.name, p.gender), r),
-    )
-    toast.success('Đã lưu buổi ✓')
-    setSaveDisabled(true)
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
-    saveTimeoutRef.current = setTimeout(() => setSaveDisabled(false), 2500)
-  }
+      session.players.reduce((acc, p) => addToRoster(acc, p.name, p.gender), r)
+    );
+    toast.success("Đã lưu buổi ✓");
+    setSaveDisabled(true);
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => setSaveDisabled(false), 2500);
+  };
 
-  if (page === 'roster') {
+  if (page === "roster") {
     return (
       <MotionConfig reducedMotion="user">
         <Toaster position="top-center" />
-        <RosterPage roster={roster} onBack={() => window.history.back()} onChange={setRoster} />
+        <RosterPage
+          roster={roster}
+          onBack={() => window.history.back()}
+          onChange={setRoster}
+        />
       </MotionConfig>
-    )
+    );
   }
 
-  if (page === 'history') {
+  if (page === "history") {
     return (
       <MotionConfig reducedMotion="user">
         <Toaster position="top-center" />
@@ -279,11 +299,11 @@ export default function App() {
                       input: {
                         ...s.input,
                         players: s.input.players.map((p) =>
-                          p.id === playerId ? { ...p, paid: !p.paid } : p,
-                        ),
-                      },
-                    },
-              ),
+                          p.id === playerId ? { ...p, paid: !p.paid } : p
+                        )
+                      }
+                    }
+              )
             )
           }
           onReuse={(s) => {
@@ -296,113 +316,124 @@ export default function App() {
                 halfSession: false,
                 startTime: null,
                 endTime: null,
-                paid: false,
+                paid: false
               })),
               // every player gets a fresh id, so old extras could not be
               // re-pointed at anyone — the new session starts clean
-              extras: [],
-            }))
-            setPage('main')
+              extras: []
+            }));
+            setPage("main");
           }}
         />
       </MotionConfig>
-    )
+    );
   }
 
   return (
     <MotionConfig reducedMotion="user">
       <Toaster position="top-center" />
-      <div className="bg-gray-100 min-h-dvh">
+      <div className="min-h-dvh bg-gray-100">
         {/* pb gộp 2rem + safe-area để nút cuối trang không nằm dưới vạch home
             indicator; gộp vào một class thay vì thêm pb riêng vì hai utility
             padding-bottom trên cùng element sẽ đè nhau theo thứ tự CSS */}
-        <div className="w-full max-w-[430px] mx-auto bg-gray-50 min-h-dvh pb-[calc(2rem+env(safe-area-inset-bottom))] md:max-w-none md:bg-gray-100 md:pb-0">
-        <header className="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl md:rounded-none md:px-0 md:py-5">
-          <div className="md:max-w-5xl md:mx-auto md:px-6 md:flex md:items-center md:justify-between">
-            <div>
-              <h1 className="text-white text-2xl font-bold">🏸 Tính tiền cầu lông</h1>
-              <p className="text-emerald-100 text-sm mt-1">Chia tiền nhanh sau buổi chơi</p>
+        <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-gray-50 pb-[calc(2rem+env(safe-area-inset-bottom))] md:max-w-none md:bg-gray-100 md:pb-0">
+          <header className="rounded-b-3xl bg-emerald-600 px-4 pt-8 pb-6 md:rounded-none md:px-0 md:py-5">
+            <div className="md:mx-auto md:flex md:max-w-5xl md:items-center md:justify-between md:px-6">
+              <div>
+                <h1 className="text-2xl font-bold text-white">
+                  🏸 Tính tiền cầu lông
+                </h1>
+                <p className="mt-1 text-sm text-emerald-100">
+                  Chia tiền nhanh sau buổi chơi
+                </p>
+              </div>
+              <div className="hidden md:flex md:items-center md:gap-2">
+                <button
+                  type="button"
+                  onClick={openHistory}
+                  className="h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white"
+                >
+                  Lịch sử các buổi
+                </button>
+                <button
+                  type="button"
+                  onClick={openRoster}
+                  className="h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white"
+                >
+                  Danh bạ
+                </button>
+                <AccountButton />
+              </div>
             </div>
-            <div className="hidden md:flex md:gap-2 md:items-center">
+          </header>
+          <main className="-mt-2 space-y-4 px-4 md:mx-auto md:mt-0 md:grid md:max-w-5xl md:grid-cols-5 md:items-start md:gap-6 md:space-y-0 md:px-6 md:py-6">
+            <div className="mt-4 md:col-span-5 md:mt-0 md:max-w-md">
+              <ModeSwitch
+                mode={session.mode}
+                onChange={(mode) => onPatch({ mode })}
+              />
+            </div>
+            <div className="mt-4 space-y-4 md:col-span-3 md:mt-0">
+              <CostForm
+                input={session}
+                shuttleTypes={shuttleTypes}
+                onPatch={onPatch}
+              />
+              <RatioInputs
+                maleRatio={session.maleRatio}
+                femaleRatio={session.femaleRatio}
+                note={
+                  session.mode === "hourly"
+                    ? "Chỉ áp dụng cho tiền cầu — tiền sân chia theo giờ chơi"
+                    : undefined
+                }
+                onChange={onPatch}
+              />
+              <PlayerList
+                input={session}
+                roster={roster}
+                frequent={frequent}
+                onPatch={onPatch}
+                onAddPlayer={handleAddPlayer}
+                onRemovePlayer={handleRemovePlayer}
+                onChangeGender={handleChangeGender}
+                onRenamePlayer={handleRenamePlayer}
+              />
+              <RoundingToggle
+                rounding={session.rounding}
+                onChange={(rounding) => onPatch({ rounding })}
+              />
+            </div>
+            <div className="mt-4 space-y-4 md:sticky md:top-6 md:col-span-2 md:mt-0 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto">
+              <ResultPanel
+                result={result}
+                mode={session.mode}
+                errors={errors}
+                players={session.players}
+                onSave={handleSave}
+                onNewSession={handleNewSession}
+                onPatch={onPatch}
+                saveDisabled={saveDisabled}
+              />
               <button
                 type="button"
                 onClick={openHistory}
-                className="h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold"
+                className="h-12 w-full text-sm font-semibold text-emerald-700 md:hidden"
               >
-                Lịch sử các buổi
+                Xem lịch sử các buổi →
               </button>
               <button
                 type="button"
                 onClick={openRoster}
-                className="h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold"
+                className="h-12 w-full text-sm font-semibold text-emerald-700 md:hidden"
               >
-                Danh bạ
+                Danh bạ người chơi →
               </button>
-              <AccountButton />
             </div>
-          </div>
-        </header>
-        <main className="px-4 -mt-2 space-y-4 md:max-w-5xl md:mx-auto md:px-6 md:mt-0 md:py-6 md:grid md:grid-cols-5 md:gap-6 md:space-y-0 md:items-start">
-          <div className="mt-4 md:mt-0 md:col-span-5 md:max-w-md">
-            <ModeSwitch mode={session.mode} onChange={(mode) => onPatch({ mode })} />
-          </div>
-          <div className="space-y-4 mt-4 md:mt-0 md:col-span-3">
-            <CostForm input={session} shuttleTypes={shuttleTypes} onPatch={onPatch} />
-            <RatioInputs
-              maleRatio={session.maleRatio}
-              femaleRatio={session.femaleRatio}
-              note={
-                session.mode === 'hourly'
-                  ? 'Chỉ áp dụng cho tiền cầu — tiền sân chia theo giờ chơi'
-                  : undefined
-              }
-              onChange={onPatch}
-            />
-            <PlayerList
-              input={session}
-              roster={roster}
-              frequent={frequent}
-              onPatch={onPatch}
-              onAddPlayer={handleAddPlayer}
-              onRemovePlayer={handleRemovePlayer}
-              onChangeGender={handleChangeGender}
-              onRenamePlayer={handleRenamePlayer}
-            />
-            <RoundingToggle
-              rounding={session.rounding}
-              onChange={(rounding) => onPatch({ rounding })}
-            />
-          </div>
-          <div className="mt-4 md:mt-0 md:col-span-2 md:sticky md:top-6 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto space-y-4">
-            <ResultPanel
-              result={result}
-              mode={session.mode}
-              errors={errors}
-              players={session.players}
-              onSave={handleSave}
-              onNewSession={handleNewSession}
-              onPatch={onPatch}
-              saveDisabled={saveDisabled}
-            />
-            <button
-              type="button"
-              onClick={openHistory}
-              className="w-full h-12 text-emerald-700 text-sm font-semibold md:hidden"
-            >
-              Xem lịch sử các buổi →
-            </button>
-            <button
-              type="button"
-              onClick={openRoster}
-              className="w-full h-12 text-emerald-700 text-sm font-semibold md:hidden"
-            >
-              Danh bạ người chơi →
-            </button>
-          </div>
-        </main>
-        <InstallBanner />
+          </main>
+          <InstallBanner />
         </div>
       </div>
     </MotionConfig>
-  )
+  );
 }

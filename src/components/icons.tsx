@@ -8,10 +8,13 @@
  */
 interface IconProps {
   /** Cạnh của icon tính bằng px. */
-  size?: number
+  size?: number;
 }
 
-function Icon({ size = 20, children }: IconProps & { children: React.ReactNode }) {
+function Icon({
+  size = 20,
+  children
+}: IconProps & { children: React.ReactNode }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -27,7 +30,7 @@ function Icon({ size = 20, children }: IconProps & { children: React.ReactNode }
     >
       {children}
     </svg>
-  )
+  );
 }
 
 export function ArrowLeftIcon({ size }: IconProps) {
@@ -36,7 +39,7 @@ export function ArrowLeftIcon({ size }: IconProps) {
       <path d="M19 12H5" />
       <path d="m12 19-7-7 7-7" />
     </Icon>
-  )
+  );
 }
 
 export function PlusIcon({ size }: IconProps) {
@@ -45,7 +48,7 @@ export function PlusIcon({ size }: IconProps) {
       <path d="M12 5v14" />
       <path d="M5 12h14" />
     </Icon>
-  )
+  );
 }
 
 export function CloseIcon({ size }: IconProps) {
@@ -54,7 +57,7 @@ export function CloseIcon({ size }: IconProps) {
       <path d="M18 6 6 18" />
       <path d="m6 6 12 12" />
     </Icon>
-  )
+  );
 }
 
 export function SearchIcon({ size = 18 }: IconProps) {
@@ -63,7 +66,7 @@ export function SearchIcon({ size = 18 }: IconProps) {
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.6-3.6" />
     </Icon>
-  )
+  );
 }
 
 export function CheckIcon({ size = 16 }: IconProps) {
@@ -71,7 +74,7 @@ export function CheckIcon({ size = 16 }: IconProps) {
     <Icon size={size}>
       <path d="M20 6 9 17l-5-5" />
     </Icon>
-  )
+  );
 }
 
 export function PencilIcon({ size = 16 }: IconProps) {
@@ -80,7 +83,7 @@ export function PencilIcon({ size = 16 }: IconProps) {
       <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
       <path d="m15 5 4 4" />
     </Icon>
-  )
+  );
 }
 
 export function ShareIcon({ size = 18 }: IconProps) {
@@ -90,7 +93,7 @@ export function ShareIcon({ size = 18 }: IconProps) {
       <path d="m16 6-4-4-4 4" />
       <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
     </Icon>
-  )
+  );
 }
 
 export function CopyIcon({ size = 18 }: IconProps) {
@@ -99,7 +102,7 @@ export function CopyIcon({ size = 18 }: IconProps) {
       <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
       <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
     </Icon>
-  )
+  );
 }
 
 export function TrashIcon({ size = 16 }: IconProps) {
@@ -111,5 +114,5 @@ export function TrashIcon({ size = 16 }: IconProps) {
       <path d="M10 11v6" />
       <path d="M14 11v6" />
     </Icon>
-  )
+  );
 }

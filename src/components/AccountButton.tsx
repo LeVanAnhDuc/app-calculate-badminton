@@ -8,7 +8,7 @@ export function AccountButton() {
 
   if (status === "loading") {
     return (
-      <span className="text-emerald-100 text-sm" aria-live="polite">
+      <span className="text-sm text-emerald-100" aria-live="polite">
         Đang đăng nhập…
       </span>
     );
@@ -20,9 +20,9 @@ export function AccountButton() {
         type="button"
         onClick={signOut}
         title={profile.email ?? profile.sub}
-        className="h-11 px-3 rounded-xl bg-emerald-700 text-white text-sm font-semibold flex items-center gap-2"
+        className="flex h-11 items-center gap-2 rounded-xl bg-emerald-700 px-3 text-sm font-semibold text-white"
       >
-        <span className="w-6 h-6 rounded-full bg-emerald-900 text-xs flex items-center justify-center">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-900 text-xs">
           {initials(profile.name ?? "?")}
         </span>
         <span className="max-w-28 truncate">
@@ -36,7 +36,7 @@ export function AccountButton() {
     <button
       type="button"
       onClick={signIn}
-      className="h-11 px-4 rounded-xl bg-emerald-700 text-white text-sm font-semibold"
+      className="h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white"
     >
       Đăng nhập
     </button>

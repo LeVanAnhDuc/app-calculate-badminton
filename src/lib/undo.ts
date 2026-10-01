@@ -1,4 +1,4 @@
-import { toast } from 'sonner'
+import { toast } from "sonner";
 
 /**
  * Re-inserts `item` back into `list` at `index`.
@@ -8,8 +8,8 @@ import { toast } from 'sonner'
  * lands at the end instead of being dropped.
  */
 export function insertAt<T>(list: T[], index: number, item: T): T[] {
-  const at = Math.max(0, Math.min(index, list.length))
-  return [...list.slice(0, at), item, ...list.slice(at)]
+  const at = Math.max(0, Math.min(index, list.length));
+  return [...list.slice(0, at), item, ...list.slice(at)];
 }
 
 /**
@@ -21,8 +21,8 @@ export function toastUndo(message: string, onUndo: () => void) {
   return toast(message, {
     duration: 6000,
     action: {
-      label: 'Hoàn tác',
-      onClick: onUndo,
-    },
-  })
+      label: "Hoàn tác",
+      onClick: onUndo
+    }
+  });
 }
