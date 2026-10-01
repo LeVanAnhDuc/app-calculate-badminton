@@ -17,6 +17,18 @@ New screens and significant layout changes go through an HTML mockup in `superde
 - `superdesign/gallery.html` is generated — never hand-edit it. Add the mockup to `superdesign/metadata.json` and run `pnpm design:gallery`.
 - Small fixes (copy, one Tailwind class, button order, display bugs) skip this entirely — edit React directly.
 
+## Code organization (mirrors `web-app-ducker-id/client`)
+
+`src/` is layer-based, adapted from the Ducker ID client's `.claude/rules/` for a Vite SPA:
+
+- `views/<Page>Page/` — one folder per page. `index.tsx` composes `mains/` (sections it renders directly); `components/` holds pieces used only inside that page. `App.tsx` keeps the shared state and switches pages.
+- `components/<Name>/index.tsx` — UI used by 2+ pages. One component per folder, arrow function, a single `export default` named after the folder, props typed inline (no `interface Props`). `components/Icons/` is the one exception: a family of SVG icons with named exports.
+- `hooks/useX.ts` (default export, re-exported from `hooks/index.ts`), `utils/` (pure functions), `libs/` (side effects: localStorage, canvas, sharing, OIDC), `requests/` (network), `constants/`, `types/<Domain>/index.ts` (every shared type — never `export type` from utils/libs/components).
+- Imports use the `@/` alias (relative only inside the same view), grouped in this order with a comment per group: `// libs`, `// types` (all `import type`, enforced by `verbatimModuleSyntax`), `// components`, `// hooks`, `// requests`, `// others`.
+- Tests stay colocated (`index.test.tsx` next to the component). Run `pnpm format` (Prettier, Ducker ID config) before committing.
+
+Not adopted from Ducker ID: effects-in-ghost-components, the 200-line view limit, one-JSX-return-per-component, and the merged `CONSTANTS` object.
+
 ## Commit convention (REQUIRED — releases depend on it)
 
 Every push to `main` automatically creates a GitHub Release (`.github/workflows/release.yml`). The version bump is inferred from Conventional Commit prefixes across all commits since the previous release, so commit subjects MUST follow this format:

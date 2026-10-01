@@ -1,3 +1,4 @@
+// libs
 import {
   render,
   screen,
@@ -6,8 +7,9 @@ import {
   within,
   act
 } from "@testing-library/react";
-import App from "./App";
-import { loadHistory } from "./lib/storage";
+// others
+import App from "@/App";
+import { loadHistory } from "@/libs/storage";
 
 beforeEach(() => localStorage.clear());
 

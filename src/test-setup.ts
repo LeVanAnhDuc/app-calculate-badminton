@@ -1,5 +1,7 @@
-import "@testing-library/jest-dom/vitest";
+// libs
 import { toast } from "sonner";
+// others
+import "@testing-library/jest-dom/vitest";
 
 // jsdom doesn't implement matchMedia; vaul's <Drawer/> queries it (e.g. to
 // detect standalone display mode) and throws without a stub.

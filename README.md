@@ -116,20 +116,29 @@ pnpm test
 
 # Build for production (output: dist/)
 pnpm build
+
+# Format the code (Prettier)
+pnpm format
 ```
 
 ## Project structure
 
+Layer-based, following the conventions of the Ducker ID client:
+
 ```
 src/
-├── lib/
-│   ├── calc.ts        # Pure calculation logic (both modes, rounding, balance)
-│   ├── time.ts        # Parse/format times, including past midnight
-│   ├── format.ts      # Format/parse VND amounts
-│   ├── storage.ts     # localStorage wrapper (roster, session, history, settings)
-│   └── types.ts       # TypeScript types
-├── components/        # React components (form, player list, history, etc.)
-└── App.tsx           # Routing and top-level state
+├── App.tsx            # Top-level state and switching between the three pages
+├── views/             # One folder per page: index.tsx + mains/ + components/
+│   ├── CalculatorPage/  # Cost form, player list, result panel
+│   ├── HistoryPage/     # Saved sessions, paid tracking, reuse
+│   └── RosterPage/      # Player roster with A–Z rail
+├── components/        # Shared UI used by 2+ pages, one <Name>/index.tsx each
+├── hooks/             # Shared hooks (useDuckerAuth, useInstallPrompt, …) + index.ts barrel
+├── utils/             # Pure functions: calc, time, format, VietQR payload, …
+├── libs/              # Side-effectful modules: localStorage, canvas export, sharing, OIDC
+├── requests/          # Network calls (Ducker ID token + userinfo)
+├── constants/         # Bank list, PWA manifest, Ducker ID config
+└── types/<Domain>/    # Shared types (Session, Storage, Share, Auth, …)
 
 docs/
 └── superpowers/specs/2026-08-13-badminton-cost-split-design.md  # Full design spec

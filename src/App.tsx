@@ -1,20 +1,19 @@
+// libs
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MotionConfig } from "motion/react";
 import { Toaster, toast } from "sonner";
-import { AccountButton } from "./components/AccountButton";
-import { CostForm } from "./components/CostForm";
-import { HistoryPage } from "./components/HistoryPage";
-import { InstallBanner } from "./components/InstallBanner";
-import { ModeSwitch } from "./components/ModeSwitch";
-import { PlayerList } from "./components/PlayerList";
-import { RatioInputs } from "./components/RatioInputs";
-import { ResultPanel } from "./components/ResultPanel";
-import { RosterPage } from "./components/RosterPage";
-import { RoundingToggle } from "./components/RoundingToggle";
-import { calcSession, validateSession } from "./lib/calc";
-import { frequentPlayers } from "./lib/frequent";
-import { frequentShuttleTypes } from "./lib/shuttleTypes";
-import { insertAt, toastUndo } from "./lib/undo";
+// types
+import type { RosterEntry, SavedSession, Settings } from "@/types/Storage";
+import type { ExtraCost, Gender, Player, SessionInput } from "@/types/Session";
+// components
+import CalculatorPage from "@/views/CalculatorPage";
+import HistoryPage from "@/views/HistoryPage";
+import RosterPage from "@/views/RosterPage";
+// others
+import { calcSession, validateSession } from "@/utils/calc";
+import { frequentPlayers } from "@/utils/frequent";
+import { frequentShuttleTypes } from "@/utils/shuttleTypes";
+import { insertAt, toastUndo } from "@/libs/undo";
 import {
   addToRoster,
   HISTORY_LIMIT,
@@ -25,13 +24,9 @@ import {
   saveCurrentSession,
   saveHistory,
   saveRoster,
-  saveSettings,
-  type RosterEntry,
-  type SavedSession,
-  type Settings
-} from "./lib/storage";
-import type { ExtraCost, Gender, Player, SessionInput } from "./lib/types";
-import { uid } from "./lib/uid";
+  saveSettings
+} from "@/libs/storage";
+import { uid } from "@/utils/uid";
 
 function defaultSession(s: Settings): SessionInput {
   return {
@@ -332,108 +327,24 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user">
       <Toaster position="top-center" />
-      <div className="min-h-dvh bg-gray-100">
-        {/* pb gộp 2rem + safe-area để nút cuối trang không nằm dưới vạch home
-            indicator; gộp vào một class thay vì thêm pb riêng vì hai utility
-            padding-bottom trên cùng element sẽ đè nhau theo thứ tự CSS */}
-        <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-gray-50 pb-[calc(2rem+env(safe-area-inset-bottom))] md:max-w-none md:bg-gray-100 md:pb-0">
-          <header className="rounded-b-3xl bg-emerald-600 px-4 pt-8 pb-6 md:rounded-none md:px-0 md:py-5">
-            <div className="md:mx-auto md:flex md:max-w-5xl md:items-center md:justify-between md:px-6">
-              <div>
-                <h1 className="text-2xl font-bold text-white">
-                  🏸 Tính tiền cầu lông
-                </h1>
-                <p className="mt-1 text-sm text-emerald-100">
-                  Chia tiền nhanh sau buổi chơi
-                </p>
-              </div>
-              <div className="hidden md:flex md:items-center md:gap-2">
-                <button
-                  type="button"
-                  onClick={openHistory}
-                  className="h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white"
-                >
-                  Lịch sử các buổi
-                </button>
-                <button
-                  type="button"
-                  onClick={openRoster}
-                  className="h-11 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white"
-                >
-                  Danh bạ
-                </button>
-                <AccountButton />
-              </div>
-            </div>
-          </header>
-          <main className="-mt-2 space-y-4 px-4 md:mx-auto md:mt-0 md:grid md:max-w-5xl md:grid-cols-5 md:items-start md:gap-6 md:space-y-0 md:px-6 md:py-6">
-            <div className="mt-4 md:col-span-5 md:mt-0 md:max-w-md">
-              <ModeSwitch
-                mode={session.mode}
-                onChange={(mode) => onPatch({ mode })}
-              />
-            </div>
-            <div className="mt-4 space-y-4 md:col-span-3 md:mt-0">
-              <CostForm
-                input={session}
-                shuttleTypes={shuttleTypes}
-                onPatch={onPatch}
-              />
-              <RatioInputs
-                maleRatio={session.maleRatio}
-                femaleRatio={session.femaleRatio}
-                note={
-                  session.mode === "hourly"
-                    ? "Chỉ áp dụng cho tiền cầu — tiền sân chia theo giờ chơi"
-                    : undefined
-                }
-                onChange={onPatch}
-              />
-              <PlayerList
-                input={session}
-                roster={roster}
-                frequent={frequent}
-                onPatch={onPatch}
-                onAddPlayer={handleAddPlayer}
-                onRemovePlayer={handleRemovePlayer}
-                onChangeGender={handleChangeGender}
-                onRenamePlayer={handleRenamePlayer}
-              />
-              <RoundingToggle
-                rounding={session.rounding}
-                onChange={(rounding) => onPatch({ rounding })}
-              />
-            </div>
-            <div className="mt-4 space-y-4 md:sticky md:top-6 md:col-span-2 md:mt-0 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto">
-              <ResultPanel
-                result={result}
-                mode={session.mode}
-                errors={errors}
-                players={session.players}
-                onSave={handleSave}
-                onNewSession={handleNewSession}
-                onPatch={onPatch}
-                saveDisabled={saveDisabled}
-              />
-              <button
-                type="button"
-                onClick={openHistory}
-                className="h-12 w-full text-sm font-semibold text-emerald-700 md:hidden"
-              >
-                Xem lịch sử các buổi →
-              </button>
-              <button
-                type="button"
-                onClick={openRoster}
-                className="h-12 w-full text-sm font-semibold text-emerald-700 md:hidden"
-              >
-                Danh bạ người chơi →
-              </button>
-            </div>
-          </main>
-          <InstallBanner />
-        </div>
-      </div>
+      <CalculatorPage
+        session={session}
+        roster={roster}
+        frequent={frequent}
+        shuttleTypes={shuttleTypes}
+        result={result}
+        errors={errors}
+        saveDisabled={saveDisabled}
+        onPatch={onPatch}
+        onAddPlayer={handleAddPlayer}
+        onRemovePlayer={handleRemovePlayer}
+        onChangeGender={handleChangeGender}
+        onRenamePlayer={handleRenamePlayer}
+        onSave={handleSave}
+        onNewSession={handleNewSession}
+        onOpenHistory={openHistory}
+        onOpenRoster={openRoster}
+      />
     </MotionConfig>
   );
 }

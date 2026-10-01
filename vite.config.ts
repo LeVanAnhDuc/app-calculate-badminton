@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
-import { PWA_MANIFEST } from "./src/lib/pwaManifest";
+import { PWA_MANIFEST } from "./src/constants/pwaManifest";
 
 export default defineConfig({
   // GitHub Pages serves the app from /<repo-name>/ — set only in the deploy workflow
