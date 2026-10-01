@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MotionConfig } from 'motion/react'
 import { Toaster, toast } from 'sonner'
+import { AccountButton } from './components/AccountButton'
 import { CostForm } from './components/CostForm'
 import { HistoryPage } from './components/HistoryPage'
 import { InstallBanner } from './components/InstallBanner'
@@ -322,7 +323,7 @@ export default function App() {
               <h1 className="text-white text-2xl font-bold">🏸 Tính tiền cầu lông</h1>
               <p className="text-emerald-100 text-sm mt-1">Chia tiền nhanh sau buổi chơi</p>
             </div>
-            <div className="hidden md:flex md:gap-2">
+            <div className="hidden md:flex md:gap-2 md:items-center">
               <button
                 type="button"
                 onClick={openHistory}
@@ -337,6 +338,7 @@ export default function App() {
               >
                 Danh bạ
               </button>
+              <AccountButton />
             </div>
           </div>
         </header>

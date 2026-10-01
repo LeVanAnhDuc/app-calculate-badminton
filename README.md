@@ -81,16 +81,23 @@ owes. No server, no sign-in — your data stays on your own device.
   - Add it to the home screen and open it like an app, without going through a browser
   - Fully usable with no connection — which suits a court with weak signal
 
-- **No sign-in, no server**
-  - All data lives in localStorage on your own device
+- **No server, and sign-in is optional**
+  - All data lives in localStorage on your own device — nothing is uploaded, signed in or not
   - Share the app's link with friends and everyone uses their own copy
+  - Sign in with Ducker ID to show your name in the header; every feature works fully without it
+
+- **Ducker ID single sign-on**
+  - Sign in through Ducker ID over OIDC Authorization Code with PKCE — no password is ever typed here
+  - Registered as a public client, so the app holds no client secret: a browser cannot keep one, and PKCE protects the exchange instead
+  - Already signed in at Ducker ID means two redirects and you are back, with no screen in between
+  - Works offline and signed out; losing the session never blocks the calculator
 
 ## Tech Stack
 
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (441 test cases)
+- **Testing**: Vitest + React Testing Library (453 test cases)
 - **Build & Deploy**: Vite, works on static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Running
