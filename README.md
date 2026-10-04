@@ -81,16 +81,31 @@ owes. No server, no sign-in — your data stays on your own device.
   - Add it to the home screen and open it like an app, without going through a browser
   - Fully usable with no connection — which suits a court with weak signal
 
-- **No sign-in, no server**
-  - All data lives in localStorage on your own device
+- **A link for every page**
+  - History, Contacts and the account page have their own address (`/history`, `/roster`, `/account`): refreshing keeps you on the page, and a link opens straight onto it
+  - The phone's Back button moves between pages as expected; opening a page from a link and pressing ← lands on the calculator instead of leaving the app
+  - Signing in brings you back to the page you started from
+
+- **No server, and sign-in is optional**
+  - All data lives in localStorage on your own device — nothing is uploaded, signed in or not
   - Share the app's link with friends and everyone uses their own copy
+  - Sign in with Ducker ID to show your name in the header; every feature works fully without it
+
+- **Ducker ID single sign-on**
+  - Sign in through Ducker ID over OIDC Authorization Code with PKCE — no password is ever typed here
+  - Registered as a public client, so the app holds no client secret: a browser cannot keep one, and PKCE protects the exchange instead
+  - Already signed in at Ducker ID means two redirects and you are back, with no screen in between
+  - Works offline and signed out; losing the session never blocks the calculator
+  - The account button sits in the header on phones too; tapping it opens a menu instead of signing you out on the spot
+  - An account page (`/account`) shows your Ducker ID profile and account ID (one tap to copy) and links to Ducker ID to change your name, picture or password
 
 ## Tech Stack
 
 - **Frontend**: React 19, TypeScript (strict mode), Vite
 - **Styling**: Tailwind CSS v4
+- **Routing & state**: React Router (data router), Zustand
 - **UI Components**: vaul (bottom sheet), sonner (toast), react-mobile-picker, Motion (animation)
-- **Testing**: Vitest + React Testing Library (441 test cases)
+- **Testing**: Vitest + React Testing Library (473 test cases)
 - **Build & Deploy**: Vite, works on static hosting (Vercel, Netlify, GitHub Pages)
 
 ## Running
@@ -109,20 +124,36 @@ pnpm test
 
 # Build for production (output: dist/)
 pnpm build
+
+# Format the code (Prettier)
+pnpm format
 ```
 
 ## Project structure
 
+Layer-based, following the conventions of the Ducker ID client:
+
 ```
 src/
-├── lib/
-│   ├── calc.ts        # Pure calculation logic (both modes, rounding, balance)
-│   ├── time.ts        # Parse/format times, including past midnight
-│   ├── format.ts      # Format/parse VND amounts
-│   ├── storage.ts     # localStorage wrapper (roster, session, history, settings)
-│   └── types.ts       # TypeScript types
-├── components/        # React components (form, player list, history, etc.)
-└── App.tsx           # Routing and top-level state
+├── main.tsx           # Reads the Ducker ID callback, then mounts <App/>
+├── App.tsx            # Store provider + router, nothing else
+├── router.tsx         # Route table: / · /history · /roster
+├── layouts/RootLayout/  # Toaster, motion config, scroll restoration, <Outlet/>
+├── pages/             # Thin routes: read the store, wire navigation, render a view
+├── stores/            # Zustand store (session, roster, history slices)
+├── contexts/          # AppStoreProvider — one store per <App/> mount
+├── ghosts/            # Render-nothing effects (PersistStore → localStorage)
+├── views/             # One folder per page: index.tsx + mains/ + components/
+│   ├── CalculatorPage/  # Cost form, player list, result panel
+│   ├── HistoryPage/     # Saved sessions, paid tracking, reuse
+│   └── RosterPage/      # Player roster with A–Z rail
+├── components/        # Shared UI used by 2+ pages, one <Name>/index.tsx each
+├── hooks/             # Shared hooks (useDuckerAuth, useInstallPrompt, …) + index.ts barrel
+├── utils/             # Pure functions: calc, time, format, VietQR payload, …
+├── libs/              # Side-effectful modules: localStorage, canvas export, sharing, OIDC
+├── requests/          # Network calls (Ducker ID token + userinfo)
+├── constants/         # Bank list, PWA manifest, Ducker ID config
+└── types/<Domain>/    # Shared types (Session, Storage, Share, Auth, …)
 
 docs/
 └── superpowers/specs/2026-08-13-badminton-cost-split-design.md  # Full design spec

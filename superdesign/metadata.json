@@ -1,5 +1,36 @@
 [
   {
+    "file": "account_popover_1.html",
+    "title": "Popover tài khoản — Mobile",
+    "note": "Avatar 44px góc phải header · popover: hồ sơ, Thông tin tài khoản, Đăng xuất · kèm 4 trạng thái nút",
+    "screen": "account",
+    "viewport": "mobile",
+    "status": "approved",
+    "date": "2026-10-01",
+    "badge": "🆕"
+  },
+  {
+    "file": "account_popover_1_1.html",
+    "title": "Popover tài khoản — Desktop",
+    "note": "Chip avatar + tên cạnh Lịch sử / Danh bạ · popover neo mép phải",
+    "screen": "account",
+    "viewport": "desktop",
+    "status": "approved",
+    "date": "2026-10-01",
+    "badge": "🆕",
+    "wide": true
+  },
+  {
+    "file": "account_page_1.html",
+    "title": "Trang Tài khoản (/account) — Mobile",
+    "note": "Hồ sơ Ducker ID · mã tài khoản + sao chép · link Quản lý tại Ducker ID · Đăng xuất",
+    "screen": "account",
+    "viewport": "mobile",
+    "status": "approved",
+    "date": "2026-10-01",
+    "badge": "🆕"
+  },
+  {
     "file": "shuttle_row_1.html",
     "title": "Hàng chi phí cầu — gộp đơn giá vào sheet",
     "note": "Hàng còn 2 ô: [tên · giá] [số quả] · dòng phụ thành tiền · giá sửa trong bottom sheet",

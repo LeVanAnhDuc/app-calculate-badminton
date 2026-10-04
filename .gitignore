@@ -3,3 +3,8 @@ dist
 .mcp.json
 .superpowers
 .claude/settings.local.json
+
+# Local config — giá trị không bí mật nhưng khác nhau giữa dev và prod.
+# Xem .env.example. Prod đặt qua env của deploy workflow.
+.env
+.env.local

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+  Popover tài khoản — Mobile.
+  Bấm avatar ở góc phải header → popover neo dưới avatar. Không có lớp phủ
+  (không phải modal): chạm ra ngoài hoặc Esc để đóng, focus trả về avatar.
+  Thay cho hành vi cũ: bấm tên = đăng xuất ngay.
+-->
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tính tiền cầu lông — Popover tài khoản</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+</style>
+</head>
+<body class="bg-gray-100 min-h-dvh">
+
+<div class="relative w-full max-w-[430px] mx-auto bg-gray-50 min-h-dvh pb-[calc(2rem+env(safe-area-inset-bottom))]">
+
+  <!-- HEADER — thêm nút avatar 44px ở góc phải (mobile trước đây không có nút tài khoản) -->
+  <header class="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <h1 class="text-white text-2xl font-bold">🏸 Tính tiền cầu lông</h1>
+        <p class="text-emerald-100 text-sm mt-1">Chia tiền nhanh sau buổi chơi</p>
+      </div>
+      <!-- trạng thái mở: aria-expanded=true, viền trắng nhấn -->
+      <button type="button" aria-label="Tài khoản: Lê Văn Anh Đức" aria-haspopup="menu" aria-expanded="true"
+              class="h-11 w-11 shrink-0 rounded-full bg-emerald-700 text-white text-sm font-semibold flex items-center justify-center ring-2 ring-white">
+        LĐ
+      </button>
+    </div>
+  </header>
+
+  <!-- POPOVER — neo dưới avatar, mép phải thẳng mép phải header (right-4) -->
+  <div role="menu" aria-label="Tài khoản"
+       class="absolute right-4 top-[5.25rem] z-30 w-72 rounded-2xl bg-white shadow-lg border border-gray-100 overflow-hidden">
+    <div class="flex items-center gap-3 p-4">
+      <span class="h-10 w-10 shrink-0 rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold flex items-center justify-center">LĐ</span>
+      <div class="min-w-0">
+        <p class="font-semibold text-gray-900 truncate">Lê Văn Anh Đức</p>
+        <p class="text-sm text-gray-500 truncate">levananhduc@ducker.vn</p>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-100 p-1.5">
+      <a role="menuitem" href="account_page_1.html"
+         class="h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-medium text-gray-900 hover:bg-gray-100">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500" aria-hidden="true">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+        </svg>
+        <span class="flex-1">Thông tin tài khoản</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300" aria-hidden="true">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      </a>
+      <button role="menuitem" type="button"
+              class="w-full h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-medium text-red-500 hover:bg-red-50">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>
+        </svg>
+        <span>Đăng xuất</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN — nội dung màn chính, mờ đi chỉ để mockup dễ nhìn (app thật không phủ) -->
+  <main class="px-4 -mt-2 space-y-4 opacity-60">
+    <section class="mt-4 bg-white rounded-2xl shadow-sm p-4">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Chi phí</h2>
+      <div class="flex justify-between text-sm"><span class="text-gray-500">Tiền sân</span><span class="font-semibold text-gray-900">200.000đ</span></div>
+      <div class="flex justify-between text-sm mt-2"><span class="text-gray-500">Tiền cầu</span><span class="font-semibold text-gray-900">150.000đ</span></div>
+    </section>
+    <section class="bg-white rounded-2xl shadow-sm p-4">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Người chơi</h2>
+      <p class="text-sm text-gray-500">Tuấn · Hùng · Minh · Lan · Hoa</p>
+    </section>
+  </main>
+
+  <!-- TRẠNG THÁI NÚT — chỉ để tham chiếu, không phải một phần màn hình -->
+  <section class="mx-4 mt-8 rounded-2xl border-2 border-dashed border-gray-300 p-4">
+    <h2 class="text-xs font-bold text-gray-400 uppercase mb-3">Các trạng thái của nút góc phải</h2>
+    <div class="rounded-xl bg-emerald-600 p-3 space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-emerald-100">Chưa đăng nhập (desktop hiện chữ "Đăng nhập")</span>
+        <!-- mobile: tròn 44px như avatar — nút chữ đẩy tiêu đề app xuống 2 dòng ở 390px -->
+        <button type="button" aria-label="Đăng nhập" class="h-11 w-11 rounded-full bg-emerald-700 text-white flex items-center justify-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+        </button>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-emerald-100">Đang đăng nhập</span>
+        <span class="h-11 w-11 rounded-full bg-emerald-700 flex items-center justify-center" aria-label="Đang đăng nhập">
+          <span class="h-5 w-5 rounded-full border-2 border-emerald-300 border-t-white animate-spin"></span>
+        </span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-emerald-100">Đã đăng nhập, không có ảnh</span>
+        <span class="h-11 w-11 rounded-full bg-emerald-700 text-white text-sm font-semibold flex items-center justify-center">LĐ</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-emerald-100">Đã đăng nhập, có ảnh (picture)</span>
+        <span class="h-11 w-11 rounded-full bg-emerald-700 overflow-hidden flex items-center justify-center">
+          <svg viewBox="0 0 44 44" class="h-11 w-11" aria-hidden="true"><rect width="44" height="44" fill="#a7f3d0"/><circle cx="22" cy="17" r="8" fill="#047857"/><path d="M6 44c2-10 9-14 16-14s14 4 16 14" fill="#047857"/></svg>
+        </span>
+      </div>
+    </div>
+    <p class="text-xs text-gray-500 mt-3">Không cấu hình VITE_DUCKER_CLIENT_ID thì nút ẩn hẳn, như hiện nay.</p>
+  </section>
+
+</div>
+</body>
+</html>
