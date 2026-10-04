@@ -29,7 +29,13 @@ jobs:
       - run: pnpm test
       - run: pnpm build
         env:
-          GITHUB_PAGES: 'true'
+          VITE_BASE_PATH: /app-calculate-badminton/
+          # Repository variables (Settings → Secrets and variables → Actions →
+          # Variables). Unset → the sign-in button stays hidden in prod.
+          VITE_DUCKER_ISSUER: ${{ vars.VITE_DUCKER_ISSUER }}
+          VITE_DUCKER_CLIENT_ID: ${{ vars.VITE_DUCKER_CLIENT_ID }}
+          VITE_DUCKER_SCOPE: ${{ vars.VITE_DUCKER_SCOPE }}
+          VITE_DUCKER_PROFILE_PATH: ${{ vars.VITE_DUCKER_PROFILE_PATH }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

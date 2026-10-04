@@ -1,10 +1,18 @@
 // client_id và issuer KHÔNG phải bí mật — công khai theo thiết kế của OAuth.
-export const DUCKER_ISSUER =
-  import.meta.env.VITE_DUCKER_ISSUER ?? "http://localhost:3000";
+// Mọi giá trị lấy từ .env (xem .env.example); thiếu issuer hoặc client_id thì
+// nút đăng nhập tự ẩn — không có địa chỉ IdP mặc định nào ghi cứng ở đây.
+export const DUCKER_ISSUER = import.meta.env.VITE_DUCKER_ISSUER ?? "";
 export const DUCKER_CLIENT_ID = import.meta.env.VITE_DUCKER_CLIENT_ID ?? "";
-export const DUCKER_SCOPE = "openid profile email";
+export const DUCKER_SCOPE =
+  import.meta.env.VITE_DUCKER_SCOPE || "openid profile email";
 
 export const DUCKER_STATE_KEY = "ducker.pkce";
 
 // Trang hồ sơ của Ducker ID — đổi tên, ảnh, mật khẩu đều ở đó, không ở đây.
-export const DUCKER_PROFILE_URL = new URL("/profile", DUCKER_ISSUER).toString();
+// Rỗng khi chưa cấu hình issuer (new URL sẽ ném lỗi với base rỗng).
+export const DUCKER_PROFILE_URL = DUCKER_ISSUER
+  ? new URL(
+      import.meta.env.VITE_DUCKER_PROFILE_PATH || "/profile",
+      DUCKER_ISSUER
+    ).toString()
+  : "";

@@ -1,14 +1,15 @@
 /// <reference types="vitest/config" />
 import { fileURLToPath } from "node:url";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { PWA_MANIFEST } from "./src/constants/pwaManifest";
 
-export default defineConfig({
-  // GitHub Pages serves the app from /<repo-name>/ — set only in the deploy workflow
-  base: process.env.GITHUB_PAGES === "true" ? "/app-calculate-badminton/" : "/",
+export default defineConfig(({ mode }) => ({
+  // GitHub Pages serves the app from /<repo-name>/ — VITE_BASE_PATH is set in
+  // the deploy workflow; locally it stays "/". Must keep its trailing slash.
+  base: loadEnv(mode, process.cwd(), "VITE_").VITE_BASE_PATH || "/",
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) }
   },
@@ -41,4 +42,4 @@ export default defineConfig({
     // from the root also picks up every test file in each worktree copy
     exclude: ["**/node_modules/**", ".claude/worktrees/**"]
   }
-});
+}));

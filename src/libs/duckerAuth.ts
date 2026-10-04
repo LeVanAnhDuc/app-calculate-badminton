@@ -38,7 +38,7 @@ export function redirectUri(): string {
 }
 
 export function isConfigured(): boolean {
-  return DUCKER_CLIENT_ID !== "";
+  return DUCKER_ISSUER !== "" && DUCKER_CLIENT_ID !== "";
 }
 
 function readPending(): PendingAuth | null {
