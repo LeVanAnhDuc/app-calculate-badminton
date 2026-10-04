@@ -1,5 +1,38 @@
 [
   {
+    "file": "history_2.html",
+    "title": "Lịch sử — Desktop, header full",
+    "note": "Header full chiều ngang · nội dung max-w-5xl như trang chính · lưới 2 cột thẻ",
+    "screen": "history",
+    "viewport": "desktop",
+    "status": "approved",
+    "date": "2026-10-04",
+    "badge": "🆕",
+    "wide": true
+  },
+  {
+    "file": "roster_page_1.html",
+    "title": "Danh bạ — Desktop, header full",
+    "note": "Tìm kiếm cùng hàng tiêu đề · nhóm chữ chảy 2 cột · rail A–Z bám mép cột 1024px",
+    "screen": "roster",
+    "viewport": "desktop",
+    "status": "approved",
+    "date": "2026-10-04",
+    "badge": "🆕",
+    "wide": true
+  },
+  {
+    "file": "account_page_1_1.html",
+    "title": "Tài khoản — Desktop, header full",
+    "note": "Lưới 5 cột: hồ sơ (2, dính khi cuộn) · Ducker ID + Đăng xuất (3)",
+    "screen": "account",
+    "viewport": "desktop",
+    "status": "approved",
+    "date": "2026-10-04",
+    "badge": "🆕",
+    "wide": true
+  },
+  {
     "file": "account_popover_1.html",
     "title": "Popover tài khoản — Mobile",
     "note": "Avatar 44px góc phải header · popover: hồ sơ, Thông tin tài khoản, Đăng xuất · kèm 4 trạng thái nút",

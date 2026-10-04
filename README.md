@@ -76,6 +76,7 @@ owes. No server, no sign-in — your data stays on your own device.
   - Edit playing times through a bottom sheet (vaul), picking hours with an iOS-style 24-hour wheel picker
   - Drag the ⠿ handle to reorder players (mobile and desktop)
   - Responsive: one column on mobile, two sticky columns on desktop with smooth animation (Motion)
+  - On laptops every page shares the same full-width header and 1024px content column; Contacts flows into two columns and Account splits into profile and details
 
 - **Install it as an app, use it offline**
   - Add it to the home screen and open it like an app, without going through a browser

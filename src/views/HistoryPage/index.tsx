@@ -26,10 +26,10 @@ const HistoryPage = ({
   }).length;
 
   return (
-    <div className="flex min-h-dvh justify-center bg-gray-100">
+    <div className="min-h-dvh bg-gray-100">
       {/* pb gộp 2rem + safe-area: hai utility padding-bottom trên cùng element
           sẽ đè nhau theo thứ tự CSS nên gộp thành một class */}
-      <div className="min-h-dvh w-full max-w-[430px] bg-gray-50 pb-[calc(2rem+env(safe-area-inset-bottom))] md:max-w-5xl">
+      <div className="mx-auto min-h-dvh w-full max-w-[430px] bg-gray-50 pb-[calc(2rem+env(safe-area-inset-bottom))] md:max-w-none md:bg-gray-100 md:pb-0">
         <HistoryHeader
           count={history.length}
           thisMonth={thisMonth}
