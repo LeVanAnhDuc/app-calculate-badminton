@@ -2,8 +2,8 @@
 import { ArrowLeftIcon } from "@/components/Icons";
 
 const AccountHeader = ({ onBack }: { onBack: () => void }) => (
-  <header className="rounded-b-3xl bg-emerald-600 px-4 pt-8 pb-6 md:rounded-none">
-    <div className="flex items-center gap-3">
+  <header className="rounded-b-3xl bg-emerald-600 px-4 pt-8 pb-6 md:rounded-none md:px-0 md:py-5">
+    <div className="flex items-center gap-3 md:mx-auto md:max-w-5xl md:px-6">
       <button
         type="button"
         aria-label="Quay lại"
@@ -13,7 +13,7 @@ const AccountHeader = ({ onBack }: { onBack: () => void }) => (
         <ArrowLeftIcon />
       </button>
       <div>
-        <h1 className="text-xl font-bold text-white">Tài khoản</h1>
+        <h1 className="text-xl font-bold text-white md:text-2xl">Tài khoản</h1>
         <p className="text-sm text-emerald-100">Đăng nhập qua Ducker ID</p>
       </div>
     </div>

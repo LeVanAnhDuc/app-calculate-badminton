@@ -35,7 +35,7 @@ const HistorySessionList = ({
   }, [history, expandedId]);
 
   return (
-    <main className="mt-4 space-y-3 px-4 md:mx-auto md:grid md:max-w-5xl md:grid-cols-2 md:items-start md:gap-3 md:space-y-0">
+    <main className="mt-4 space-y-3 px-4 md:mx-auto md:mt-0 md:grid md:max-w-5xl md:grid-cols-2 md:items-start md:gap-3 md:space-y-0 md:px-6 md:py-6">
       {history.length === 0 && (
         <p className="py-8 text-center text-sm text-gray-400 md:col-span-2">
           Chưa có buổi nào được lưu — quay lại màn hình chính và bấm "Lưu buổi

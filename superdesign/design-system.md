@@ -84,6 +84,10 @@ dùng màu phẳng.
 - Desktop (`md:`): lưới 5 cột — nhập liệu `md:col-span-3`, kết quả `md:col-span-2` và
   `md:sticky md:top-6`.
 - `-mt-2` cho `main` để card đầu tiên đè nhẹ lên đáy header.
+- **Mọi trang** (Lịch sử, Danh bạ, Tài khoản) dùng đúng khung này: header full chiều ngang
+  từ `md:`, nội dung header và `main` cùng `md:mx-auto md:max-w-5xl md:px-6`. Không bọc
+  cả trang trong một khung giữa màn hình kiểu `md:max-w-2xl` — trên laptop nó để lại
+  hai dải xám và header bị cụt.
 
 ## Card
 

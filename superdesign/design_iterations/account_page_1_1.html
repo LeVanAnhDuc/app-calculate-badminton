@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+  Trang Tài khoản — Desktop.
+  Header full chiều ngang; nội dung theo lưới 5 cột của trang chính:
+  hồ sơ col-span-2 (dính khi cuộn), Tài khoản Ducker ID + Đăng xuất col-span-3.
+  Mobile (<768px) giữ nguyên account_page_1.
+-->
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tính tiền cầu lông — Tài khoản (desktop)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+</style>
+</head>
+<body class="bg-gray-100 min-h-dvh">
+
+<div class="mx-auto w-full max-w-[430px] bg-gray-50 min-h-dvh pb-[calc(2rem+env(safe-area-inset-bottom))] md:max-w-none md:bg-gray-100 md:pb-0">
+
+  <header class="bg-emerald-600 px-4 pt-8 pb-6 rounded-b-3xl md:rounded-none md:px-0 md:py-5">
+    <div class="flex items-center gap-3 md:mx-auto md:max-w-5xl md:px-6">
+      <button type="button" aria-label="Quay lại" class="h-11 w-11 shrink-0 rounded-xl bg-emerald-700 text-white flex items-center justify-center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+      </button>
+      <div>
+        <h1 class="text-xl font-bold text-white md:text-2xl">Tài khoản</h1>
+        <p class="text-sm text-emerald-100">Đăng nhập qua Ducker ID</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="-mt-2 space-y-4 px-4 md:mx-auto md:mt-0 md:grid md:max-w-5xl md:grid-cols-5 md:items-start md:gap-6 md:space-y-0 md:px-6 md:py-6">
+
+    <section class="mt-4 flex flex-col items-center rounded-2xl bg-white p-5 text-center shadow-sm md:col-span-2 md:mt-0 md:sticky md:top-6">
+      <span class="h-16 w-16 rounded-full bg-emerald-50 text-xl font-bold text-emerald-700 flex items-center justify-center">LĐ</span>
+      <h2 class="mt-3 text-lg font-bold text-gray-900">Lê Văn Anh Đức</h2>
+      <p class="mt-0.5 text-sm text-gray-500">levananhduc@ducker.vn</p>
+      <span class="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        Email đã xác thực
+      </span>
+    </section>
+
+    <div class="space-y-4 md:col-span-3">
+      <section class="rounded-2xl bg-white p-4 shadow-sm">
+        <h2 class="mb-2 text-xs font-bold uppercase text-gray-400">Tài khoản Ducker ID</h2>
+        <div class="flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <p class="text-sm text-gray-500">Mã tài khoản</p>
+            <p class="truncate font-mono text-sm text-gray-900">6705a1f3…7c9f2e</p>
+          </div>
+          <button type="button" aria-label="Sao chép mã tài khoản" class="h-11 w-11 shrink-0 rounded-xl text-gray-400 hover:bg-gray-100 flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+        <a href="#" class="mt-3 h-12 w-full rounded-xl border border-gray-300 text-sm font-semibold text-gray-700 flex items-center justify-center gap-2">
+          Quản lý tài khoản tại Ducker ID
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+        </a>
+        <p class="mt-2 text-center text-xs text-gray-400">Đổi tên, ảnh đại diện, mật khẩu ở Ducker ID</p>
+      </section>
+
+      <div class="pt-2 md:pt-0">
+        <button type="button" class="h-12 w-full rounded-xl border border-red-200 bg-white text-sm font-semibold text-red-500 hover:bg-red-50 flex items-center justify-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+          Đăng xuất
+        </button>
+        <p class="mt-2 px-2 text-center text-xs text-gray-400">Chỉ đăng xuất khỏi app này — phiên ở Ducker ID vẫn còn.<br>Dữ liệu tính tiền trên máy không bị xoá.</p>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

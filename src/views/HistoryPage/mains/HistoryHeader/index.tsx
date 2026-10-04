@@ -10,8 +10,8 @@ const HistoryHeader = ({
   thisMonth: number;
   onBack: () => void;
 }) => (
-  <header className="rounded-b-3xl bg-emerald-600 px-4 pt-8 pb-6 md:rounded-none">
-    <div className="flex items-center gap-3 md:mx-auto md:max-w-5xl">
+  <header className="rounded-b-3xl bg-emerald-600 px-4 pt-8 pb-6 md:rounded-none md:px-0 md:py-5">
+    <div className="flex items-center gap-3 md:mx-auto md:max-w-5xl md:px-6">
       <button
         type="button"
         aria-label="Quay lại"
@@ -21,7 +21,9 @@ const HistoryHeader = ({
         <ArrowLeftIcon />
       </button>
       <div>
-        <h1 className="text-xl font-bold text-white">Lịch sử các buổi</h1>
+        <h1 className="text-xl font-bold text-white md:text-2xl">
+          Lịch sử các buổi
+        </h1>
         <p className="text-sm text-emerald-100">
           {count} buổi đã lưu · tháng này: {thisMonth} buổi
         </p>

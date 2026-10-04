@@ -2,7 +2,7 @@
 import { SignOutIcon } from "@/components/Icons";
 
 const AccountSignOut = ({ onSignOut }: { onSignOut: () => void }) => (
-  <div className="pt-2">
+  <div className="pt-2 md:pt-0">
     <button
       type="button"
       onClick={onSignOut}

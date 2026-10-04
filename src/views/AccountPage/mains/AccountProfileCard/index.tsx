@@ -5,7 +5,7 @@ import AccountAvatar from "@/components/AccountAvatar";
 import { CheckIcon } from "@/components/Icons";
 
 const AccountProfileCard = ({ profile }: { profile: DuckerProfile }) => (
-  <section className="mt-4 flex flex-col items-center rounded-2xl bg-white p-5 text-center shadow-sm">
+  <section className="mt-4 flex flex-col items-center rounded-2xl bg-white p-5 text-center shadow-sm md:sticky md:top-6 md:col-span-2 md:mt-0">
     <AccountAvatar
       profile={profile}
       className="h-16 w-16 bg-emerald-50 text-xl text-emerald-700"

@@ -52,9 +52,11 @@ const RosterList = ({
   };
 
   return (
-    <main className="relative mt-3">
+    // md:pr-14 keeps the right column clear of the A–Z rail until the window
+    // is wide enough (>=1136px) for the rail to sit outside the 1024px column
+    <main className="relative mt-3 min-[1136px]:pr-6 md:mx-auto md:mt-0 md:max-w-5xl md:px-6 md:py-6 md:pr-14">
       {roster.length > 0 && (
-        <p className="pb-2 text-center text-xs text-gray-400">
+        <p className="pb-2 text-center text-xs text-gray-400 md:pb-4">
           <span className="md:hidden">💡 Vuốt trái để xóa</span>
           <span className="hidden md:inline">
             💡 Bấm nút thùng rác đỏ để xóa
@@ -74,74 +76,78 @@ const RosterList = ({
         // rename changes that name — animating mount/unmount on rename
         // would misrepresent a rename as delete+add, so rows update
         // in place instead.
-        groups.map((group) => (
-          <section
-            key={group.letter}
-            ref={(el) => {
-              sectionRefs.current[group.letter] = el;
-            }}
-          >
-            <h2 className="sticky top-0 z-10 bg-[#F2F2F7]/90 px-4 py-1 text-[13px] font-semibold tracking-wide text-gray-500 uppercase backdrop-blur-sm">
-              {group.letter}
-            </h2>
-            <ul className="mx-4 overflow-hidden rounded-xl bg-white shadow-sm">
-              {group.items.map((entry, i) => {
-                const isOpen = openSwipeName === entry.name;
-                const isLast = i === group.items.length - 1;
-                return (
-                  <li key={entry.name}>
-                    <SwipeToDelete
-                      testId={`roster-swipe-row-${entry.name}`}
-                      label={`Xóa nhanh ${entry.name}`}
-                      isOpen={isOpen}
-                      onOpenChange={(open) =>
-                        onOpenSwipeChange(open ? entry.name : null)
-                      }
-                      onDelete={() => onDelete(entry.name)}
-                      surfaceClassName={`bg-white flex items-center ${
-                        isLast
-                          ? ""
-                          : "after:absolute after:bottom-0 after:left-16 after:right-0 after:h-px after:bg-gray-200"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pr-2 pl-3 text-left"
-                        onClick={() => onEdit(entry)}
+        // from md the groups flow into two columns; a group is never split
+        <div className="md:columns-2 md:gap-6">
+          {groups.map((group) => (
+            <section
+              key={group.letter}
+              className="md:mb-4 md:break-inside-avoid"
+              ref={(el) => {
+                sectionRefs.current[group.letter] = el;
+              }}
+            >
+              <h2 className="sticky top-0 z-10 bg-[#F2F2F7]/90 px-4 py-1 text-[13px] font-semibold tracking-wide text-gray-500 uppercase backdrop-blur-sm md:static md:bg-transparent md:px-0 md:backdrop-blur-none">
+                {group.letter}
+              </h2>
+              <ul className="mx-4 overflow-hidden rounded-xl bg-white shadow-sm md:mx-0">
+                {group.items.map((entry, i) => {
+                  const isOpen = openSwipeName === entry.name;
+                  const isLast = i === group.items.length - 1;
+                  return (
+                    <li key={entry.name}>
+                      <SwipeToDelete
+                        testId={`roster-swipe-row-${entry.name}`}
+                        label={`Xóa nhanh ${entry.name}`}
+                        isOpen={isOpen}
+                        onOpenChange={(open) =>
+                          onOpenSwipeChange(open ? entry.name : null)
+                        }
+                        onDelete={() => onDelete(entry.name)}
+                        surfaceClassName={`bg-white flex items-center ${
+                          isLast
+                            ? ""
+                            : "after:absolute after:bottom-0 after:left-16 after:right-0 after:h-px after:bg-gray-200"
+                        }`}
                       >
-                        <RosterAvatar entry={entry} />
-                        <span className="truncate font-medium text-gray-900">
-                          {entry.name}
-                        </span>
-                        <span className="sr-only">
-                          {entry.gender === "male" ? "Nam" : "Nữ"}
-                        </span>
-                      </button>
-                      <div className="flex shrink-0 items-center gap-1 pr-2">
                         <button
                           type="button"
-                          aria-label={`Sửa ${entry.name}`}
-                          title="Sửa"
+                          className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pr-2 pl-3 text-left"
                           onClick={() => onEdit(entry)}
-                          className="hidden items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 md:flex md:h-10 md:w-10"
                         >
-                          <PencilIcon />
+                          <RosterAvatar entry={entry} />
+                          <span className="truncate font-medium text-gray-900">
+                            {entry.name}
+                          </span>
+                          <span className="sr-only">
+                            {entry.gender === "male" ? "Nam" : "Nữ"}
+                          </span>
                         </button>
-                        <DeleteButton
-                          label={`Xóa ${entry.name}`}
-                          onClick={() => onDelete(entry.name)}
-                        />
-                        <span className="text-gray-300 md:hidden">
-                          <ChevronIcon />
-                        </span>
-                      </div>
-                    </SwipeToDelete>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ))
+                        <div className="flex shrink-0 items-center gap-1 pr-2">
+                          <button
+                            type="button"
+                            aria-label={`Sửa ${entry.name}`}
+                            title="Sửa"
+                            onClick={() => onEdit(entry)}
+                            className="hidden items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 md:flex md:h-11 md:w-11"
+                          >
+                            <PencilIcon />
+                          </button>
+                          <DeleteButton
+                            label={`Xóa ${entry.name}`}
+                            onClick={() => onDelete(entry.name)}
+                          />
+                          <span className="text-gray-300 md:hidden">
+                            <ChevronIcon />
+                          </span>
+                        </div>
+                      </SwipeToDelete>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+        </div>
       )}
 
       {showRail && (
@@ -157,7 +163,7 @@ const RosterList = ({
           // right-1 (4px) thay vì right-0.5: 2px vừa đè lên mũi ">" của
           // hàng (danh sách có mx-4) vừa lọt vùng vuốt-để-back của Android.
           // Nền mờ để chữ không chồng lên nội dung phía dưới.
-          className="fixed top-1/2 right-1 z-20 flex -translate-y-1/2 touch-none flex-col items-center rounded-full bg-white/70 py-1 backdrop-blur-sm select-none md:right-[calc(50vw-360px)]"
+          className="fixed top-1/2 right-1 z-20 flex -translate-y-1/2 touch-none flex-col items-center rounded-full bg-white/70 py-1 backdrop-blur-sm select-none md:right-[max(0.25rem,calc(50vw-560px))]"
         >
           {letters.map((letter) => (
             <button

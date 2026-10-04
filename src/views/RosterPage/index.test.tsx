@@ -218,7 +218,14 @@ test("the A-Z rail sits clear of the card edge and gives each letter a wide touc
   const rail = screen.getByTestId("roster-index-rail");
   // right-1 (4px) chứ không right-0.5: 2px đè lên mũi ">" của hàng và lọt vùng
   // vuốt-để-back của Android
-  expect(rail).toHaveClass("right-1", "md:right-[calc(50vw-360px)]");
+  // desktop: beside the 1024px content column, never closer than 4px to the
+  // window edge; the list keeps md:pr-14 free for it until the window is wide
+  // enough for the rail to sit outside the column
+  expect(rail).toHaveClass(
+    "right-1",
+    "md:right-[max(0.25rem,calc(50vw-560px))]"
+  );
+  expect(rail.closest("main")).toHaveClass("md:pr-14", "min-[1136px]:pr-6");
   expect(rail).toHaveClass("bg-white/70", "backdrop-blur-sm", "rounded-full");
   // 44x28: cao 28 chứ không 44 vì 26 chữ cái xếp dọc không vừa màn hình
   expect(within(rail).getByRole("button", { name: "Tới nhóm T" })).toHaveClass(
