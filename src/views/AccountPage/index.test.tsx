@@ -5,6 +5,14 @@ import type { DuckerProfile } from "@/types/Auth";
 // components
 import AccountPage from ".";
 
+// The profile URL is derived from VITE_DUCKER_ISSUER at import time. CI sets no
+// issuer, so without this the link has an empty href, React drops it, and the
+// <a> stops being a link — the test would pass only on a machine with a .env.
+vi.mock("@/constants/duckerAuth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/constants/duckerAuth")>()),
+  DUCKER_PROFILE_URL: "https://id.example.test/profile"
+}));
+
 const PROFILE: DuckerProfile = {
   sub: "6705a1f3e8b2c41d9a7c9f2e",
   name: "Lê Văn Anh Đức",
