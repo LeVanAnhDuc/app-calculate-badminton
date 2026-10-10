@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { PWA_MANIFEST } from "@/constants/pwaManifest";
 
 test("start_url và scope tương đối để chạy đúng trên GitHub Pages", () => {
-  // base là '/app-calculate-badminton/' khi deploy; ghi cứng '/' sẽ khiến app
+  // base là '/web-app-calculate-badminton/' khi deploy; ghi cứng '/' sẽ khiến app
   // đã cài mở về trang chủ github.io thay vì vào app
   expect(PWA_MANIFEST.start_url).toBe(".");
   expect(PWA_MANIFEST.scope).toBe(".");

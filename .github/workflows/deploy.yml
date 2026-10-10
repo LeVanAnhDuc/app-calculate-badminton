@@ -29,7 +29,7 @@ jobs:
       - run: pnpm test
       - run: pnpm build
         env:
-          VITE_BASE_PATH: /app-calculate-badminton/
+          VITE_BASE_PATH: /web-app-calculate-badminton/
           # Repository variables (Settings → Secrets and variables → Actions →
           # Variables). Unset → the sign-in button stays hidden in prod.
           VITE_DUCKER_ISSUER: ${{ vars.VITE_DUCKER_ISSUER }}
