@@ -4,7 +4,7 @@ import type { ManifestOptions } from "vite-plugin-pwa";
 /**
  * Tách khỏi vite.config.ts để test đọc được đúng giá trị đang dùng thật.
  * MỌI đường dẫn phải tương đối — app chạy ở '/' khi dev nhưng ở
- * '/app-calculate-badminton/' trên GitHub Pages.
+ * '/web-app-calculate-badminton/' trên GitHub Pages.
  */
 export const PWA_MANIFEST: Partial<ManifestOptions> = {
   name: "Tính tiền cầu lông",

@@ -1,4 +1,4 @@
-// GitHub Pages không có SPA fallback: mở thẳng /app-calculate-badminton/history
+// GitHub Pages không có SPA fallback: mở thẳng /web-app-calculate-badminton/history
 // (link chia sẻ, F5, lần đầu khi service worker chưa cài) sẽ ra 404 vì không có
 // file nào ở đó. Pages phục vụ 404.html cho mọi đường dẫn không tồn tại, nên một
 // bản sao của index.html ở đó cho React Router nhận URL và render đúng trang.
